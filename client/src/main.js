@@ -7,10 +7,10 @@ import router from './router'
 import 'onsenui/css/onsenui.css'
 import 'onsenui/css/onsen-css-components.css'
 import VueOnsen from 'vue-onsenui'
-// import SolclientjsPlugin from './plugins/solclientjsPlugin'
+import SolclientjsPlugin from './plugins/solclientjsPlugin'
 
 Vue.config.productionTip = false;
-// Vue.use(SolclientjsPlugin);
+Vue.use(SolclientjsPlugin);
 Vue.use(VueOnsen);
 
 /* eslint-disable no-new */

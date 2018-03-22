@@ -5,16 +5,16 @@
  *   SOLACE CORPORATION MESSAGING API FOR JAVASCRIPT
  *   SolclientJS
  * ==============================================================================
- * Copyright 2009-2017 Solace Corporation. All rights reserved.  
- * 
+ * Copyright 2009-2017 Solace Corporation. All rights reserved.
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to use and
  * copy the Software, and to permit persons to whom the Software is furnished to
  * do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in all
  * copies or substantial portions of the Software.
- * 
+ *
  * UNLESS STATED ELSEWHERE BETWEEN YOU AND SOLACE CORPORATION., THE SOFTWARE IS
  * PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING
  * BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
@@ -22,7 +22,7 @@
  * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
  * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- * 
+ *
  * http://www.Solace.com
  * ------------------------------------------------------------------------------
  *
@@ -25087,7 +25087,7 @@ var DecodeError = (function (Error) {
   DecodeError.prototype = Object.create( Error && Error.prototype );
   DecodeError.prototype.constructor = DecodeError;
 
-  
+
 
   return DecodeError;
 }(Error));
@@ -27617,7 +27617,7 @@ var FsmEvent = (function (FsmObject) {
 	FsmEvent.prototype = Object.create( FsmObject && FsmObject.prototype );
 	FsmEvent.prototype.constructor = FsmEvent;
 
-	
+
 
 	return FsmEvent;
 }(FsmObject));
@@ -31100,7 +31100,7 @@ var PublisherFSM = (function (StateMachine) {
     // Update the messgeIds, lastSend/next values only on a successful send or enqueue,
     // from this point on we will return OK from this send method.
     this._messageIds.setLastSent(dupMsg.getGuaranteedMessageId());
-    /* #stripped LOG_TRACE(`Prepare and send AD message ID = ${dataMsg.getGuaranteedMessageId()}, 
+    /* #stripped LOG_TRACE(`Prepare and send AD message ID = ${dataMsg.getGuaranteedMessageId()},
       unackedListSize = ${unackedList.length}, sendWindow = ${this._sendWindow}`) */
 
     // Note that the transport sender can be flow controlled at the transport
@@ -47054,7 +47054,7 @@ module.exports = function isBuffer(arg) {
 
 function propertySpec(value, spec) {
   return Object.assign(
-    { value: value }, 
+    { value: value },
     spec.indexOf('c') >= 0 ? { configurable: true } : {},
     spec.indexOf('e') >= 0 ? { enumerable: true }   : {},
     spec.indexOf('w') >= 0 ? { writable: true }     : {}
@@ -47597,7 +47597,7 @@ Object.defineProperty(solace.Version, 'propertyIsEnumerable', propertySpec(solac
 // solace.makeIterator
 // --------------------------
 solace['makeIterator'] = solace.makeIterator;
-  
+
 window['solace'] = window['solace'] || {};
 Object.assign(window['solace'], solace);
 module.exports = {loaded: true};
@@ -47609,3 +47609,4 @@ module.exports = {loaded: true};
 /***/ })
 /******/ ]);
 //# sourceMappingURL=solclient-full.js.map
+export default window.solace;

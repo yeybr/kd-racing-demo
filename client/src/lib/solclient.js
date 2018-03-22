@@ -5,7 +5,7 @@
    SOLACE CORPORATION MESSAGING API FOR JAVASCRIPT
    SolclientJS
  ==============================================================================
- Copyright 2009-2017 Solace Corporation. All rights reserved.  
+ Copyright 2009-2017 Solace Corporation. All rights reserved.
 
  Permission is hereby granted, free of charge, to any person obtaining a copy of
  this software and associated documentation files (the "Software"), to use and
@@ -859,3 +859,4 @@ Object.defineProperty(c.Ua,"nameOf",e(c.Ua.P)),c.Topic=c.Topic,Object.defineProp
 c.TransportError=c.Dd,Object.defineProperty(c.Dd.prototype,"message",e("")),c.TransportProtocol=c.Ca,c.Ca.U({HTTP_BASE64:"HTTP_BASE64",HTTP_BINARY:"HTTP_BINARY",HTTP_BINARY_STREAMING:"HTTP_BINARY_STREAMING",WS_BINARY:"WS_BINARY"},!0),Object.defineProperty(c.Ca,"describe",e(c.Ca.g)),Object.defineProperty(c.Ca,"nameOf",e(c.Ca.P)),c.Version=c.Version,Object.defineProperty(c.Version,"hasOwnProperty",e(c.Version.hasOwnProperty)),Object.defineProperty(c.Version,"toLocaleString",e(c.Version.toLocaleString)),
 Object.defineProperty(c.Version,"valueOf",e(c.Version.valueOf)),Object.defineProperty(c.Version,"isPrototypeOf",e(c.Version.isPrototypeOf)),Object.defineProperty(c.Version,"propertyIsEnumerable",e(c.Version.propertyIsEnumerable)),c.makeIterator=c.Wg,window.solace=window.solace||{},Object.assign(window.solace,c),d.exports={loaded:!0}}catch(g){console.error(g.stack)}}]);
 //# sourceMappingURL=solclient.js.map
+export default window.solace;
