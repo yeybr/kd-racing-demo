@@ -7,10 +7,34 @@
 <script>
 export default {
   name: 'scoreboard',
+  // lifecycle callbacks
+  created() {
+    console.log('scoreboard created');
+  },
+  mounted() {
+    console.log('scoreboard mounted');
+  },
+  beforeUpdate() {
+    // add customized jquery code before dom is re-render and patch when data changes
+    console.log('scoreboard beforeUpdate');
+  },
+  updated() {
+    console.log('scoreboard updated');
+  },
+  destroyed() {
+    // clean up any network resource, such as close websocket connection
+    console.log('scoreboard destroyed');
+  },
+
+  // Underlying model
   data() {
     return {
       msg: 'Trouble Flipper Scoreboard'
     }
+  },
+
+  // any actions
+  methods: {
   }
 }
 </script>

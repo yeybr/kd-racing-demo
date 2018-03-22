@@ -17,6 +17,26 @@
 <script>
 export default {
   name: "game",
+  // lifecycle callbacks
+  created() {
+    console.log('game created');
+  },
+  mounted() {
+    console.log('game mounted');
+  },
+  beforeUpdate() {
+    // add customized jquery code before dom is re-render and patch when data changes
+    console.log('game beforeUpdate');
+  },
+  updated() {
+    console.log('game updated');
+  },
+  destroyed() {
+    // clean up any network resource, such as close websocket connection
+    console.log('game destroyed');
+  },
+
+  // Underlying model
   data() {
     return {
       msg: "Trouble Flipper",
@@ -39,6 +59,10 @@ export default {
         }
       }
     };
+  },
+
+  // any actions
+  methods: {
   }
 };
 </script>
