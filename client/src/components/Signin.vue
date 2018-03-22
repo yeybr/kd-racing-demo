@@ -46,27 +46,27 @@ export default {
   name: "signin",
   // lifecycle callbacks
   created() {
-    console.log('signin created');
+    console.log('signin created: data bind');
   },
-  mounted() {
-    console.log('signin mounted');
-  },
-  beforeUpdate() {
-    // add customized jquery code before dom is re-render and patch when data changes
-    console.log('signin beforeUpdate');
-  },
-  updated() {
-    console.log('signin updated');
-  },
+  // mounted() {
+  //   console.log('signin mounted: dom element inserted');
+  // },
+  // beforeUpdate() {
+  //   // add any customized code before DOM is re-render and patched based changes in data
+  //   console.log('signin beforeUpdate: data is changed, about to rerender dom');
+  // },
+  // updated() {
+  //   console.log('signin updated: dom is rerendered');
+  // },
   destroyed() {
-    // clean up any network resource, such as close websocket connection
-    console.log('signin destroyed');
+    // clean up any resource, such as close websocket connection, remove subscription
+    console.log('signin destroyed: dom removed');
   },
 
   // Underlying model
   data() {
     return {
-      msg: "Welcome to join Trouble Flipper game!",
+      msg: "Welcome to join Trouble Flipper!",
       user_type_list: [
         { text: "Player", value: "player" },
         { text: "Spectator", value: "spectator" },
