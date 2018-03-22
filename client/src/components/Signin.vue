@@ -44,10 +44,26 @@
 <script>
 export default {
   name: "signin",
-  create() {
+  // lifecycle callbacks
+  created() {
+    console.log('signin created');
+  },
+  mounted() {
+    console.log('signin mounted');
+  },
+  beforeUpdate() {
+    // add customized jquery code before dom is re-render and patch when data changes
+    console.log('signin beforeUpdate');
+  },
+  updated() {
+    console.log('signin updated');
   },
   destroyed() {
+    // clean up any network resource, such as close websocket connection
+    console.log('signin destroyed');
   },
+
+  // Underlying model
   data() {
     return {
       msg: "Welcome to join Trouble Flipper game!",
@@ -61,6 +77,8 @@ export default {
       usertype: "player"
     };
   },
+
+  // any actions
   methods: {
     signon: function(event) {
       console.log(this.username + ", " + this.password + ", " + this.usertype);
