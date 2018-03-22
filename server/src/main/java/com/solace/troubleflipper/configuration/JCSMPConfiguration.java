@@ -9,11 +9,8 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class JCSMPConfiguration {
 
-    @Autowired
-    private SolaceCloudProperties solaceCloudProperties;
-
     @Bean
-    public JCSMPSession getJCSMPConnector() throws JCSMPException {
+    public JCSMPSession getJCSMPConnector(SolaceCloudProperties solaceCloudProperties) throws JCSMPException {
         JCSMPProperties props = new JCSMPProperties();
         props.setProperty(JCSMPProperties.VPN_NAME, solaceCloudProperties.getVpn());
         props.setProperty(JCSMPProperties.USERNAME, solaceCloudProperties.getUsername());
@@ -30,7 +27,6 @@ public class JCSMPConfiguration {
         cp.setReconnectRetries(12000); // 1 hr for 0.5 sec timeout
         cp.setConnectRetries(1000);
         cp.setReconnectRetryWaitInMillis(500);
-        cp.setCompressionLevel(9);
 
         JCSMPSession session = JCSMPFactory.onlyInstance().createSession(props);
 

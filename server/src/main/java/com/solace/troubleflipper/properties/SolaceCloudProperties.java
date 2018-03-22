@@ -1,8 +1,10 @@
 package com.solace.troubleflipper.properties;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.stereotype.Component;
 
-@ConfigurationProperties
+@ConfigurationProperties("solace.cloud")
+@Component
 public class SolaceCloudProperties {
     private String vpn;
     private String username;
