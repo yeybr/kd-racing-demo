@@ -11,7 +11,7 @@ export default {
   created() {
     console.log('scoreboard created: data bind');
     this.masterMessenger = new GameMaster(this.$solace, this.$parent.appProps, this.handleMsg, this.handleStateChange);
-    this.masterMessenger.join();
+    this.masterMessenger.connect();
   },
   // mounted() {
   //   console.log('scoreboard mounted: dom element inserted');
@@ -27,7 +27,7 @@ export default {
     // clean up any resource, such as close websocket connection, remove subscription
     console.log('scoreboard destroyed: dom removed');
     if (this.masterMessenger) {
-      this.masterMessenger.leave();
+      this.masterMessenger.disconnect();
       this.masterMessenger = null;
     }
   },

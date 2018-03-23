@@ -25,7 +25,7 @@ export default {
     // including the solace API. We don't want solace API's data structure to be injected with Observer stuff,
     // it causes SolaceClientFactory.init() to fail
     this.playerMessenger = new Player(this.$solace, this.$parent.appProps, this.handleMsg, this.handleStateChange);
-    this.playerMessenger.join();
+    this.playerMessenger.connect();
   },
   // mounted() {
   //   console.log('game mounted: dom element inserted');
@@ -41,7 +41,7 @@ export default {
     // clean up any resource, such as close websocket connection, remove subscription
     console.log('game destroyed: dom removed');
     if (this.playerMessenger) {
-      this.playerMessenger.leave();
+      this.playerMessenger.disconnect();
       this.playerMessenger = null;
     }
   },

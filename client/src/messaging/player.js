@@ -10,7 +10,7 @@ export class Player {
     this.session = null;
   }
 
-  join() {
+  connect() {
     // create session, publisher, subscriber
     try {
       if (!this.session) {
@@ -37,7 +37,7 @@ export class Player {
     }
   }
 
-  leave() {
+  disconnect() {
     // session disconnect
     console.log("Disconect");
     try {

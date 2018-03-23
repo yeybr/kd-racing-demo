@@ -10,7 +10,7 @@ export class GameMaster {
     this.session = null;
   }
 
-  join() {
+  connect() {
     // create session, publisher, subscriber
     // handle session events, messages
     try {
@@ -31,14 +31,14 @@ export class GameMaster {
         this.session.connect();
       }
     } catch (e) {
-      console.log('Join fails', e);
+      console.log('Connect fails', e);
       if (this.session) {
         this.leave();
       }
     }
   }
 
-  leave() {
+  disconnect() {
     // session disconnect
     console.log("Disconect");
     try {
@@ -47,7 +47,7 @@ export class GameMaster {
         this.session = null;
       }
     } catch (e) {
-      console.log('Leave fails', e);
+      console.log('Disconnect fails', e);
     }
   }
 
