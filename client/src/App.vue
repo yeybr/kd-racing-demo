@@ -46,13 +46,12 @@ export default {
 #app {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  text-align: center;
   color: #2c3e50;
   margin-top: 60px;
   font-family: Bangers;
 }
 
-.page__background {
+body {
     background-image: url("assets/background.png");
     background-size: cover;
 }

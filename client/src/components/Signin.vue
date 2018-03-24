@@ -1,44 +1,15 @@
 <template>
-  <v-ons-page id="signon">
     <!-- <img width="280" height="80" src="../assets/logo_wegrow.png"> -->
-
-    <!-- Toolbar -->
-    <v-ons-toolbar>
-      <div class="center">Sign On</div>
-    </v-ons-toolbar>
-
+  <div id="signon">
     <!-- Username -->
-    <p>
-      <v-ons-input v-model="username" modifier="underbar" placeholder="Username" float></v-ons-input>
-    </p>
-
-    <!-- Password -->
-    <p>
-      <v-ons-input v-model="password" type="password" modifier="underbar" placeholder="Password" float></v-ons-input>
-    </p>
-
-    <v-ons-list>
-      <v-ons-list-item v-for="item in user_type_list" :key="item.value" :value="item.value" tappable>
-        <label class="left">
-          <v-ons-radio
-            :input-id="'radio-' + item.value"
-            :value="item.value"
-            v-model="usertype">
-          </v-ons-radio>
-        </label>
-        <label :for="'radio-' + item.value" class="center">
-          {{ item.text }}
-        </label>
-      </v-ons-list-item>
-    </v-ons-list>
+    <label class="center">Enter your gamer tag</label>
 
     <!-- submit button -->
-    <p style="text-align: center">
-      <v-ons-button @click="signon()" style="margin: 6px 0">
-        Sign On
-      </v-ons-button>
-    </p>
-  </v-ons-page>
+    <div class="form-group">
+      <label for="usr">Name:</label>
+      <input type="text" class="form-control" id="usr">
+    </div>
+  </div>
 </template>
 
 <script>
@@ -121,8 +92,28 @@ li {
 a {
   color: #1dacfc;
 }
-.page__background {
-    background-image: url("../assets/background.png");
-    background-size: cover;
+#signon {
+}
+label {
+  font-size: 36px;
+}
+.page__content {
+  padding-top: 200px !important;
+}
+ul {
+  display: block;
+}
+ul li {
+  display: block;
+  padding: 10px;
+}
+
+.center {
+  text-align: center;
+  width: 100%;
+}
+
+.form-group {
+  margin: 0 40px;
 }
 </style>
