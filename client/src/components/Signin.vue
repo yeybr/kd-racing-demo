@@ -1,12 +1,10 @@
 <template>
     <!-- <img width="280" height="80" src="../assets/logo_wegrow.png"> -->
   <div id="signon">
-    <!-- Username -->
-    <label class="center">Enter your gamer tag</label>
 
     <!-- submit button -->
     <div class="form-group">
-      <label for="usr">Name:</label>
+      <label for="usr">Enter your gamer tag</label>
       <input type="text" class="form-control" id="usr">
     </div>
   </div>
@@ -93,27 +91,31 @@ a {
   color: #1dacfc;
 }
 #signon {
+  height: 100%;
+  flex: 1;
+  align-self: stretch;
+  display: flex;
+  flex-direction: column;
+  position: relative;
 }
 label {
   font-size: 36px;
 }
-.page__content {
-  padding-top: 200px !important;
-}
-ul {
-  display: block;
-}
-ul li {
-  display: block;
-  padding: 10px;
-}
-
 .center {
   text-align: center;
   width: 100%;
 }
 
 .form-group {
+  position: absolute;
+  top: 30%;
   margin: 0 40px;
+}
+
+input {
+  font-size: 32px;
+  font-family: Roboto;
+  text-align: center;
+  margin-top: 20px;
 }
 </style>

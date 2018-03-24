@@ -30,12 +30,14 @@ export default {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   color: #2c3e50;
-  margin-top: 60px;
   font-family: Bangers;
+  flex: 1;
+  display: flex;
 }
 
 body {
     background-image: url("assets/background.png");
     background-size: cover;
+    display: flex;
 }
 </style>
