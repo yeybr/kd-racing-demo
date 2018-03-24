@@ -121,4 +121,8 @@ li {
 a {
   color: #1dacfc;
 }
+.page__background {
+    background-image: url("../assets/background.png");
+    background-size: cover;
+}
 </style>
