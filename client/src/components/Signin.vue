@@ -2,11 +2,13 @@
     <!-- <img width="280" height="80" src="../assets/logo_wegrow.png"> -->
   <div id="signon">
 
+    <img class="mario" src="../assets/mario.png"/>
     <!-- submit button -->
     <div class="form-group">
       <label for="usr">Enter your gamer tag</label>
       <input type="text" class="form-control" id="usr">
     </div>
+    <button type="button" class="go-btn btn">Go!</button>
   </div>
 </template>
 
@@ -96,7 +98,7 @@ a {
   align-self: stretch;
   display: flex;
   flex-direction: column;
-  position: relative;
+  align-items: center;
 }
 label {
   font-size: 36px;
@@ -107,8 +109,6 @@ label {
 }
 
 .form-group {
-  position: absolute;
-  top: 30%;
   margin: 0 40px;
 }
 
@@ -116,6 +116,22 @@ input {
   font-size: 32px;
   font-family: Roboto;
   text-align: center;
-  margin-top: 20px;
+}
+
+.mario {
+  width: 200px;
+  padding: 40px 0;
+}
+
+.go-btn {
+  font-size: 32px;
+  margin-bottom: 80px;
+  background: #006fea;
+  border-radius: 4px;
+  padding: 10px;
+  margin: 40px 0;
+  color: white;
+  width: 100px;
+  cursor: pointer;
 }
 </style>
