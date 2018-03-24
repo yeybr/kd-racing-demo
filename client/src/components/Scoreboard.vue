@@ -5,25 +5,31 @@
 </template>
 
 <script>
+import { GameMaster } from '@/messaging/game-master'
 export default {
   name: 'scoreboard',
-  // lifecycle callbacks
   created() {
-    console.log('scoreboard created');
+    console.log('scoreboard created: data bind');
+    this.masterMessenger = new GameMaster(this.$solace, this.$parent.appProps, this.handleMsg, this.handleStateChange);
+    this.masterMessenger.connect();
   },
-  mounted() {
-    console.log('scoreboard mounted');
-  },
-  beforeUpdate() {
-    // add customized jquery code before dom is re-render and patch when data changes
-    console.log('scoreboard beforeUpdate');
-  },
-  updated() {
-    console.log('scoreboard updated');
-  },
+  // mounted() {
+  //   console.log('scoreboard mounted: dom element inserted');
+  // },
+  // beforeUpdate() {
+  //   // add any customized code before DOM is re-render and patched based changes in data
+  //   console.log('scoreboard beforeUpdate: data is changed, about to rerender dom');
+  // },
+  // updated() {
+  //   console.log('scoreboard updated: dom is rerendered');
+  // },
   destroyed() {
-    // clean up any network resource, such as close websocket connection
-    console.log('scoreboard destroyed');
+    // clean up any resource, such as close websocket connection, remove subscription
+    console.log('scoreboard destroyed: dom removed');
+    if (this.masterMessenger) {
+      this.masterMessenger.disconnect();
+      this.masterMessenger = null;
+    }
   },
 
   // Underlying model
@@ -35,6 +41,12 @@ export default {
 
   // any actions
   methods: {
+    handleMsg: function(msg) {
+      console.log(msg);
+    },
+    handleStateChange: function(state) {
+      console.log(state);
+    }
   }
 }
 </script>

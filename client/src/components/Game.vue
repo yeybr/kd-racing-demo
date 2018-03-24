@@ -15,25 +15,35 @@
 </template>
 
 <script>
+import { Player } from '@/messaging/player'
 export default {
   name: "game",
   // lifecycle callbacks
   created() {
-    console.log('game created');
+    console.log('game created: data bind');
+    // DO NOT initialize playerMessenger in data() function; otherwise all its memebers will become reactive
+    // including the solace API. We don't want solace API's data structure to be injected with Observer stuff,
+    // it causes SolaceClientFactory.init() to fail
+    this.playerMessenger = new Player(this.$solace, this.$parent.appProps, this.handleMsg, this.handleStateChange);
+    this.playerMessenger.connect();
   },
-  mounted() {
-    console.log('game mounted');
-  },
-  beforeUpdate() {
-    // add customized jquery code before dom is re-render and patch when data changes
-    console.log('game beforeUpdate');
-  },
-  updated() {
-    console.log('game updated');
-  },
+  // mounted() {
+  //   console.log('game mounted: dom element inserted');
+  // },
+  // beforeUpdate() {
+  //   // add any customized code before DOM is re-render and patched based changes in data
+  //   console.log('game beforeUpdate: data is changed, about to rerender dom');
+  // },
+  // updated() {
+  //   console.log('game updated: dom is rerendered');
+  // },
   destroyed() {
-    // clean up any network resource, such as close websocket connection
-    console.log('game destroyed');
+    // clean up any resource, such as close websocket connection, remove subscription
+    console.log('game destroyed: dom removed');
+    if (this.playerMessenger) {
+      this.playerMessenger.disconnect();
+      this.playerMessenger = null;
+    }
   },
 
   // Underlying model
@@ -63,6 +73,12 @@ export default {
 
   // any actions
   methods: {
+    handleMsg: function(msg) {
+      console.log(msg);
+    },
+    handleStateChange: function(state) {
+      console.log(state);
+    }
   }
 };
 </script>
