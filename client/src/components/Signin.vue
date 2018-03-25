@@ -1,14 +1,12 @@
 <template>
-    <!-- <img width="280" height="80" src="../assets/logo_wegrow.png"> -->
   <div id="signon">
-
     <img class="mario" src="../assets/mario.png"/>
     <!-- submit button -->
     <div class="form-group">
       <label for="usr">Enter your gamer tag</label>
-      <input type="text" class="form-control" id="usr">
+      <input type="text" class="form-control" id="usr" v-model="username">
     </div>
-    <button type="button" class="go-btn btn">Go!</button>
+    <button type="button" class="go-btn btn" @click="signon()">Go!</button>
   </div>
 </template>
 
