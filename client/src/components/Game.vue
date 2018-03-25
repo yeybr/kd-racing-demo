@@ -33,6 +33,9 @@
       <div v-for="(piece, i) in puzzle" @click="select" :index="piece.index" :key="piece.index" class="spot" :class="{selected: piece.selected}">
         <img :src="puzzlePicture" :index="i" v-bind:style="piece.style"/>
       </div>
+      <div v-if="gameInfo.win" id="win">
+        Winner!
+      </div>
     </div>
   </div>
 </template>
@@ -91,7 +94,7 @@ export default {
     this.shuffle(pieces);
     console.log("shuffle");
 
-    let random = this.getRandomInt(2) + 1;
+    let random = this.getRandomInt(4) + 1;
     let puzzlePicture = `static/puzzle${random}.png`;
     console.log(puzzlePicture);
     return {
@@ -105,6 +108,7 @@ export default {
         name: "Mario & Yoshi",
         teamId: '',
         teamName: '',
+        win: false,
         players: [
         ],
         stats: {
@@ -207,6 +211,15 @@ export default {
       this.puzzle[bIndex] = temp;
       a.selected = false;
       b.selected = false;
+      this.checkWinCondition();
+    },
+    checkWinCondition: function() {
+      this.gameInfo.win = this.puzzle.reduce((result, piece, i) => {
+        return result && piece.index == i;
+      }, true);
+      if (this.gameInfo.win) {
+        console.log("WINNER!");
+      }
     }
   }
 };
@@ -284,6 +297,22 @@ a {
 
 .spot.selected {
   border: solid 1px red;
+}
+
+#win {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  color: blue;
+  font-size: 100px;
+  vertical-align: middle;
+  text-align: center;
+  height: 100%;
+  line-height: 100%;
+  padding: 40% 0;
+  background: rgba(0, 0, 0, 0.2);
 }
 
 </style>
