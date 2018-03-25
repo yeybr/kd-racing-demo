@@ -30,33 +30,9 @@
       Game Board
     </div>
     <div id="puzzle">
-        <div class="spot spot-1">
-          <img src="../assets/puzzle.png" style="width: 400px;"/>
-        </div>
-        <div class="spot spot-2">
-          <img src="../assets/puzzle.png" style="width: 400px; margin-left: -32vw"/>
-        </div>
-        <div class="spot spot-3">
-          <img src="../assets/puzzle.png" style="width: 400px; margin-left: -64vw"/>
-        </div>
-        <div class="spot spot-4">
-          <img src="../assets/puzzle.png" style="width: 400px; margin-top: -32vw"/>
-        </div>
-        <div class="spot spot-5">
-          <img src="../assets/puzzle.png" style="width: 400px; margin-top: -32vw; margin-left: -32vw;"/>
-        </div>
-        <div class="spot spot-6">
-          <img src="../assets/puzzle.png" style="width: 400px; margin-top: -32vw; margin-left: -64vw;"/>
-        </div>
-        <div class="spot spot-7">
-          <img src="../assets/puzzle.png" style="width: 400px; margin-top: -64vw"/>
-        </div>
-        <div class="spot spot-8">
-          <img src="../assets/puzzle.png" style="width: 400px; margin-top: -64vw; margin-left: -32vw;"/>
-        </div>
-        <div class="spot spot-9">
-          <img src="../assets/puzzle.png" style="width: 400px; margin-top: -64vw; margin-left: -64vw;"/>
-        </div>
+      <div v-for="piece in puzzle" :key="piece.index" class="spot">
+        <img src="../assets/puzzle.png" v-bind:style="piece.style"/>
+      </div>
     </div>
     <div class="hidden-image">
       <img src="../assets/puzzle.png"/>
@@ -107,6 +83,18 @@ export default {
 
   // Underlying model
   data() {
+    var pieces = [];
+    for (var i = 0; i < 9; ++i) {
+      pieces.push({
+        index: i,
+        width: "400px",
+        test: "kevin",
+        style: `width: 400px; margin-left: ${i % 3 * -32}vw; margin-top: ${Math.floor(i / 3) * -32}vw;`
+      });
+    }
+    console.log("pieces done");
+    this.shuffle(pieces);
+    console.log("shuffle");
     return {
       msg: 'Trouble Flipper',
       state: 'connecting',
@@ -127,7 +115,8 @@ export default {
           totalMoves: 0,
           correctMoves: 0
         }
-      }
+      },
+      puzzle: pieces
     };
   },
 
@@ -171,6 +160,24 @@ export default {
     handleStateChange: function(msg) {
       console.log('state change', msg);
       this.state = msg.state;
+    },
+    shuffle: function(array) {
+      var currentIndex = array.length, temporaryValue, randomIndex;
+
+      // While there remain elements to shuffle...
+      while (0 !== currentIndex) {
+
+        // Pick a remaining element...
+        randomIndex = Math.floor(Math.random() * currentIndex);
+        currentIndex -= 1;
+
+        // And swap it with the current element.
+        temporaryValue = array[currentIndex];
+        array[currentIndex] = array[randomIndex];
+        array[randomIndex] = temporaryValue;
+      }
+
+      return array;
     }
   }
 };
@@ -227,6 +234,8 @@ a {
   bottom: 0;
   width: 100%;
   height:60%;
+  text-align: center;
+  border: solid 1px grey;
 }
 .hidden-image {
   position: fixed;
@@ -239,7 +248,9 @@ a {
   display: inline-block;
   width: calc(32vw);
   height: calc(32vw);
-  overflow:hidden;
+  overflow: hidden;
+  vertical-align: top;
+  border: solid 1px grey;
 }
 
 </style>
