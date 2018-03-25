@@ -27,7 +27,7 @@
       </template>
     </div>
     <div id="puzzle-area">
-      <div id="puzzle">
+      <div id="puzzle" :style="puzzleStyle">
         <div v-for="(piece, i) in puzzle" @click="select" :index="piece.index" :key="piece.index" class="spot" :class="{selected: piece.selected}" :style="holderStyle">
           <img :src="puzzlePicture" :index="i" v-bind:style="piece.style"/>
         </div>
@@ -82,16 +82,21 @@ export default {
     var size = this.getRandomInt(3) + 3;
     var splits = Math.floor(99 / size);
     var pieces = [];
+    var square = 412;
+    if (window.innerWidth < square) {
+      square = window.innerWidth;
+    }
     for (var i = 0; i < size * size; ++i) {
       var movePercent = splits / 100;
-      var unit = 412 * movePercent;
+      var unit = square * movePercent;
       pieces.push({
         index: i,
-        style: `width: 412px; margin-left: -${unit * (i % size)}px; margin-top: -${unit * Math.floor(i / size)}px;`,
+        style: `width: ${square}px; margin-left: -${unit * (i % size)}px; margin-top: -${unit * Math.floor(i / size)}px;`,
         selected: false
       });
     }
     var holderStyle = `width: ${unit}px; height: ${unit}px;`;
+    var puzzleStyle = `width: ${square}px; height: ${square}px;`;
     console.log("pieces done");
     this.shuffle(pieces);
     console.log("shuffle");
@@ -102,6 +107,7 @@ export default {
     return {
       size: size,
       holderStyle: holderStyle,
+      puzzleStyle: puzzleStyle,
       puzzlePicture: puzzlePicture,
       msg: 'Trouble Flipper',
       state: 'connecting',
@@ -277,12 +283,11 @@ a {
 #puzzle-area {
   flex: 1;
   position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 #puzzle {
-  position: absolute;
-  bottom: 0;
-  width: 412px;
-  height: 412px;
   border: solid 1px grey;
 }
 .hidden-image {
@@ -297,7 +302,7 @@ a {
   overflow: hidden;
   vertical-align: top;
   border: solid 1px grey;
-  box-sizing: content-box;
+  box-sizing: border-box;
 }
 
 .spot.selected {
