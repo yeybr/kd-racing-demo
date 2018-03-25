@@ -30,12 +30,9 @@
       Game Board
     </div>
     <div id="puzzle">
-      <div v-for="piece in puzzle" :key="piece.index" class="spot">
-        <img src="../assets/puzzle.png" v-bind:style="piece.style"/>
+      <div v-for="(piece, i) in puzzle" @click="select" :index="piece.index" :key="piece.index" class="spot" :class="{selected: piece.selected}">
+        <img :src="puzzlePicture" :index="i" v-bind:style="piece.style"/>
       </div>
-    </div>
-    <div class="hidden-image">
-      <img src="../assets/puzzle.png"/>
     </div>
   </div>
 </template>
@@ -61,9 +58,6 @@ export default {
     }
   },
   mounted() {
-    var puzzle = new Image;
-    puzzle.src = "../assets/puzzle.png";
-    console.log(puzzle);
   },
   // beforeUpdate() {
   //   // add any customized code before DOM is re-render and patched based changes in data
@@ -89,20 +83,26 @@ export default {
         index: i,
         width: "400px",
         test: "kevin",
-        style: `width: 400px; margin-left: ${i % 3 * -32}vw; margin-top: ${Math.floor(i / 3) * -32}vw;`
+        style: `width: 400px; margin-left: ${i % 3 * -32}vw; margin-top: ${Math.floor(i / 3) * -32}vw;`,
+        selected: false
       });
     }
     console.log("pieces done");
     this.shuffle(pieces);
     console.log("shuffle");
+
+    let random = this.getRandomInt(2) + 1;
+    let puzzlePicture = `static/puzzle${random}.png`;
+    console.log(puzzlePicture);
     return {
+      puzzlePicture: puzzlePicture,
       msg: 'Trouble Flipper',
       state: 'connecting',
       userId: '',
       userName: this.$route.query.username,
       gameInfo: {
         id: "1",
-        name: "Yoshi",
+        name: "Mario & Yoshi",
         teamId: '',
         teamName: '',
         players: [
@@ -116,12 +116,16 @@ export default {
           correctMoves: 0
         }
       },
-      puzzle: pieces
+      puzzle: pieces,
+      selected: null
     };
   },
 
   // any actions
   methods: {
+    getRandomInt: function(max) {
+      return Math.floor(Math.random() * Math.floor(max));
+    },
     handleMsg: function(msg) {
       console.log(msg, this);
       if (msg.state) {
@@ -178,6 +182,31 @@ export default {
       }
 
       return array;
+    },
+    select: function(e) {
+      let isAlreadySelected = this.puzzle.find(p => {
+        return p.selected;
+      });
+      let index = e.target.attributes.index.value;
+      this.selected = this.puzzle[index];
+      this.selected.selected = true;
+      if (isAlreadySelected) {
+        this.swap(isAlreadySelected, this.selected);
+      }
+    },
+    swap: function(a, b) {
+      console.log(a.index, b.index);
+      let aIndex = this.puzzle.findIndex(p => {
+        return p.index == a.index;
+      });
+      let bIndex = this.puzzle.findIndex(p => {
+        return p.index == b.index;
+      });
+      var temp = this.puzzle[aIndex];
+      this.puzzle[aIndex] = this.puzzle[bIndex];
+      this.puzzle[bIndex] = temp;
+      a.selected = false;
+      b.selected = false;
     }
   }
 };
@@ -251,6 +280,10 @@ a {
   overflow: hidden;
   vertical-align: top;
   border: solid 1px grey;
+}
+
+.spot.selected {
+  border: solid 1px red;
 }
 
 </style>
