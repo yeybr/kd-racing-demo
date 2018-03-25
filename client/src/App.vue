@@ -33,11 +33,12 @@ export default {
   font-family: Bangers;
   flex: 1;
   display: flex;
+  overflow-y: auto;
 }
 
 body {
-    background-image: url("assets/background.png");
-    background-size: cover;
-    display: flex;
+  background-image: url("assets/background.png");
+  background-size: cover;
+  display: flex;
 }
 </style>

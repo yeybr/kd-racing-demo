@@ -1,14 +1,12 @@
 <template>
-    <!-- <img width="280" height="80" src="../assets/logo_wegrow.png"> -->
   <div id="signon">
-
     <img class="mario" src="../assets/mario.png"/>
     <!-- submit button -->
     <div class="form-group">
       <label for="usr">Enter your gamer tag</label>
       <input type="text" class="form-control" id="usr" v-model="username">
     </div>
-    <button type="button" v-on:click="signon" class="go-btn btn">Go!</button>
+    <button type="button" class="go-btn btn" @click="signon()">Go!</button>
   </div>
 </template>
 
@@ -17,7 +15,7 @@ export default {
   name: "signin",
   // lifecycle callbacks
   created() {
-    console.log('signin created: data bind');
+    // instance created and data bound
   },
   // mounted() {
   //   console.log('signin mounted: dom element inserted');
@@ -31,7 +29,6 @@ export default {
   // },
   destroyed() {
     // clean up any resource, such as close websocket connection, remove subscription
-    console.log('signin destroyed: dom removed');
   },
 
   // Underlying model
@@ -63,13 +60,15 @@ export default {
       } else {
         this.$router.push({
           name: 'scoreboard',
-          params: {
+          query: {
+            username: this.username,
             isMaster: this.usertype === 'master'
           }
         });
       }
     },
     signout: function(event) {}
+
   }
 };
 </script>
