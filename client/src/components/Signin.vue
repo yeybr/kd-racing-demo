@@ -6,9 +6,9 @@
     <!-- submit button -->
     <div class="form-group">
       <label for="usr">Enter your gamer tag</label>
-      <input type="text" class="form-control" id="usr">
+      <input type="text" class="form-control" id="usr" v-model="username">
     </div>
-    <button type="button" class="go-btn btn">Go!</button>
+    <button type="button" v-on:click="signon" class="go-btn btn">Go!</button>
   </div>
 </template>
 

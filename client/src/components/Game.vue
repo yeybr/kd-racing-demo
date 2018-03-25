@@ -11,6 +11,38 @@
         <span class="stats">Finished: {{gameInfo.stats.finished}}</span>
       </div>
     </div>
+    <div id="puzzle">
+        <div class="spot spot-1">
+          <img src="../assets/puzzle.png" style="width: 400px;"/>
+        </div>
+        <div class="spot spot-2">
+          <img src="../assets/puzzle.png" style="width: 400px; margin-left: -32vw"/>
+        </div>
+        <div class="spot spot-3">
+          <img src="../assets/puzzle.png" style="width: 400px; margin-left: -64vw"/>
+        </div>
+        <div class="spot spot-4">
+          <img src="../assets/puzzle.png" style="width: 400px; margin-top: -32vw"/>
+        </div>
+        <div class="spot spot-5">
+          <img src="../assets/puzzle.png" style="width: 400px; margin-top: -32vw; margin-left: -32vw;"/>
+        </div>
+        <div class="spot spot-6">
+          <img src="../assets/puzzle.png" style="width: 400px; margin-top: -32vw; margin-left: -64vw;"/>
+        </div>
+        <div class="spot spot-7">
+          <img src="../assets/puzzle.png" style="width: 400px; margin-top: -64vw"/>
+        </div>
+        <div class="spot spot-8">
+          <img src="../assets/puzzle.png" style="width: 400px; margin-top: -64vw; margin-left: -32vw;"/>
+        </div>
+        <div class="spot spot-9">
+          <img src="../assets/puzzle.png" style="width: 400px; margin-top: -64vw; margin-left: -64vw;"/>
+        </div>
+    </div>
+    <div class="hidden-image">
+      <img src="../assets/puzzle.png"/>
+    </div>
   </div>
 </template>
 
@@ -27,9 +59,11 @@ export default {
     this.playerMessenger = new Player(this.$solace, this.$parent.appProps, this.handleMsg, this.handleStateChange);
     this.playerMessenger.connect();
   },
-  // mounted() {
-  //   console.log('game mounted: dom element inserted');
-  // },
+  mounted() {
+    var puzzle = new Image;
+    puzzle.src = "../assets/puzzle.png";
+    console.log(puzzle);
+  },
   // beforeUpdate() {
   //   // add any customized code before DOM is re-render and patched based changes in data
   //   console.log('game beforeUpdate: data is changed, about to rerender dom');
@@ -52,7 +86,7 @@ export default {
       msg: "Trouble Flipper",
       gameInfo: {
         id: "1",
-        name: "Cars",
+        name: "Yoshi",
         players: [
           {
             id: 1,
@@ -84,7 +118,7 @@ export default {
 </script>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
-<!-- Enable sas by using lang="scss" -->
+<!-- Enable sass by using lang="scss" -->
 <style scoped>
 h1,
 h2 {
@@ -102,27 +136,50 @@ a {
   color: #1dacfc;
 }
 
-game-panel {
+.game-panel {
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
+  width: 100%;
+}
+.title {
   padding: 15px;
-  .title {
-  }
-  .game-info {
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-start;
-    .status {
-      display: flex;
-      flex-direction: row;
-      .stats {
-        padding: 15px 25px 15px 15px;
-      }
-    }
-  }
-  .game-board {
-    flex: 1 1 0;
-  }
+}
+.game-info {
+  padding: 15px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  
+}
+.game-board {
+  flex: 1 1 0;
+}
+.status {
+  display: flex;
+  flex-direction: row;
+}
+.stats {
+  padding: 15px 25px 15px 15px;
+}
+
+#puzzle {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  height:60%;
+}
+.hidden-image {
+  position: fixed;
+  top: 200%;
+}
+.puzzle div {
+  display: inline;
+}
+.spot {
+  display: inline-block;
+  width: calc(32vw);
+  height: calc(32vw);
+  overflow:hidden;
 }
 </style>
