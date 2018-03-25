@@ -17,7 +17,7 @@ export default {
   name: "signin",
   // lifecycle callbacks
   created() {
-    console.log('signin created: data bind');
+    // instance created and data bound
   },
   // mounted() {
   //   console.log('signin mounted: dom element inserted');
@@ -31,7 +31,6 @@ export default {
   // },
   destroyed() {
     // clean up any resource, such as close websocket connection, remove subscription
-    console.log('signin destroyed: dom removed');
   },
 
   // Underlying model
@@ -63,13 +62,15 @@ export default {
       } else {
         this.$router.push({
           name: 'scoreboard',
-          params: {
+          query: {
+            username: this.username,
             isMaster: this.usertype === 'master'
           }
         });
       }
     },
     signout: function(event) {}
+
   }
 };
 </script>

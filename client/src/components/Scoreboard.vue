@@ -1,6 +1,17 @@
 <template>
-  <div>
-    <h1>{{msg}}</h1>
+  <div class="score-panel">
+    <div class="title">
+      <h1>{{msg}}</h1>
+      <div class="user-info">User: {{userName}}</div>
+    </div>
+    <div class="score-info">
+      <div v-show="state !== 'watching'">
+        <h2>Connecting...</h2>
+      </div>
+    </div>
+    <div v-show="state === 'watching'" class="score-board">
+      Score Board
+    </div>
   </div>
 </template>
 
@@ -9,9 +20,17 @@ import { GameMaster } from '@/messaging/game-master'
 export default {
   name: 'scoreboard',
   created() {
-    console.log('scoreboard created: data bind');
-    this.masterMessenger = new GameMaster(this.$solace, this.$parent.appProps, this.handleMsg, this.handleStateChange);
-    this.masterMessenger.connect();
+    console.log('scoreboard created: data bound');
+    if (this.$route.query.username) {
+      this.masterMessenger = new GameMaster(this.$solace, this.$parent.appProps, this.$route.query.username,
+        this.$route.query.isMaster,
+        this.handleMsg.bind(this), this.handleStateChange.bind(this));
+      this.masterMessenger.connect();
+    } else {
+      this.$router.push({
+        name: 'signin'
+      });
+    }
   },
   // mounted() {
   //   console.log('scoreboard mounted: dom element inserted');
@@ -35,7 +54,14 @@ export default {
   // Underlying model
   data() {
     return {
-      msg: 'Trouble Flipper Scoreboard'
+      msg: 'Trouble Flipper Scoreboard',
+      state: 'connecting',
+      userId: "",
+      userName: this.$route.query.username,
+      scoreboardInfo: {
+        teams: [
+        ]
+      }
     }
   },
 
@@ -43,6 +69,12 @@ export default {
   methods: {
     handleMsg: function(msg) {
       console.log(msg);
+      if (msg.state) {
+        this.state = msg.state;
+      }
+      this.userId = msg.userId;
+      this.userName = msg.userName;
+
     },
     handleStateChange: function(state) {
       console.log(state);
@@ -67,5 +99,20 @@ li {
 }
 a {
   color: #1DACFC;
+}
+
+.score-panel {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  padding: 15px;
+}
+.score-panel .title {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+}
+.score-panel .title .user-info {
+  font-weight: 500;
 }
 </style>
