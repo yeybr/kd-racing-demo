@@ -30,7 +30,7 @@
       Game Board
     </div>
     <div id="puzzle">
-      <div v-for="(piece, i) in puzzle" @click="select" :index="piece.index" :key="piece.index" class="spot" :class="{selected: piece.selected}">
+      <div v-for="(piece, i) in puzzle" @click="select" :index="piece.index" :key="piece.index" class="spot" :class="{selected: piece.selected}" :style="holderStyle">
         <img :src="puzzlePicture" :index="i" v-bind:style="piece.style"/>
       </div>
       <div v-if="gameInfo.win" id="win">
@@ -80,16 +80,19 @@ export default {
 
   // Underlying model
   data() {
+    var size = this.getRandomInt(3) + 3;
+    var splits = Math.floor(100 / size) - 1;
     var pieces = [];
-    for (var i = 0; i < 9; ++i) {
+    for (var i = 0; i < size * size; ++i) {
       pieces.push({
         index: i,
         width: "400px",
         test: "kevin",
-        style: `width: 400px; margin-left: ${i % 3 * -32}vw; margin-top: ${Math.floor(i / 3) * -32}vw;`,
+        style: `width: 400px; margin-left: ${i % size * -splits}vw; margin-top: ${Math.floor(i / size) * -splits}vw;`,
         selected: false
       });
     }
+    var holderStyle = `width: ${splits}vw; height: ${splits}vw;`;
     console.log("pieces done");
     this.shuffle(pieces);
     console.log("shuffle");
@@ -98,6 +101,8 @@ export default {
     let puzzlePicture = `static/puzzle${random}.png`;
     console.log(puzzlePicture);
     return {
+      size: size,
+      holderStyle: holderStyle,
       puzzlePicture: puzzlePicture,
       msg: 'Trouble Flipper',
       state: 'connecting',
@@ -288,8 +293,6 @@ a {
 }
 .spot {
   display: inline-block;
-  width: calc(32vw);
-  height: calc(32vw);
   overflow: hidden;
   vertical-align: top;
   border: solid 1px grey;
