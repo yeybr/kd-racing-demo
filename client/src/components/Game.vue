@@ -26,15 +26,14 @@
         <h2>Connecting...</h2>
       </template>
     </div>
-    <div v-show="state === 'playing'" class="game-board">
-      Game Board
-    </div>
-    <div id="puzzle">
-      <div v-for="(piece, i) in puzzle" @click="select" :index="piece.index" :key="piece.index" class="spot" :class="{selected: piece.selected}" :style="holderStyle">
-        <img :src="puzzlePicture" :index="i" v-bind:style="piece.style"/>
-      </div>
-      <div v-if="gameInfo.win" id="win">
-        Winner!
+    <div id="puzzle-area">
+      <div id="puzzle">
+        <div v-for="(piece, i) in puzzle" @click="select" :index="piece.index" :key="piece.index" class="spot" :class="{selected: piece.selected}" :style="holderStyle">
+          <img :src="puzzlePicture" :index="i" v-bind:style="piece.style"/>
+        </div>
+        <div v-if="gameInfo.win" id="win">
+          Winner!
+        </div>
       </div>
     </div>
   </div>
@@ -81,18 +80,18 @@ export default {
   // Underlying model
   data() {
     var size = this.getRandomInt(3) + 3;
-    var splits = Math.floor(100 / size) - 1;
+    var splits = Math.floor(99 / size);
     var pieces = [];
     for (var i = 0; i < size * size; ++i) {
+      var movePercent = splits / 100;
+      var unit = 412 * movePercent;
       pieces.push({
         index: i,
-        width: "400px",
-        test: "kevin",
-        style: `width: 400px; margin-left: ${i % size * -splits}vw; margin-top: ${Math.floor(i / size) * -splits}vw;`,
+        style: `width: 412px; margin-left: -${unit * (i % size)}px; margin-top: -${unit * Math.floor(i / size)}px;`,
         selected: false
       });
     }
-    var holderStyle = `width: ${splits}vw; height: ${splits}vw;`;
+    var holderStyle = `width: ${unit}px; height: ${unit}px;`;
     console.log("pieces done");
     this.shuffle(pieces);
     console.log("shuffle");
@@ -275,13 +274,15 @@ a {
 .stats {
   padding: 15px 25px 15px 15px;
 }
-
+#puzzle-area {
+  flex: 1;
+  position: relative;
+}
 #puzzle {
   position: absolute;
   bottom: 0;
-  width: 100%;
-  height:60%;
-  text-align: center;
+  width: 412px;
+  height: 412px;
   border: solid 1px grey;
 }
 .hidden-image {
@@ -296,6 +297,7 @@ a {
   overflow: hidden;
   vertical-align: top;
   border: solid 1px grey;
+  box-sizing: content-box;
 }
 
 .spot.selected {
