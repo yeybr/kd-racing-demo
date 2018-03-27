@@ -338,7 +338,7 @@ a {
 .user-info {
   font-size: 3vw;
   position: relative;
-  padding: 10px 10px;
+  padding: 0px 10px;
 }
 .name-tag {
   text-align: center;

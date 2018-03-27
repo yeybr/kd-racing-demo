@@ -34,8 +34,8 @@ export default {
 }
 
 body {
-  background-image: url("assets/background.png");
-  background-size: cover;
+  background-image: url("assets/backgrounds.png");
+  /*background-size: cover;*/
   /* height: 100%; */
   overflow-y: auto;
 }
