@@ -4,7 +4,7 @@
       <h1>{{msg}}</h1>
       <div class="user-info">
         <div class="name-tag">{{userName}} </div>
-        <div class="profile" :style="styleAvatar" >            
+        <div class="profile" :style="styleAvatar" >
         </div>
       </div>
 
@@ -31,7 +31,7 @@
         <h2>Connecting...</h2>
       </template>
     </div>
-    <div id="puzzle-area">
+    <div v-show="state === 'playing'" id="puzzle-area">
       <div id="puzzle" :style="puzzleStyle">
         <div v-for="(piece, i) in puzzle" @click="select" :index="piece.index" :key="piece.index" class="spot" :class="{selected: piece.selected}" :style="holderStyle">
           <img :src="puzzlePicture" :index="i" v-bind:style="piece.style"/>
@@ -84,7 +84,7 @@ export default {
 
   // Underlying model
   data() {
-    
+
     var size = this.getRandomInt(3) + 3;
     var splits = Math.floor(99 / size);
     var pieces = [];
@@ -284,7 +284,7 @@ a {
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
-  
+
 }
 .game-board {
   flex: 1 1 0;
