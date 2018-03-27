@@ -1,6 +1,7 @@
 <template>
-  <div id="signon">
-    <img class="mario" src="../assets/mario.png"/>
+    <ons-gesture-detector>
+  <div id="signon" v-on:swipeleft="gochoose" v-on:swiperight="goscoreboard" v-on:swipebottom="gogamemaster"> 
+      <img class="mario" src="../assets/mario.png"/>
     <!-- submit button -->
     <div class="form-group">
       <label for="usr">Enter your gamer tag</label>
@@ -8,6 +9,8 @@
     </div>
     <button type="button" class="go-btn btn" @click="signon()">Go!</button>
   </div>
+      </ons-gesture-detector>
+
 </template>
 
 <script>
@@ -48,6 +51,21 @@ export default {
 
   // any actions
   methods: {
+    gochoose: function(event) {
+      this.$router.push('choose');
+    },
+    goscoreboard: function(event) {
+      this.$router.push({
+          name: 'scoreboard',
+          query: {
+            username: this.username,
+            isMaster: this.usertype === 'master'
+          }
+        });
+    },
+    gogamemaster: function(event) {
+      console.log("go as master login");
+    },
     signon: function(event) {
       console.log(this.username + ", " + this.password + ", " + this.usertype);
       if (this.usertype === 'player') {
@@ -71,6 +89,9 @@ export default {
 
   }
 };
+
+
+
 </script>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
@@ -100,7 +121,7 @@ a {
   align-items: center;
 }
 label {
-  font-size: 36px;
+  font-size: 8vw;
 }
 .center {
   text-align: center;
