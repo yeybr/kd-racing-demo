@@ -10,7 +10,7 @@
       </div>
     </div>
     <div v-show="state === 'watching'" class="score-board">
-      Score Board
+      Score Board for {{ isMaster ? 'Game Master' : 'Spectator'}}
     </div>
   </div>
 </template>
@@ -21,16 +21,24 @@ export default {
   name: 'scoreboard',
   created() {
     console.log('scoreboard created: data bound');
-    if (this.$route.query.username) {
-      this.masterMessenger = new GameMaster(this.$solace, this.$parent.appProps, this.$route.query.username,
-        this.$route.query.isMaster,
+
+    // if (this.$route.query.username) {
+      // this.userName = this.$route.query.username;
+      // this.isMaster = this.$route.query.isMaster;
+      this.userName = 'admin';
+      this.isMaster = true;
+      this.masterMessenger = new GameMaster(this.$solace, this.$parent.appProps,
+        // this.userName,
+        // this.$route.query.isMaster,
+        this.userName,
+        this.isMaster,
         this.handleMsg.bind(this), this.handleStateChange.bind(this));
       this.masterMessenger.connect();
-    } else {
-      this.$router.push({
-        name: 'signin'
-      });
-    }
+    // } else {
+    //   this.$router.push({
+    //     name: 'signin'
+    //   });
+    // }
   },
   // mounted() {
   //   console.log('scoreboard mounted: dom element inserted');
@@ -57,7 +65,8 @@ export default {
       msg: 'Trouble Flipper Scoreboard',
       state: 'connecting',
       userId: "",
-      userName: this.$route.query.username,
+      userName: "",
+      isMaster: false,
       scoreboardInfo: {
         teams: [
         ]
