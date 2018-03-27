@@ -80,6 +80,7 @@ export class GameMaster {
       subscribe to
       players/>
     */
+   // TESTING CODE
    setTimeout(() => {
     this.msgCallback({
       state: 'watching',
@@ -87,7 +88,14 @@ export class GameMaster {
       userName: this.username,
       scoreboardInfo: {
         teams: [
-          'Team 1', 'Team 2'
+          {
+            id: '1',
+            name: 'Team 1'
+          },
+          {
+            id: '2',
+            name: 'Team 2'
+          }
         ]
       }
     });

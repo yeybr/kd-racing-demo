@@ -71,6 +71,7 @@ export class Player {
     players/<userId>
     players/<teamid>
     */
+   // TESTING CODE
    this.stateChangeCallback({state: 'waiting'});
    setTimeout(()=> {
     let msg = {
@@ -78,8 +79,11 @@ export class Player {
       userId: '1',
       userName: this.username,
       gameInfo: {
+        gameId: '1',
+        gameName: 'Mario & Yoshi',
         teamId: '1',
         teamName: 'Team 1',
+        win: false,
         players: [
           {
             id: 1,
@@ -91,9 +95,7 @@ export class Player {
           }
         ],
         stats: {
-          gameId: '1',
-          gameName: 'Cars',
-          total: 24,
+          total: 16,
           finished: 0,
           totalMoves: 0,
           correctMoves: 0

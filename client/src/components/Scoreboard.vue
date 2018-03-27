@@ -10,15 +10,19 @@
       </div>
     </div>
     <div v-show="state === 'watching'" class="score-board">
-      Score Board for {{ isMaster ? 'Game Master' : 'Spectator'}}
+      <div class="team" v-for="team in scoreboardInfo.teams" :key="team.id">
+        {{team.name}}
+      </div>
     </div>
   </div>
 </template>
 
 <script>
-import { GameMaster } from '@/messaging/game-master'
+import { GameMaster } from '@/messaging/game-master';
+import Utils from './Utils.vue';
 export default {
   name: 'scoreboard',
+  mixins: [Utils],
   created() {
     console.log('scoreboard created: data bound');
 
@@ -77,16 +81,19 @@ export default {
   // any actions
   methods: {
     handleMsg: function(msg) {
-      console.log(msg);
+      console.log('Got message', msg);
       if (msg.state) {
         this.state = msg.state;
       }
       this.userId = msg.userId;
       this.userName = msg.userName;
-
+      if (msg.scoreboardInfo) {
+        this.updateData(this.scoreboardInfo, msg.scoreboardInfo);
+      }
     },
     handleStateChange: function(state) {
-      console.log(state);
+      console.log('State change', msg);
+      this.state = msg.state;
     }
   }
 }
@@ -123,5 +130,14 @@ a {
 }
 .score-panel .title .user-info {
   font-weight: 500;
+}
+.score-panel .score-board {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+}
+
+.score-panel .score-board .team {
+  padding: 1vw;
 }
 </style>

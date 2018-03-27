@@ -12,7 +12,7 @@
     <div class="game-info">
       <template v-if="state === 'playing'">
         <div class="status">
-          <span class="stats">Puzzle: {{gameInfo.stats.gameName}}</span>
+          <span class="stats">Puzzle: {{gameInfo.gameName}}</span>
           <span class="stats">Team: {{gameInfo.teamName}}</span>
           <div class="stats">Players:
             <template v-for="(player, index) in gameInfo.players">
@@ -45,17 +45,20 @@
 </template>
 
 <script>
-import { Player } from '@/messaging/player'
+import { Player } from '@/messaging/player';
+import Utils from './Utils.vue';
 export default {
   name: "game",
+  mixins: [Utils],
   // lifecycle callbacks
   created() {
     console.log('game created: data bound');
     if (this.$route.query.username) {
+      this.userName = this.$route.query.username;
       // DO NOT initialize playerMessenger in data() function; otherwise all its memebers will become reactive
       // including the solace API. We don't want solace API's data structure to be injected with Observer stuff,
       // it causes SolaceClientFactory.init() to fail
-      this.playerMessenger = new Player(this.$solace, this.$parent.appProps, this.$route.query.username,
+      this.playerMessenger = new Player(this.$solace, this.$parent.appProps, this.userName,
         this.handleMsg.bind(this), this.handleStateChange.bind(this));
       this.playerMessenger.connect();
     } else {
@@ -64,8 +67,8 @@ export default {
       });
     }
   },
-  mounted() {
-  },
+  // mounted() {
+  // },
   // beforeUpdate() {
   //   // add any customized code before DOM is re-render and patched based changes in data
   //   console.log('game beforeUpdate: data is changed, about to rerender dom');
@@ -84,7 +87,6 @@ export default {
 
   // Underlying model
   data() {
-
     var size = this.getRandomInt(3) + 3;
     var splits = Math.floor(99 / size);
     var pieces = [];
@@ -119,19 +121,17 @@ export default {
       msg: 'Trouble Flipper',
       state: 'connecting',
       userId: '',
-      userName: this.$route.query.username,
+      userName: this.userName,
       avatarLink: avatarLink,
       gameInfo: {
-        id: "1",
-        name: "Mario & Yoshi",
+        id: '',
+        name: '',
         teamId: '',
         teamName: '',
         win: false,
         players: [
         ],
         stats: {
-          gameId: '',
-          gameName: '',
           total: 0,
           finished: 0,
           totalMoves: 0,
@@ -157,42 +157,43 @@ export default {
       return Math.floor(Math.random() * Math.floor(max));
     },
     handleMsg: function(msg) {
-      console.log(msg, this);
+      console.log('Got message', msg);
       if (msg.state) {
         this.state = msg.state;
       }
       this.userId = msg.userId;
       this.userName = msg.userName;
       if (msg.gameInfo) {
-        this.gameInfo.teamId = msg.gameInfo.teamId;
-        this.gameInfo.teamName = msg.gameInfo.teamName;
-        let currentPlayers = this.gameInfo.players;
-        let newPlayers = msg.gameInfo.players;
-        if (currentPlayers.length <= newPlayers.length) {
-          for (let i = 0; i < currentPlayers.length; i++) {
-            Object.assign(currentPlayers[i], newPlayers[i]);
-          }
-          if (currentPlayers.length < newPlayers.length) {
-            currentPlayers.push(...newPlayers.slice(currentPlayers.length));
-          }
-        } else {
-          for (let i = 0; i < newPlayers.length; i++) {
-            Object.assign(currentPlayers[i], newPlayers[i]);
-          }
-          currentPlayers.splice(newPlayers.length, (newPlayers.length - currentPlayers.length));
-        }
-        if (msg.gameInfo.stats) {
-          this.gameInfo.stats.gameId = msg.gameInfo.stats.gameId;
-          this.gameInfo.stats.gameName = msg.gameInfo.stats.gameName;
-          this.gameInfo.stats.total = msg.gameInfo.stats.total;
-          this.gameInfo.stats.finished = msg.gameInfo.stats.finished;
-          this.gameInfo.stats.totalMoves = msg.gameInfo.stats.totalMoves;
-          this.gameInfo.stats.correctMoves = msg.gameInfo.stats.correctMoves;
-        }
+        this.updateData(this.gameInfo, msg.gameInfo);
+        // this.gameInfo.teamId = msg.gameInfo.teamId;
+        // this.gameInfo.teamName = msg.gameInfo.teamName;
+        // let currentPlayers = this.gameInfo.players;
+        // let newPlayers = msg.gameInfo.players;
+        // if (currentPlayers.length <= newPlayers.length) {
+        //   for (let i = 0; i < currentPlayers.length; i++) {
+        //     Object.assign(currentPlayers[i], newPlayers[i]);
+        //   }
+        //   if (currentPlayers.length < newPlayers.length) {
+        //     currentPlayers.push(...newPlayers.slice(currentPlayers.length));
+        //   }
+        // } else {
+        //   for (let i = 0; i < newPlayers.length; i++) {
+        //     Object.assign(currentPlayers[i], newPlayers[i]);
+        //   }
+        //   currentPlayers.splice(newPlayers.length, (newPlayers.length - currentPlayers.length));
+        // }
+        // if (msg.gameInfo.stats) {
+        //   this.gameInfo.stats.gameId = msg.gameInfo.stats.gameId;
+        //   this.gameInfo.stats.gameName = msg.gameInfo.stats.gameName;
+        //   this.gameInfo.stats.total = msg.gameInfo.stats.total;
+        //   this.gameInfo.stats.finished = msg.gameInfo.stats.finished;
+        //   this.gameInfo.stats.totalMoves = msg.gameInfo.stats.totalMoves;
+        //   this.gameInfo.stats.correctMoves = msg.gameInfo.stats.correctMoves;
+        // }
       }
     },
     handleStateChange: function(msg) {
-      console.log('state change', msg);
+      console.log('State change', msg);
       this.state = msg.state;
     },
     shuffle: function(array) {
