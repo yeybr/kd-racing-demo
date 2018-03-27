@@ -315,7 +315,7 @@ a {
   bottom: 0;
   left: 0;
   right: 0;
-  color: blue;
+  color: #006fea;
   font-size: 100px;
   vertical-align: middle;
   text-align: center;
