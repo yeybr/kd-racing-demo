@@ -26,10 +26,10 @@
         <span class="stats">Correct Moves: {{gameInfo.stats.correctMoves}}</span>
       </div>
       <div v-else-if="state === 'waiting'" class="status waiting">
-        <h2>Waiting for game to start...</h2>
+        <h3>Waiting for game to start...</h3>
       </div>
       <div v-else class="status waiting">
-        <h2>Connecting...</h2>
+        <h3>Connecting...</h3>
       </div>
     </div>
     <div v-show="state === 'playing'" id="puzzle-area">

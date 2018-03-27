@@ -2,16 +2,20 @@
   <div class="score-panel">
     <div class="title">
       <h1>{{msg}}</h1>
-      <div class="user-info">User: {{userName}}</div>
+      <!-- <div class="user-info">User: {{userName}}</div> -->
     </div>
-    <div class="score-info">
-      <div v-show="state !== 'watching'">
-        <h2>Connecting...</h2>
-      </div>
+    <div v-show="state !== 'watching'" class="score-info waiting">
+      <h3>Connecting...</h3>
     </div>
     <div v-show="state === 'watching'" class="score-board">
-      <div class="team" v-for="team in scoreboardInfo.teams" :key="team.id">
-        {{team.name}}
+      <div class="game" v-for="gameInfo in scoreboardInfo.games" :key="gameInfo.id">
+        <span class="info">Puzzle: {{gameInfo.gameName}}</span>
+        <span class="info">Team: {{gameInfo.teamName}}</span>
+        <div class="info">Players:
+          <template v-for="(player, index) in gameInfo.players">
+            {{player.name}}{{(index === gameInfo.players.length - 1) ? '': ', '}}
+          </template>
+        </div>
       </div>
     </div>
   </div>
@@ -131,13 +135,24 @@ a {
 .score-panel .title .user-info {
   font-weight: 500;
 }
+.score-panel .score-info.waiting {
+  padding: 15px 0px;
+  align-self: center;
+}
 .score-panel .score-board {
   display: flex;
   flex-direction: row;
   justify-content: flex-start;
 }
 
-.score-panel .score-board .team {
-  padding: 1vw;
+.score-panel .score-board .game {
+  margin: 15px;
+  padding: 15px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  flex-wrap: wrap;
+  border: solid 1px grey;
+  width: 400px;
 }
 </style>

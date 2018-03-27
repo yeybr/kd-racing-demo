@@ -4,7 +4,7 @@
 <div class="titlebar">Choose your character</div>
 
 <div class="heros">
-  <div class="heromug bowser" data_id="bowser" @click="goplay">       
+  <div class="heromug bowser" data_id="bowser" @click="goplay">
   <div class="heroselect" ></div>
   <div class="nametag" hero-name="bowser">Bowser</div>
   </div>
@@ -24,7 +24,7 @@
    <div class="heromug mario" data_id="mario" @click="goplay">
     <div class="heroselect"></div>
     <div class="nametag">Mario</div>
-  </div> 
+  </div>
  </div>
  </div>
      </ons-gesture-detector>
@@ -129,7 +129,7 @@ a {
   display: flex;
     flex-flow: row wrap;
     justify-content: center;
-    
+
 }
 .heromug {
   position:relative;
@@ -137,7 +137,7 @@ a {
   border-radius: 4vw;
   min-width: 30vw;
   min-height: 28vh;
-  
+
   box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
   background-repeat: no-repeat;
   background-position: center;
@@ -152,12 +152,12 @@ a {
   border-radius: 4vw;
 }
 .heromug > .heroselect:hover{
-  
+
   background-color: #ff00003b;
 }
 
 .heromug:hover {
-  
+
     box-shadow: 0 5px 55px rgba(0,0,0,0.3);
 }
 
@@ -178,7 +178,7 @@ a {
 .heromug.mario {
   background-image: url(../assets/mario-mario.jpg);
 }
-    
+
 
 .heromug > .nametag {
     position: absolute;
@@ -211,7 +211,7 @@ ul li {
   margin: 0 40px;
 }
 .titlebar {
-      text-align: center;
+    text-align: center;
     background: #bfa5a538;
     padding: 5px;
 }

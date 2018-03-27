@@ -80,19 +80,23 @@ export class Player {
       userName: this.username,
       gameInfo: {
         gameId: '1',
-        gameName: 'Mario & Yoshi',
+        gameName: 'Mario',
         teamId: '1',
         teamName: 'Team 1',
         win: false,
         players: [
           {
-            id: 1,
+            id: '1',
             name: 'Kevin'
           },
           {
-            id: 2,
+            id: '2',
             name: 'Rob'
-          }
+          },
+          {
+            id: '5',
+            name: 'Roland'
+          },
         ],
         stats: {
           total: 16,

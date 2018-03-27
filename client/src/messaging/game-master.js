@@ -87,14 +87,64 @@ export class GameMaster {
       userId: '2',
       userName: this.username,
       scoreboardInfo: {
-        teams: [
+        games: [
           {
-            id: '1',
-            name: 'Team 1'
+            gameId: '1',
+            gameName: 'Mario',
+            teamId: '1',
+            teamName: 'Team 1',
+            win: false,
+            players: [
+              {
+                id: '1',
+                name: 'Kevin'
+              },
+              {
+                id: '2',
+                name: 'Rob'
+              },
+              {
+                id: '5',
+                name: 'Roland'
+              },
+            ],
+            stats: {
+              total: 16,
+              finished: 0,
+              totalMoves: 0,
+              correctMoves: 0
+            }
           },
           {
-            id: '2',
-            name: 'Team 2'
+            gameId: '2',
+            gameName: 'Yoshi',
+            teamId: '2',
+            teamName: 'Team 2',
+            win: false,
+            players: [
+              {
+                id: '3',
+                name: 'Brandon'
+              },
+              {
+                id: '4',
+                name: 'Abhishek'
+              },
+              {
+                id: '6',
+                name: 'Ye'
+              },
+              {
+                id: '7',
+                name: 'Monica'
+              }
+            ],
+            stats: {
+              total: 16,
+              finished: 0,
+              totalMoves: 0,
+              correctMoves: 0
+            }
           }
         ]
       }
