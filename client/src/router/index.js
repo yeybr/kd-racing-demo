@@ -2,6 +2,7 @@ import Vue from 'vue'
 import Router from 'vue-router'
 import Signin from '@/components/Signin'
 import Game from '@/components/Game'
+import Choose from '@/components/Choose'
 import Scorebard from '@/components/Scoreboard'
 
 Vue.use(Router)
@@ -16,6 +17,11 @@ export default new Router({
       path: '/signin',
       name: 'signin',
       component: Signin
+    },
+    {
+      path: '/choose',
+      name: 'choose',
+      component: Choose
     },
     {
       path: '/game',

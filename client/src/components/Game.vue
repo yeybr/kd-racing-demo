@@ -2,7 +2,12 @@
   <div class="game-panel">
     <div class="title">
       <h1>{{msg}}</h1>
-      <div class="user-info">User: {{userName}}</div>
+      <div class="user-info">
+        <div class="name-tag">{{userName}} </div>
+        <div class="profile" :style="styleAvatar" >            
+        </div>
+      </div>
+
     </div>
     <div class="game-info">
       <template v-if="state === 'playing'">
@@ -79,6 +84,7 @@ export default {
 
   // Underlying model
   data() {
+    
     var size = this.getRandomInt(3) + 3;
     var splits = Math.floor(99 / size);
     var pieces = [];
@@ -103,6 +109,7 @@ export default {
 
     let random = this.getRandomInt(4) + 1;
     let puzzlePicture = `static/puzzle${random}.png`;
+    let avatarLink = `url("static/${this.$route.query.avatar}-mario.jpg")`;
     console.log(puzzlePicture);
     return {
       size: size,
@@ -113,6 +120,7 @@ export default {
       state: 'connecting',
       userId: '',
       userName: this.$route.query.username,
+      avatarLink: avatarLink,
       gameInfo: {
         id: "1",
         name: "Mario & Yoshi",
@@ -131,7 +139,15 @@ export default {
         }
       },
       puzzle: pieces,
-      selected: null
+      selected: null,
+      styleAvatar: {
+        'background-image': avatarLink,
+        'background-size': 'contain',
+        'background-repeat': 'no-repeat',
+        'background-position': 'center',
+        'height': '6vh',
+        'width': '8vw'
+      }
     };
   },
 
@@ -324,5 +340,20 @@ a {
   padding: 40% 0;
   background: rgba(0, 0, 0, 0.2);
 }
+.profile {
+  border: 1px #b9acac9e solid;
+  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+  display:inline-block;
+}
+.user-info {
+  font-size: 3vw;
+  position: relative;
+}
+.name-tag {
+  text-align: center;
+  background: grey;
+  color: white;
+  width: 8vw;
 
+}
 </style>
