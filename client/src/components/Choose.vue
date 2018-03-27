@@ -143,6 +143,7 @@ a {
   background-position: center;
   background-size: contain;
   margin: 2vw;
+  background-color:white;
 
 }
 
