@@ -31,14 +31,12 @@ export default {
   -moz-osx-font-smoothing: grayscale;
   color: #2c3e50;
   font-family: Bangers;
-  flex: 1;
-  display: flex;
-  overflow-y: auto;
 }
 
 body {
   background-image: url("assets/background.png");
   background-size: cover;
-  display: flex;
+  /* height: 100%; */
+  overflow-y: auto;
 }
 </style>

@@ -1,35 +1,36 @@
 <template>
   <div class="game-panel">
-    <div class="title">
+    <div class="header-section">
       <h1>{{msg}}</h1>
-      <div class="user-info">
-        <div class="name-tag">{{userName}} </div>
-        <div class="profile" :style="styleAvatar" >
-        </div>
-      </div>
-
-    </div>
-    <div class="game-info">
-      <template v-if="state === 'playing'">
-        <div class="status">
-          <span class="stats">Puzzle: {{gameInfo.gameName}}</span>
-          <span class="stats">Team: {{gameInfo.teamName}}</span>
-          <div class="stats">Players:
+      <div class="header-info">
+        <div class="game-info">
+          <span class="info">Puzzle: {{gameInfo.gameName}}</span>
+          <span class="info">Team: {{gameInfo.teamName}}</span>
+          <div class="info">Players:
             <template v-for="(player, index) in gameInfo.players">
               {{player.name}}{{(index === gameInfo.players.length - 1) ? '': ', '}}
             </template>
           </div>
-          <span class="stats">Progress: {{gameInfo.stats.finished}} / {{gameInfo.stats.total}}</span>
-          <span class="stats">Total Moves: {{gameInfo.stats.totalMoves}}</span>
-          <span class="stats">Correct Moves: {{gameInfo.stats.correctMoves}}</span>
         </div>
-      </template>
-      <template v-else-if="state === 'waiting'">
+        <div class="user-info">
+          <div class="name-tag">{{userName}} </div>
+          <div class="profile" :style="styleAvatar" >
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="game-stats">
+      <div v-if="state === 'playing'" class="status">
+        <span class="stats">Progress: {{gameInfo.stats.finished}} / {{gameInfo.stats.total}}</span>
+        <span class="stats">Total Moves: {{gameInfo.stats.totalMoves}}</span>
+        <span class="stats">Correct Moves: {{gameInfo.stats.correctMoves}}</span>
+      </div>
+      <div v-else-if="state === 'waiting'" class="status waiting">
         <h2>Waiting for game to start...</h2>
-      </template>
-      <template v-else>
+      </div>
+      <div v-else class="status waiting">
         <h2>Connecting...</h2>
-      </template>
+      </div>
     </div>
     <div v-show="state === 'playing'" id="puzzle-area">
       <div id="puzzle" :style="puzzleStyle">
@@ -165,31 +166,6 @@ export default {
       this.userName = msg.userName;
       if (msg.gameInfo) {
         this.updateData(this.gameInfo, msg.gameInfo);
-        // this.gameInfo.teamId = msg.gameInfo.teamId;
-        // this.gameInfo.teamName = msg.gameInfo.teamName;
-        // let currentPlayers = this.gameInfo.players;
-        // let newPlayers = msg.gameInfo.players;
-        // if (currentPlayers.length <= newPlayers.length) {
-        //   for (let i = 0; i < currentPlayers.length; i++) {
-        //     Object.assign(currentPlayers[i], newPlayers[i]);
-        //   }
-        //   if (currentPlayers.length < newPlayers.length) {
-        //     currentPlayers.push(...newPlayers.slice(currentPlayers.length));
-        //   }
-        // } else {
-        //   for (let i = 0; i < newPlayers.length; i++) {
-        //     Object.assign(currentPlayers[i], newPlayers[i]);
-        //   }
-        //   currentPlayers.splice(newPlayers.length, (newPlayers.length - currentPlayers.length));
-        // }
-        // if (msg.gameInfo.stats) {
-        //   this.gameInfo.stats.gameId = msg.gameInfo.stats.gameId;
-        //   this.gameInfo.stats.gameName = msg.gameInfo.stats.gameName;
-        //   this.gameInfo.stats.total = msg.gameInfo.stats.total;
-        //   this.gameInfo.stats.finished = msg.gameInfo.stats.finished;
-        //   this.gameInfo.stats.totalMoves = msg.gameInfo.stats.totalMoves;
-        //   this.gameInfo.stats.correctMoves = msg.gameInfo.stats.correctMoves;
-        // }
       }
     },
     handleStateChange: function(msg) {
@@ -277,28 +253,41 @@ a {
   justify-content: flex-start;
   width: 100%;
 }
-.title {
+.header-section {
   padding: 15px;
 }
-.game-info {
-  padding: 15px;
+.header-info {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  padding: 10px 10px;
+}
+.header-info .game-info {
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
-
 }
-.game-board {
-  flex: 1 1 0;
+.header-info .game-info .info {
+  padding: 0px;
+}
+.game-stats {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  padding: 0px 10px;
 }
 .status {
   display: flex;
   flex-direction: row;
 }
+.status.waiting {
+  justify-content: center;
+}
 .stats {
   padding: 15px 25px 15px 15px;
 }
 #puzzle-area {
-  flex: 1;
+  flex: 1 1 auto;
   position: relative;
   display: flex;
   align-items: center;
@@ -349,12 +338,12 @@ a {
 .user-info {
   font-size: 3vw;
   position: relative;
+  padding: 10px 10px;
 }
 .name-tag {
   text-align: center;
   background: grey;
   color: white;
   width: 8vw;
-
 }
 </style>
