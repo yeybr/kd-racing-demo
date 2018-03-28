@@ -71,12 +71,12 @@ export default {
   },
   mounted() {
     var that = this;
-    // this.interval = setInterval(function() {
-    //   var piece1 = this.puzzle[this.getRandomInt(9)];
-    //   var piece2 = this.puzzle[this.getRandomInt(9)];
-    //   this.swap(piece1, piece2);
-    //   this.$forceUpdate();
-    // }.bind(this), 5000);
+    this.interval = setInterval(function() {
+      var piece1 = this.puzzle[this.getRandomInt(9)];
+      var piece2 = this.puzzle[this.getRandomInt(9)];
+      this.swap(piece1, piece2);
+      this.$forceUpdate();
+    }.bind(this), 5000);
     console.log(this.interval);
   },
   // beforeUpdate() {
