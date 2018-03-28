@@ -36,6 +36,7 @@
       <div id="puzzle" :style="puzzleStyle">
         <div v-for="(piece, i) in puzzle" @click="select" :index="piece.index" :key="piece.index" class="spot" :class="{selected: piece.selected}" :style="holderStyle">
           <img :src="puzzlePicture" :index="i" v-bind:style="piece.style"/>
+          <div class="highlight"></div>
         </div>
         <div v-if="gameInfo.win" id="win">
           Winner!
@@ -70,12 +71,12 @@ export default {
   },
   mounted() {
     var that = this;
-    this.interval = setInterval(function() {
-      var piece1 = this.puzzle[this.getRandomInt(9)];
-      var piece2 = this.puzzle[this.getRandomInt(9)];
-      this.swap(piece1, piece2);
-      this.$forceUpdate();
-    }.bind(this), 5000);
+    // this.interval = setInterval(function() {
+    //   var piece1 = this.puzzle[this.getRandomInt(9)];
+    //   var piece2 = this.puzzle[this.getRandomInt(9)];
+    //   this.swap(piece1, piece2);
+    //   this.$forceUpdate();
+    // }.bind(this), 5000);
     console.log(this.interval);
   },
   // beforeUpdate() {
@@ -202,7 +203,7 @@ export default {
       let isAlreadySelected = this.puzzle.find(p => {
         return p.selected;
       });
-      let index = e.target.attributes.index.value;
+      let index = e.target.previousElementSibling.attributes.index.value;
       this.selected = this.puzzle[index];
       this.selected.selected = true;
       if (isAlreadySelected) {
@@ -319,10 +320,15 @@ a {
   vertical-align: top;
   border: solid 1px grey;
   box-sizing: border-box;
+  position: relative;
 }
 
 .spot.selected {
   border: solid 1px red;
+}
+
+.spot.selected img {
+  box-shadow: 10px 10px 10px 10px red inset;
 }
 
 #win {
@@ -355,5 +361,16 @@ a {
   background: grey;
   color: white;
   width: 8vw;
+}
+.highlight {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: 0;
+  left: 0;
+}
+
+.selected .highlight {
+  box-shadow: inset 0 0 20px red;
 }
 </style>
