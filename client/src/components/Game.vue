@@ -364,6 +364,7 @@ a {
   line-height: 100%;
   padding: 40% 0;
   background: rgba(0, 0, 0, 0.2);
+  text-shadow: -1px 0 black, 0 1px black, 1px 0 black, 0 -1px black;
 }
 .profile {
   border: 1px #b9acac9e solid;
