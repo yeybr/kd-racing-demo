@@ -68,8 +68,16 @@ export default {
       });
     }
   },
-  // mounted() {
-  // },
+  mounted() {
+    var that = this;
+    this.interval = setInterval(function() {
+      var piece1 = this.puzzle[this.getRandomInt(9)];
+      var piece2 = this.puzzle[this.getRandomInt(9)];
+      this.swap(piece1, piece2);
+      this.$forceUpdate();
+    }.bind(this), 5000);
+    console.log(this.interval);
+  },
   // beforeUpdate() {
   //   // add any customized code before DOM is re-render and patched based changes in data
   //   console.log('game beforeUpdate: data is changed, about to rerender dom');
@@ -222,6 +230,8 @@ export default {
       }, true);
       if (this.gameInfo.win) {
         console.log("WINNER!");
+        console.log(this.interval);
+        clearInterval(this.interval);
       }
     }
   }
