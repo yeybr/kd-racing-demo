@@ -74,14 +74,12 @@ export default {
     }
   },
   mounted() {
-    var that = this;
     this.interval = setInterval(function() {
       var piece1 = this.puzzle[this.getRandomInt(9)];
       var piece2 = this.puzzle[this.getRandomInt(9)];
       this.swap(piece1, piece2);
       this.$forceUpdate();
     }.bind(this), 5000);
-    console.log(this.interval);
   },
   // beforeUpdate() {
   //   // add any customized code before DOM is re-render and patched based changes in data
@@ -93,6 +91,10 @@ export default {
   destroyed() {
     // clean up any resource, such as close websocket connection, remove subscription
     console.log('game destroyed: dom removed');
+    if (this.interval) {
+      console.log('clear interval');
+      clearInterval(this.interval);
+    }
     if (this.playerMessenger) {
       this.playerMessenger.disconnect();
       this.playerMessenger = null;
@@ -108,9 +110,9 @@ export default {
     if (window.innerWidth < square) {
       square = window.innerWidth;
     }
+    var movePercent = splits / 100;
+    var unit = square * movePercent;
     for (var i = 0; i < size * size; ++i) {
-      var movePercent = splits / 100;
-      var unit = square * movePercent;
       pieces.push({
         index: i,
         style: `width: ${square}px; margin-left: -${unit * (i % size)}px; margin-top: -${unit * Math.floor(i / size)}px;`,
