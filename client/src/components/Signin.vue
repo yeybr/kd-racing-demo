@@ -70,7 +70,7 @@ export default {
       console.log(this.username + ", " + this.password + ", " + this.usertype);
       if (this.usertype === 'player') {
         this.$router.push({
-          name: 'game',
+          name: 'choose',
           query: {
             username: this.username
           }

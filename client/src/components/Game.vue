@@ -34,10 +34,14 @@
     </div>
     <div v-show="state === 'playing'" id="puzzle-area">
       <div id="puzzle" :style="puzzleStyle">
-        <div v-for="(piece, i) in puzzle" @click="select" :index="piece.index" :key="piece.index" class="spot" :class="{selected: piece.selected}" :style="holderStyle">
+         
+         <transition-group name="puzzleswap" >
+          <div  v-for="(piece, i) in puzzle" @click="select" :index="piece.index" :key="piece.index" class="spot" :class="{selected: piece.selected}" :style="[holderStyle]">
           <img :src="puzzlePicture" :index="i" v-bind:style="piece.style"/>
           <div class="highlight"></div>
         </div>
+         </transition-group>        
+
         <div v-if="gameInfo.win" id="win">
           Winner!
         </div>
@@ -113,7 +117,9 @@ export default {
         selected: false
       });
     }
-    var holderStyle = `width: ${unit}px; height: ${unit}px;`;
+    var holderStyle = { 'width': unit + 'px',
+                        'height': unit + 'px'} ; 
+
     var puzzleStyle = `width: ${square}px; height: ${square}px;`;
     console.log("pieces done");
     this.shuffle(pieces);
@@ -163,6 +169,13 @@ export default {
 
   // any actions
   methods: {
+
+  beforeEnter: function (el) {
+    console.log("before enter");
+  },
+  afterLeave: function (el) {
+    console.log("after leaver"  + el);
+  },
     getRandomInt: function(max) {
       return Math.floor(Math.random() * Math.floor(max));
     },
@@ -205,10 +218,10 @@ export default {
       });
       let index = e.target.previousElementSibling.attributes.index.value;
       this.selected = this.puzzle[index];
-      this.selected.selected = true;
-      if (isAlreadySelected) {
+      this.selected.selected = true;       
+       if (isAlreadySelected) {
         this.swap(isAlreadySelected, this.selected);
-      }
+      } 
     },
     swap: function(a, b) {
       console.log(a.index, b.index);
@@ -321,12 +334,18 @@ a {
   border: solid 1px grey;
   box-sizing: border-box;
   position: relative;
+
+    transition: 0.6s;
+    transform-style: preserve-3d;
+    position: relative;
 }
 
 .spot.selected {
   border: solid 1px red;
 }
-
+/* .spot.swapped {
+    transform:  rotateY(360deg);
+} */
 .spot.selected img {
   box-shadow: 10px 10px 10px 10px red inset;
 }
