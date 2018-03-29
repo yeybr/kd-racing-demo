@@ -2,7 +2,6 @@ package com.solace.troubleflipper.configuration;
 
 import com.solace.troubleflipper.properties.SolaceCloudProperties;
 import com.solacesystems.jcsmp.*;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -34,7 +33,42 @@ public class JCSMPConfiguration {
         session.connect();
 
         // needed for dispatch
-        session.getMessageConsumer((XMLMessageListener) null);
+
+        final XMLMessageConsumer cons = session.getMessageConsumer(new XMLMessageListener() {
+
+            @Override
+            public void onReceive(BytesXMLMessage msg) {
+                if (msg instanceof TextMessage) {
+                    System.out.printf("TextMessage received: '%s'%n",
+                            ((TextMessage)msg).getText());
+                } else {
+                    System.out.println("Message received.");
+                }
+                System.out.printf("Message Dump:%n%s%n",msg.dump());
+            }
+
+            @Override
+            public void onException(JCSMPException e) {
+                System.out.printf("Consumer received exception: %s%n",e);
+            }
+        });
+
+        try {
+            final Topic topic = JCSMPFactory.onlyInstance().createTopic("users");
+            session.addSubscription(topic);
+        } catch (JCSMPErrorResponseException ex) {
+            ex.printStackTrace();
+            // Keep going
+        }
+
+        final Topic gameTopic = JCSMPFactory.onlyInstance().createTopic("games/>");
+        session.addSubscription(gameTopic);
+
+        final Topic tournamentTopic = JCSMPFactory.onlyInstance().createTopic("tournament");
+        session.addSubscription(tournamentTopic);
+
+        cons.start();
+
         return session;
     }
 
