@@ -39,16 +39,6 @@ export default {
   created() {
     console.log('signin created: data bind');
   },
-  // mounted() {
-  //   console.log('signin mounted: dom element inserted');
-  // },
-  // beforeUpdate() {
-  //   // add any customized code before DOM is re-render and patched based changes in data
-  //   console.log('signin beforeUpdate: data is changed, about to rerender dom');
-  // },
-  // updated() {
-  //   console.log('signin updated: dom is rerendered');
-  // },
   destroyed() {
     // clean up any resource, such as close websocket connection, remove subscription
     console.log('signin destroyed: dom removed');

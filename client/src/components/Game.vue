@@ -2,7 +2,7 @@
   <div class="game-panel">
     <div class="header-section">
       <h1>{{msg}}</h1>
-      <div class="header-info">
+      <div v-show="state === 'playing'" class="header-info">
         <div class="game-info">
           <span class="info">Puzzle: {{gameInfo.gameName}}</span>
           <span class="info">Team: {{gameInfo.teamName}}</span>
@@ -43,6 +43,9 @@
         </div>
       </div>
     </div>
+    <div v-if="state === 'playing'" class="status">
+      <span class="stats">Time Remaining: {{timeRemaining}}</span>
+    </div>
   </div>
 </template>
 
@@ -69,14 +72,8 @@ export default {
       });
     }
   },
-  mounted() {
-    this.interval = setInterval(function() {
-      var piece1 = this.puzzle[this.getRandomInt(9)];
-      var piece2 = this.puzzle[this.getRandomInt(9)];
-      this.swap(piece1, piece2);
-      this.$forceUpdate();
-    }.bind(this), 5000);
-  },
+  // mounted() {
+  // },
   // beforeUpdate() {
   //   // add any customized code before DOM is re-render and patched based changes in data
   //   console.log('game beforeUpdate: data is changed, about to rerender dom');
@@ -87,10 +84,7 @@ export default {
   destroyed() {
     // clean up any resource, such as close websocket connection, remove subscription
     console.log('game destroyed: dom removed');
-    if (this.interval) {
-      console.log('clear interval');
-      clearInterval(this.interval);
-    }
+    this.stopCountDown();
     if (this.playerMessenger) {
       this.playerMessenger.disconnect();
       this.playerMessenger = null;
@@ -132,6 +126,8 @@ export default {
       puzzlePicture: puzzlePicture,
       msg: 'Trouble Flipper',
       state: 'connecting',
+      timeRemaining: 5, // timing remaining for current move before shuffle
+      timeForEachMove: 5,
       userId: '',
       userName: this.userName,
       avatarLink: avatarLink,
@@ -140,6 +136,7 @@ export default {
         name: '',
         teamId: '',
         teamName: '',
+        timeAllowedForEachMove: 5,
         win: false,
         players: [
         ],
@@ -170,18 +167,53 @@ export default {
     },
     handleMsg: function(msg) {
       console.log('Got message', msg);
-      if (msg.state) {
-        this.state = msg.state;
-      }
       this.userId = msg.userId;
       this.userName = msg.userName;
       if (msg.gameInfo) {
         this.updateData(this.gameInfo, msg.gameInfo);
       }
+      this.handleStateChange(msg);
     },
     handleStateChange: function(msg) {
-      console.log('State change', msg);
-      this.state = msg.state;
+      if (msg.state) {
+        console.log('State change', msg);
+        let currentState = this.state;
+        this.state = msg.state;
+        if (currentState !== 'playing' && this.state === 'playing') {
+          this.timeForEachMove = (this.gameInfo && this.gameInfo.timeAllowedForEachMove) ? this.gameInfo.timeAllowedForEachMove : 5;
+          this.timeRemaining = this.timeForEachMove;
+          this.startCountDown();
+        } else if (this.state !== 'playing') {
+          this.stopCountDown();
+        }
+      }
+    },
+    startCountDown: function() {
+      console.log('start count down timer', this.timeRemaining);
+      this.stopCountDown();
+      this.countdownTimer = setInterval(()=> {
+        this.timeRemaining--;
+        if (this.timeRemaining <= 0) {
+          console.log('no time left', this.timeRemaining);
+          this.stopCountDown();
+          this.randomSwap();
+        }
+      }, 1000);
+    },
+    stopCountDown: function() {
+      if (this.countdownTimer) {
+        console.log('stop countdownTimer');
+        clearInterval(this.countdownTimer);
+        this.countdownTimer = null;
+      }
+    },
+    randomSwap: function() {
+      console.log('random swap');
+      // TODO: send message to server to request random swap
+      var piece1 = this.puzzle[this.getRandomInt(9)];
+      var piece2 = this.puzzle[this.getRandomInt(9)];
+      this.swap(piece1, piece2);
+      this.$forceUpdate();
     },
     shuffle: function(array) {
       var currentIndex = array.length, temporaryValue, randomIndex;
@@ -233,8 +265,11 @@ export default {
       }, true);
       if (this.gameInfo.win) {
         console.log("WINNER!");
-        console.log(this.interval);
-        clearInterval(this.interval);
+        this.stopCountDown();
+      } else {
+        // reset timeRemaining
+        this.timeRemaining = this.timeForEachMove;
+        this.startCountDown();
       }
     }
   }
@@ -341,13 +376,12 @@ a {
   right: 0;
   color: #006fea;
   font-size: 100px;
-  vertical-align: middle;
-  text-align: center;
-  height: 100%;
-  line-height: 100%;
-  padding: 40% 0;
   background: rgba(0, 0, 0, 0.2);
   text-shadow: -1px 0 black, 0 1px black, 1px 0 black, 0 -1px black;
+  z-index: 2;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 .profile {
   border: 1px #b9acac9e solid;
