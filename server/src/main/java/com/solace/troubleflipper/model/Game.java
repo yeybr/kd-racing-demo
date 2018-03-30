@@ -39,6 +39,10 @@ public class Game {
         this.team = team;
     }
 
+    public void swapPieces(PuzzlePiece piece1, PuzzlePiece piece2) {
+        // TODO Abhi swap the pieces and publish the puzzle array
+    }
+
     public boolean isGameWon() {
         boolean result = true;
         for (int i = 0; i < puzzleBoard.size(); ++i) {

@@ -15,9 +15,8 @@ public class JCSMPConfiguration {
         props.setProperty(JCSMPProperties.USERNAME, solaceCloudProperties.getUsername());
         props.setProperty(JCSMPProperties.PASSWORD, solaceCloudProperties.getPassword());
         props.setProperty(JCSMPProperties.HOST, solaceCloudProperties.getUrl());
-        props.setProperty(JCSMPProperties.TOPIC_DISPATCH, true);
         props.setProperty(JCSMPProperties.REAPPLY_SUBSCRIPTIONS, true);
-        props.setProperty(JCSMPProperties.CLIENT_NAME, "trouble-flipper");
+        props.setProperty(JCSMPProperties.CLIENT_NAME, "trouble-flipper-kevin");
         props.setProperty(JCSMPProperties.APPLICATION_DESCRIPTION, "The Java application running the trouble flipper server");
 
         // reconnect behaviour
@@ -60,12 +59,6 @@ public class JCSMPConfiguration {
             ex.printStackTrace();
             // Keep going
         }
-
-        final Topic gameTopic = JCSMPFactory.onlyInstance().createTopic("games/>");
-        session.addSubscription(gameTopic);
-
-        final Topic tournamentTopic = JCSMPFactory.onlyInstance().createTopic("tournament");
-        session.addSubscription(tournamentTopic);
 
         cons.start();
 
