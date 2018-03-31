@@ -52,13 +52,8 @@ public class JCSMPConfiguration {
             }
         });
 
-        try {
-            final Topic topic = JCSMPFactory.onlyInstance().createTopic("users");
-            session.addSubscription(topic);
-        } catch (JCSMPErrorResponseException ex) {
-            ex.printStackTrace();
-            // Keep going
-        }
+        final Topic topic = JCSMPFactory.onlyInstance().createTopic("users");
+        session.addSubscription(topic);
 
         cons.start();
 
