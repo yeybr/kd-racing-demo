@@ -13,7 +13,7 @@
           </div>
         </div>
         <div class="user-info">
-          <div class="name-tag">{{userName}} </div>
+          <div class="name-tag">{{username}} </div>
           <div class="profile" :style="styleAvatar" >
           </div>
         </div>
@@ -60,12 +60,13 @@ export default {
   created() {
     console.log('game created: data bound');
     if (this.$route.query.username) {
-      this.userName = this.$route.query.username;
+      this.username = this.$route.query.username;
       // DO NOT initialize playerMessenger in data() function; otherwise all its memebers will become reactive
       // including the solace API. We don't want solace API's data structure to be injected with Observer stuff,
       // it causes SolaceClientFactory.init() to fail
-      this.playerMessenger = new Player(this.$solace, this.$parent.appProps, this.userName,
-        this.handleMsg.bind(this), this.handleStateChange.bind(this));
+      this.playerMessenger = new Player(this.$solace, this.$parent.appProps,
+        {username: this.username, client: null},
+        this.handleMsg.bind(this));
       this.playerMessenger.connect();
     } else {
       this.$router.push({
@@ -130,7 +131,7 @@ export default {
       timeRemaining: 5, // timing remaining for current move before shuffle
       timeForEachMove: 5,
       client: '',
-      userName: this.userName,
+      username: this.username,
       avatarLink: avatarLink,
       gameInfo: {
         id: '',

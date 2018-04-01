@@ -73,7 +73,7 @@ export class Player {
         console.log('unknown message type',  jsonMessage);
       }
       if (msg) {
-        // process message future if needed
+        // process message future if needed, such as adding new state value
         this.msgCallback(msg);
       }
     }
