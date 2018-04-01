@@ -1,8 +1,8 @@
 <template>
   <div class="game-panel">
-    <div class="header-section">
+    <div v-if="state === 'playing'" class="header-section">
       <h1>{{msg}}</h1>
-      <div v-show="state === 'playing'" class="header-info">
+      <div class="header-info">
         <div class="game-info">
           <span class="info">Puzzle: {{gameInfo.gameName}}</span>
           <span class="info">Team: {{gameInfo.teamName}}</span>
@@ -26,13 +26,14 @@
         <span class="stats">Correct Moves: {{gameInfo.stats.correctMoves}}</span>
       </div>
       <div v-else-if="state === 'waiting'" class="status waiting">
-        <h3>Waiting for game to start...</h3>
+        <label>Waiting for game to start...</label>
+        <button type="button" class="start-btn btn" @click="startGame()">Start Game!</button>
       </div>
       <div v-else class="status waiting">
-        <h3>Connecting...</h3>
+        <label>Connecting...</label>
       </div>
     </div>
-    <div v-show="state === 'playing'" id="puzzle-area">
+    <div v-if="state === 'playing'" id="puzzle-area">
       <div id="puzzle" :style="puzzleStyle">
         <div v-for="(piece, i) in puzzle" @click="select" :index="piece.index" :key="piece.index" class="spot" :class="{selected: piece.selected}" :style="holderStyle">
           <img :src="puzzlePicture" :index="i" v-bind:style="piece.style"/>
@@ -128,7 +129,7 @@ export default {
       state: 'connecting',
       timeRemaining: 5, // timing remaining for current move before shuffle
       timeForEachMove: 5,
-      userId: '',
+      client: '',
       userName: this.userName,
       avatarLink: avatarLink,
       gameInfo: {
@@ -167,8 +168,8 @@ export default {
     },
     handleMsg: function(msg) {
       console.log('Got message', msg);
-      this.userId = msg.userId;
-      this.userName = msg.userName;
+      this.client = msg.client;
+      this.username = msg.username;
       if (msg.gameInfo) {
         this.updateData(this.gameInfo, msg.gameInfo);
       }
@@ -186,6 +187,11 @@ export default {
         } else if (this.state !== 'playing') {
           this.stopCountDown();
         }
+      }
+    },
+    startGame: function() {
+      if (this.playerMessenger) {
+        this.playerMessenger.startGame();
       }
     },
     startCountDown: function() {
@@ -300,6 +306,8 @@ a {
   flex-direction: column;
   justify-content: flex-start;
   width: 100%;
+  height: 100%;
+  flex: 1 1 auto;
 }
 .header-section {
   padding: 15px;
@@ -328,12 +336,33 @@ a {
   display: flex;
   flex-direction: row;
 }
-.status.waiting {
-  justify-content: center;
-}
 .stats {
   padding: 15px 25px 15px 15px;
 }
+
+.status.waiting {
+  align-self: stretch;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.status.waiting label {
+  margin-top: 40px;
+  font-size: 8vw;
+}
+.status.waiting .start-btn {
+  font-size: 32px;
+  margin-bottom: 80px;
+  background: #006fea;
+  border-radius: 4px;
+  padding: 10px;
+  margin: 40px 0;
+  color: white;
+  width: 200px;
+  cursor: pointer;
+}
+
 #puzzle-area {
   flex: 1 1 auto;
   position: relative;
@@ -406,7 +435,6 @@ a {
   right: 0;
   left: 0;
 }
-
 .selected .highlight {
   box-shadow: inset 0 0 20px red;
 }

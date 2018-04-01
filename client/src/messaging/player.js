@@ -1,13 +1,11 @@
 export class Player {
-  constructor(solaceApi, appProps, username, msgCallback, stateChangeCallback) {
+  constructor(solaceApi, appProps, userInfo, msgCallback) {
     this.solaceApi = solaceApi;
     this.appProps = appProps;
-    this.username = username;
+    this.username = userInfo.username;
+    this.client = userInfo.client;
     // upon receiving a message, call this callback with json content, so that UI can get updated
     this.msgCallback = msgCallback;
-    // only call this callback to update UI if this class is up or down, handling real solace session event should be done
-    // inside this class
-    this.stateChangeCallback = stateChangeCallback;
     this.session = null;
   }
 
@@ -30,22 +28,25 @@ export class Player {
           password: this.appProps.password
         });
         this.session.on(solace.SessionEventCode.UP_NOTICE, (sessionEvent) => {
-          console.log('=== Successfully connected and ready to publish messages. ===');
+          console.log('Successfully connected and ready to send and receive messages.');
           this.register();
         });
         this.session.on(solace.SessionEventCode.CONNECT_FAILED_ERROR, (sessionEvent) => {
           console.log('Connection failed to the message router: ' + sessionEvent.infoStr +
             ' - check correct parameter values and connectivity!');
-          this.stateChangeCallback({state: 'connecting'});
+          this.msgCallback({state: 'connecting'});
         });
         this.session.on(solace.SessionEventCode.DISCONNECTED, (sessionEvent) => {
           console.log('Disconnected: ' + sessionEvent.infoStr);
-          this.stateChangeCallback({state: 'connecting'});
+          this.msgCallback({state: 'connecting'});
           if (this.session !== null) {
             this.session.dispose();
             this.session = null;
           }
-
+        });
+        this.session.on(solace.SessionEventCode.MESSAGE, (message) => {
+          console.log('Received message: "' + message.getBinaryAttachment() + '", details:\n' + message.dump());
+          this.handleMessage(message.getBinaryAttachment());
         });
         this.session.connect();
       }
@@ -57,27 +58,64 @@ export class Player {
     }
   }
 
+  handleMessage(jsonMessage) {
+    if (jsonMessage) {
+      let msg = null;
+      if (typeof jsonMessage === 'string') {
+        try {
+          msg = JSON.parse(jsonMessage);
+        } catch (e) {
+          console.log('cannot parse message', e);
+        }
+      } else if (typeof jsonMessage === 'object') {
+        msg = jsonMessage;
+      } else {
+        console.log('unknown message type',  jsonMessage);
+      }
+      if (msg) {
+        // process message future if needed
+        this.msgCallback(msg);
+      }
+    }
+  }
+
   register() {
-    console.log('register player ' + this.username + ' to a game team');
+    console.log('Connect player ' + this.username + ', client ' + this.client);
     /*
-    publish request to players
-	    username: test
+    publish request to players, client is optional. If client is present, the server should resume
+    the user's game if it is active
+    {
+      client: 1,
+      username: test
+    }
     reply:
       {
-        userId: 1,
+        client: 1,
         username: test
       }
     subscribe to
-    players/<userId>
+    players/<client>
     players/<teamid>
     */
-   // TESTING CODE
-   this.stateChangeCallback({state: 'waiting'});
+   // REMOVE TESTING CODE
    setTimeout(()=> {
     let msg = {
+      state: 'waiting',
+      client: '1',
+      username: this.username,
+    };
+    this.msgCallback(msg);
+   }, 2000);
+  }
+
+  startGame() {
+    console.log('Send message to request to start game');
+
+    // REMOVE TESTING CODE
+    let msg = {
       state: 'playing',
-      userId: '1',
-      userName: this.username,
+      client: '1',
+      username: this.username,
       gameInfo: {
         gameId: '1',
         gameName: 'Mario',
@@ -107,7 +145,6 @@ export class Player {
       }
     };
     this.msgCallback(msg);
-   }, 2000);
   }
 
   disconnect() {
@@ -120,7 +157,7 @@ export class Player {
       }
     } catch (e) {
       console.log('Disconnect fails', e);
-      this.stateChangeCallback({state: 'connecting'});
+      this.msgCallback({state: 'connecting'});
     }
   }
 }
