@@ -1,7 +1,7 @@
 <template>
   <div class="game-panel">
     <div v-if="state === 'playing'" class="header-section">
-      <h1>{{msg}}</h1>
+      <h1>{{title}}</h1>
       <div class="header-info">
         <div class="game-info">
           <span class="info">Puzzle: {{gameInfo.gameName}}</span>
@@ -29,8 +29,33 @@
         <label>Waiting for game to start...</label>
         <button type="button" class="start-btn btn" @click="startGame()">Start Game!</button>
       </div>
-      <div v-else class="status waiting">
+      <div v-else-if="state === 'connecting'" class="status waiting">
         <label>Connecting...</label>
+      </div>
+    </div>
+    <div v-if="state === 'start'" id="choose">
+      <div class="titlebar">Choose your character</div>
+      <div class="heros">
+        <div class="heromug bowser" data_id="bowser" @click="pickAvatar">
+        <div class="heroselect" ></div>
+        <div class="nametag" hero-name="bowser">Bowser</div>
+        </div>
+        <div class="heromug yoshi"  data_id="yoshi" @click="pickAvatar">
+          <div class="heroselect"></div>
+              <div class="nametag" hero-name="bowser">Yoshi</div>
+        </div>
+        <div class="heromug toad" data_id="toad" @click="pickAvatar">
+          <div class="heroselect"></div>
+              <div class="nametag">Toad</div>
+        </div>
+        <div class="heromug peach" data_id="peach" @click="pickAvatar">
+          <div class="heroselect"></div>
+          <div class="nametag">Peach</div>
+        </div>
+        <div class="heromug mario" data_id="mario" @click="pickAvatar">
+          <div class="heroselect"></div>
+          <div class="nametag">Mario</div>
+        </div>
       </div>
     </div>
     <div v-if="state === 'playing'" id="puzzle-area">
@@ -88,6 +113,7 @@ export default {
     console.log('game destroyed: dom removed');
     this.stopCountDown();
     if (this.playerMessenger) {
+      this.playerMessenger.unregister();
       this.playerMessenger.disconnect();
       this.playerMessenger = null;
     }
@@ -119,14 +145,15 @@ export default {
 
     let random = this.getRandomInt(4) + 1;
     let puzzlePicture = `static/puzzle${random}.png`;
-    let avatarLink = `url("static/${this.$route.query.avatar}-mario.jpg")`;
+    // let avatarLink = `url("static/${this.$route.query.avatar}-mario.jpg")`;
+    let avatarLink = '';
     console.log(puzzlePicture);
     return {
       size: size,
       holderStyle: holderStyle,
       puzzleStyle: puzzleStyle,
       puzzlePicture: puzzlePicture,
-      msg: 'Trouble Flipper',
+      title: 'Trouble Flipper',
       state: 'connecting',
       timeRemaining: 5, // timing remaining for current move before shuffle
       timeForEachMove: 5,
@@ -174,6 +201,10 @@ export default {
       if (msg.gameInfo) {
         this.updateData(this.gameInfo, msg.gameInfo);
       }
+      if (this.gameInfo.avatar) {
+        this.avatarLink = `url("static/${this.gameInfo.avatar}-mario.jpg")`;
+        this.styleAvatar['background-image'] = this.avatarLink;
+      }
       this.handleStateChange(msg);
     },
     handleStateChange: function(msg) {
@@ -193,6 +224,12 @@ export default {
     startGame: function() {
       if (this.playerMessenger) {
         this.playerMessenger.startGame();
+      }
+    },
+    pickAvatar: function(event) {
+      console.log("Play with " + event.currentTarget.getAttribute("data_id"));
+      if (this.playerMessenger) {
+        this.playerMessenger.pickAvatar(event.currentTarget.getAttribute("data_id"));
       }
     },
     startCountDown: function() {
@@ -310,6 +347,8 @@ a {
   height: 100%;
   flex: 1 1 auto;
 }
+
+/* header section */
 .header-section {
   padding: 15px;
 }
@@ -327,6 +366,24 @@ a {
 .header-info .game-info .info {
   padding: 0px;
 }
+.profile {
+  border: 1px #b9acac9e solid;
+  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+  display:inline-block;
+}
+.user-info {
+  font-size: 3vw;
+  position: relative;
+  padding: 0px 10px;
+}
+.name-tag {
+  text-align: center;
+  background: grey;
+  color: white;
+  width: 8vw;
+}
+
+/* game stats/status section */
 .game-stats {
   display: flex;
   flex-direction: column;
@@ -340,14 +397,12 @@ a {
 .stats {
   padding: 15px 25px 15px 15px;
 }
-
 .status.waiting {
   align-self: stretch;
   display: flex;
   flex-direction: column;
   align-items: center;
 }
-
 .status.waiting label {
   margin-top: 40px;
   font-size: 8vw;
@@ -364,6 +419,7 @@ a {
   cursor: pointer;
 }
 
+/* puzzle section */
 #puzzle-area {
   flex: 1 1 auto;
   position: relative;
@@ -389,11 +445,9 @@ a {
   box-sizing: border-box;
   position: relative;
 }
-
 .spot.selected {
   border: solid 1px red;
 }
-
 .spot.selected img {
   box-shadow: 10px 10px 10px 10px red inset;
 }
@@ -413,22 +467,6 @@ a {
   justify-content: center;
   align-items: center;
 }
-.profile {
-  border: 1px #b9acac9e solid;
-  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
-  display:inline-block;
-}
-.user-info {
-  font-size: 3vw;
-  position: relative;
-  padding: 0px 10px;
-}
-.name-tag {
-  text-align: center;
-  background: grey;
-  color: white;
-  width: 8vw;
-}
 .highlight {
   position: absolute;
   top: 0;
@@ -438,5 +476,72 @@ a {
 }
 .selected .highlight {
   box-shadow: inset 0 0 20px red;
+}
+
+/* TODO: move avatar selection to its own component */
+.titlebar {
+  text-align: center;
+  background: #bfa5a538;
+  padding: 5px;
+}
+.heros {
+  display: flex;
+  flex-flow: row wrap;
+  justify-content: center;
+}
+.heromug {
+  position:relative;
+  border: 1px #f56f6f9e solid;
+  border-radius: 4vw;
+  min-width: 30vw;
+  min-height: 28vh;
+
+  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: contain;
+  margin: 2vw;
+  background-color:white;
+}
+
+.heroselect {
+  min-height: 28vh;
+  min-width: 30vw;
+  border-radius: 4vw;
+}
+.heromug > .heroselect:hover{
+  background-color: #ff00003b;
+}
+
+.heromug:hover {
+  box-shadow: 0 5px 55px rgba(0,0,0,0.3);
+}
+
+.heromug.bowser {
+  background-image: url(../assets/bowser-mario.jpg);
+}
+
+.heromug.yoshi {
+  background-image: url(../assets/yoshi-mario.jpg);
+}
+.heromug.peach {
+  background-image: url(../assets/peach-mario.jpg);
+}
+
+.heromug.toad {
+  background-image: url(../assets/toad-mario.jpg);
+}
+
+.heromug.mario {
+  background-image: url(../assets/mario-mario.jpg);
+}
+
+.heromug > .nametag {
+  position: absolute;
+  bottom: 2vw;
+  background: #3e1d0c66;
+  width: 100%;
+  text-align: center;
+  color: white;
 }
 </style>

@@ -176,6 +176,11 @@ export class GameMaster {
    }, 2000);
   }
 
+  // called by Scoreboard.vue destroy method
+  unregister() {
+    console.log('Let server know spectator ' + this.username + ', client ' + this.client + ' becomes inactive');
+  }
+
   disconnect() {
     // session disconnect
     console.log("Disconect");

@@ -59,6 +59,7 @@ export default {
     // clean up any resource, such as close websocket connection, remove subscription
     console.log('scoreboard destroyed: dom removed');
     if (this.masterMessenger) {
+      this.masterMessenger.unregister();
       this.masterMessenger.disconnect();
       this.masterMessenger = null;
     }
