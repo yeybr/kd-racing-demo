@@ -86,11 +86,21 @@ export default {
     console.log('game created: data bound');
     if (this.$route.query.username) {
       this.username = this.$route.query.username;
+      // Retrive userInfo from local storage
+      let userInfo = this.retrieveFromStorage('localStorage', 'trouble_flipper_userInfo');
+      let client = null;
+      if (userInfo) {
+        client = userInfo.client;
+        if (userInfo.username !== this.username) {
+          userInfo.username = this.username;
+          this.saveIntoStorage('localStorage', 'trouble_flipper_userInfo', userInfo);
+        }
+      }
       // DO NOT initialize playerMessenger in data() function; otherwise all its memebers will become reactive
       // including the solace API. We don't want solace API's data structure to be injected with Observer stuff,
       // it causes SolaceClientFactory.init() to fail
       this.playerMessenger = new Player(this.$solace, this.$parent.appProps,
-        {username: this.username, client: null},
+        {username: this.username, client: client},
         this.handleMsg.bind(this));
       this.playerMessenger.connect();
     } else {
@@ -145,7 +155,6 @@ export default {
 
     let random = this.getRandomInt(4) + 1;
     let puzzlePicture = `static/puzzle${random}.png`;
-    // let avatarLink = `url("static/${this.$route.query.avatar}-mario.jpg")`;
     let avatarLink = '';
     console.log(puzzlePicture);
     return {
@@ -218,6 +227,10 @@ export default {
           this.startCountDown();
         } else if (this.state !== 'playing') {
           this.stopCountDown();
+          if (this.state === 'waiting') {
+            console.log('Save username ' + this.username + ', client ' + this.client);
+            this.saveIntoStorage('localStorage', 'trouble_flipper_userInfo', { username: this.username, client: this.client });
+          }
         }
       }
     },
