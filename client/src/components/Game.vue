@@ -1,7 +1,7 @@
 <template>
   <div class="game-panel">
-    <div class="header-section">
-      <h1>{{msg}}</h1>
+    <div v-if="state === 'playing'" class="header-section">
+      <h1>{{title}}</h1>
       <div class="header-info">
         <div class="game-info">
           <span class="info">Puzzle: {{gameInfo.gameName}}</span>
@@ -13,7 +13,7 @@
           </div>
         </div>
         <div class="user-info">
-          <div class="name-tag">{{userName}} </div>
+          <div class="name-tag">{{username}} </div>
           <div class="profile" :style="styleAvatar" >
           </div>
         </div>
@@ -26,13 +26,39 @@
         <span class="stats">Correct Moves: {{gameInfo.stats.correctMoves}}</span>
       </div>
       <div v-else-if="state === 'waiting'" class="status waiting">
-        <h3>Waiting for game to start...</h3>
+        <label>Waiting for game to start...</label>
+        <button type="button" class="start-btn btn" @click="startGame()">Start Game!</button>
       </div>
-      <div v-else class="status waiting">
-        <h3>Connecting...</h3>
+      <div v-else-if="state === 'connecting'" class="status waiting">
+        <label>Connecting...</label>
       </div>
     </div>
-    <div v-show="state === 'playing'" id="puzzle-area">
+    <div v-if="state === 'start'" id="choose">
+      <div class="titlebar">Choose your character</div>
+      <div class="heros">
+        <div class="heromug bowser" data_id="bowser" @click="pickAvatar">
+        <div class="heroselect" ></div>
+        <div class="nametag" hero-name="bowser">Bowser</div>
+        </div>
+        <div class="heromug yoshi"  data_id="yoshi" @click="pickAvatar">
+          <div class="heroselect"></div>
+              <div class="nametag" hero-name="bowser">Yoshi</div>
+        </div>
+        <div class="heromug toad" data_id="toad" @click="pickAvatar">
+          <div class="heroselect"></div>
+              <div class="nametag">Toad</div>
+        </div>
+        <div class="heromug peach" data_id="peach" @click="pickAvatar">
+          <div class="heroselect"></div>
+          <div class="nametag">Peach</div>
+        </div>
+        <div class="heromug mario" data_id="mario" @click="pickAvatar">
+          <div class="heroselect"></div>
+          <div class="nametag">Mario</div>
+        </div>
+      </div>
+    </div>
+    <div v-if="state === 'playing'" id="puzzle-area">
       <div id="puzzle" :style="puzzleStyle">
          
          <transition-group name="puzzleswap" >
@@ -47,6 +73,9 @@
         </div>
       </div>
     </div>
+    <div v-if="state === 'playing'" class="status">
+      <span class="stats">Time Remaining: {{timeRemaining}}</span>
+    </div>
   </div>
 </template>
 
@@ -60,12 +89,23 @@ export default {
   created() {
     console.log('game created: data bound');
     if (this.$route.query.username) {
-      this.userName = this.$route.query.username;
+      this.username = this.$route.query.username;
+      // Retrive userInfo from local storage
+      let userInfo = this.retrieveFromStorage('localStorage', 'trouble_flipper_userInfo');
+      let client = null;
+      if (userInfo) {
+        client = userInfo.client;
+        if (userInfo.username !== this.username) {
+          userInfo.username = this.username;
+          this.saveIntoStorage('localStorage', 'trouble_flipper_userInfo', userInfo);
+        }
+      }
       // DO NOT initialize playerMessenger in data() function; otherwise all its memebers will become reactive
       // including the solace API. We don't want solace API's data structure to be injected with Observer stuff,
       // it causes SolaceClientFactory.init() to fail
-      this.playerMessenger = new Player(this.$solace, this.$parent.appProps, this.userName,
-        this.handleMsg.bind(this), this.handleStateChange.bind(this));
+      this.playerMessenger = new Player(this.$solace, this.$parent.appProps,
+        {username: this.username, client: client},
+        this.handleMsg.bind(this));
       this.playerMessenger.connect();
     } else {
       this.$router.push({
@@ -73,14 +113,8 @@ export default {
       });
     }
   },
-  mounted() {
-    this.interval = setInterval(function() {
-      var piece1 = this.puzzle[this.getRandomInt(9)];
-      var piece2 = this.puzzle[this.getRandomInt(9)];
-      this.swap(piece1, piece2);
-      this.$forceUpdate();
-    }.bind(this), 5000);
-  },
+  // mounted() {
+  // },
   // beforeUpdate() {
   //   // add any customized code before DOM is re-render and patched based changes in data
   //   console.log('game beforeUpdate: data is changed, about to rerender dom');
@@ -91,11 +125,9 @@ export default {
   destroyed() {
     // clean up any resource, such as close websocket connection, remove subscription
     console.log('game destroyed: dom removed');
-    if (this.interval) {
-      console.log('clear interval');
-      clearInterval(this.interval);
-    }
+    this.stopCountDown();
     if (this.playerMessenger) {
+      this.playerMessenger.unregister();
       this.playerMessenger.disconnect();
       this.playerMessenger = null;
     }
@@ -129,23 +161,26 @@ export default {
 
     let random = this.getRandomInt(4) + 1;
     let puzzlePicture = `static/puzzle${random}.png`;
-    let avatarLink = `url("static/${this.$route.query.avatar}-mario.jpg")`;
+    let avatarLink = '';
     console.log(puzzlePicture);
     return {
       size: size,
       holderStyle: holderStyle,
       puzzleStyle: puzzleStyle,
       puzzlePicture: puzzlePicture,
-      msg: 'Trouble Flipper',
+      title: 'Trouble Flipper',
       state: 'connecting',
-      userId: '',
-      userName: this.userName,
+      timeRemaining: 5, // timing remaining for current move before shuffle
+      timeForEachMove: 5,
+      client: '',
+      username: this.username,
       avatarLink: avatarLink,
       gameInfo: {
         id: '',
         name: '',
         teamId: '',
         teamName: '',
+        timeAllowedForEachMove: 5,
         win: false,
         players: [
         ],
@@ -183,18 +218,72 @@ export default {
     },
     handleMsg: function(msg) {
       console.log('Got message', msg);
-      if (msg.state) {
-        this.state = msg.state;
-      }
-      this.userId = msg.userId;
-      this.userName = msg.userName;
+      this.client = msg.client;
+      this.username = msg.username;
       if (msg.gameInfo) {
         this.updateData(this.gameInfo, msg.gameInfo);
       }
+      if (this.gameInfo.avatar) {
+        this.avatarLink = `url("static/${this.gameInfo.avatar}-mario.jpg")`;
+        this.styleAvatar['background-image'] = this.avatarLink;
+      }
+      this.handleStateChange(msg);
     },
     handleStateChange: function(msg) {
-      console.log('State change', msg);
-      this.state = msg.state;
+      if (msg.state) {
+        console.log('State change', msg);
+        let currentState = this.state;
+        this.state = msg.state;
+        if (currentState !== 'playing' && this.state === 'playing') {
+          this.timeForEachMove = (this.gameInfo && this.gameInfo.timeAllowedForEachMove) ? this.gameInfo.timeAllowedForEachMove : 5;
+          this.timeRemaining = this.timeForEachMove;
+          this.startCountDown();
+        } else if (this.state !== 'playing') {
+          this.stopCountDown();
+          if (this.state === 'waiting') {
+            console.log('Save username ' + this.username + ', client ' + this.client);
+            this.saveIntoStorage('localStorage', 'trouble_flipper_userInfo', { username: this.username, client: this.client });
+          }
+        }
+      }
+    },
+    startGame: function() {
+      if (this.playerMessenger) {
+        this.playerMessenger.startGame();
+      }
+    },
+    pickAvatar: function(event) {
+      console.log("Play with " + event.currentTarget.getAttribute("data_id"));
+      if (this.playerMessenger) {
+        this.playerMessenger.pickAvatar(event.currentTarget.getAttribute("data_id"));
+      }
+    },
+    startCountDown: function() {
+      console.log('start count down timer', this.timeRemaining);
+      this.stopCountDown();
+      this.countdownTimer = setInterval(()=> {
+        this.timeRemaining--;
+        if (this.timeRemaining <= 0) {
+          console.log('no time left', this.timeRemaining);
+          this.stopCountDown();
+          this.randomSwap();
+        }
+      }, 1000);
+    },
+    stopCountDown: function() {
+      if (this.countdownTimer) {
+        console.log('stop countdownTimer');
+        clearInterval(this.countdownTimer);
+        this.countdownTimer = null;
+      }
+    },
+    randomSwap: function() {
+      console.log('random swap');
+      // TODO: send message to server to request random swap
+      var piece1 = this.puzzle[this.getRandomInt(9)];
+      var piece2 = this.puzzle[this.getRandomInt(9)];
+      this.swap(piece1, piece2);
+      this.$forceUpdate();
     },
     shuffle: function(array) {
       var currentIndex = array.length, temporaryValue, randomIndex;
@@ -246,8 +335,11 @@ export default {
       }, true);
       if (this.gameInfo.win) {
         console.log("WINNER!");
-        console.log(this.interval);
-        clearInterval(this.interval);
+        this.stopCountDown();
+      } else {
+        // reset timeRemaining
+        this.timeRemaining = this.timeForEachMove;
+        this.startCountDown();
       }
     }
   }
@@ -278,7 +370,11 @@ a {
   flex-direction: column;
   justify-content: flex-start;
   width: 100%;
+  height: 100%;
+  flex: 1 1 auto;
 }
+
+/* header section */
 .header-section {
   padding: 15px;
 }
@@ -296,6 +392,24 @@ a {
 .header-info .game-info .info {
   padding: 0px;
 }
+.profile {
+  border: 1px #b9acac9e solid;
+  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+  display:inline-block;
+}
+.user-info {
+  font-size: 3vw;
+  position: relative;
+  padding: 0px 10px;
+}
+.name-tag {
+  text-align: center;
+  background: grey;
+  color: white;
+  width: 8vw;
+}
+
+/* game stats/status section */
 .game-stats {
   display: flex;
   flex-direction: column;
@@ -306,12 +420,32 @@ a {
   display: flex;
   flex-direction: row;
 }
-.status.waiting {
-  justify-content: center;
-}
 .stats {
   padding: 15px 25px 15px 15px;
 }
+.status.waiting {
+  align-self: stretch;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.status.waiting label {
+  margin-top: 40px;
+  font-size: 8vw;
+}
+.status.waiting .start-btn {
+  font-size: 32px;
+  margin-bottom: 80px;
+  background: #006fea;
+  border-radius: 4px;
+  padding: 10px;
+  margin: 40px 0;
+  color: white;
+  width: 200px;
+  cursor: pointer;
+}
+
+/* puzzle section */
 #puzzle-area {
   flex: 1 1 auto;
   position: relative;
@@ -341,7 +475,6 @@ a {
     transform-style: preserve-3d;
     position: relative;
 }
-
 .spot.selected {
   border: solid 1px red;
 }
@@ -360,29 +493,12 @@ a {
   right: 0;
   color: #006fea;
   font-size: 100px;
-  vertical-align: middle;
-  text-align: center;
-  height: 100%;
-  line-height: 100%;
-  padding: 40% 0;
   background: rgba(0, 0, 0, 0.2);
   text-shadow: -1px 0 black, 0 1px black, 1px 0 black, 0 -1px black;
-}
-.profile {
-  border: 1px #b9acac9e solid;
-  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
-  display:inline-block;
-}
-.user-info {
-  font-size: 3vw;
-  position: relative;
-  padding: 0px 10px;
-}
-.name-tag {
-  text-align: center;
-  background: grey;
-  color: white;
-  width: 8vw;
+  z-index: 2;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 .highlight {
   position: absolute;
@@ -391,8 +507,74 @@ a {
   right: 0;
   left: 0;
 }
-
 .selected .highlight {
   box-shadow: inset 0 0 20px red;
+}
+
+/* TODO: move avatar selection to its own component */
+.titlebar {
+  text-align: center;
+  background: #bfa5a538;
+  padding: 5px;
+}
+.heros {
+  display: flex;
+  flex-flow: row wrap;
+  justify-content: center;
+}
+.heromug {
+  position:relative;
+  border: 1px #f56f6f9e solid;
+  border-radius: 4vw;
+  min-width: 30vw;
+  min-height: 28vh;
+
+  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: contain;
+  margin: 2vw;
+  background-color:white;
+}
+
+.heroselect {
+  min-height: 28vh;
+  min-width: 30vw;
+  border-radius: 4vw;
+}
+.heromug > .heroselect:hover{
+  background-color: #ff00003b;
+}
+
+.heromug:hover {
+  box-shadow: 0 5px 55px rgba(0,0,0,0.3);
+}
+
+.heromug.bowser {
+  background-image: url(../assets/bowser-mario.jpg);
+}
+
+.heromug.yoshi {
+  background-image: url(../assets/yoshi-mario.jpg);
+}
+.heromug.peach {
+  background-image: url(../assets/peach-mario.jpg);
+}
+
+.heromug.toad {
+  background-image: url(../assets/toad-mario.jpg);
+}
+
+.heromug.mario {
+  background-image: url(../assets/mario-mario.jpg);
+}
+
+.heromug > .nametag {
+  position: absolute;
+  bottom: 2vw;
+  background: #3e1d0c66;
+  width: 100%;
+  text-align: center;
+  color: white;
 }
 </style>

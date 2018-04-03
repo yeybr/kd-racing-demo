@@ -2,7 +2,7 @@
   <div class="score-panel">
     <div class="title">
       <h1>{{msg}}</h1>
-      <!-- <div class="user-info">User: {{userName}}</div> -->
+      <!-- <div class="user-info">User: {{username}}</div> -->
     </div>
     <div v-show="state !== 'watching'" class="score-info waiting">
       <h3>Connecting...</h3>
@@ -31,16 +31,13 @@ export default {
     console.log('scoreboard created: data bound');
 
     // if (this.$route.query.username) {
-      // this.userName = this.$route.query.username;
+      // this.username = this.$route.query.username;
       // this.isMaster = this.$route.query.isMaster;
-      this.userName = 'admin';
+      this.username = 'admin';
       this.isMaster = true;
       this.masterMessenger = new GameMaster(this.$solace, this.$parent.appProps,
-        // this.userName,
-        // this.$route.query.isMaster,
-        this.userName,
-        this.isMaster,
-        this.handleMsg.bind(this), this.handleStateChange.bind(this));
+        {username: this.username, isMaster: this.isMaster, client: null},
+        this.handleMsg.bind(this));
       this.masterMessenger.connect();
     // } else {
     //   this.$router.push({
@@ -62,6 +59,7 @@ export default {
     // clean up any resource, such as close websocket connection, remove subscription
     console.log('scoreboard destroyed: dom removed');
     if (this.masterMessenger) {
+      this.masterMessenger.unregister();
       this.masterMessenger.disconnect();
       this.masterMessenger = null;
     }
@@ -72,8 +70,8 @@ export default {
     return {
       msg: 'Trouble Flipper Scoreboard',
       state: 'connecting',
-      userId: "",
-      userName: "",
+      client: "",
+      username: "",
       isMaster: false,
       scoreboardInfo: {
         teams: [
@@ -86,18 +84,18 @@ export default {
   methods: {
     handleMsg: function(msg) {
       console.log('Got message', msg);
-      if (msg.state) {
-        this.state = msg.state;
-      }
-      this.userId = msg.userId;
-      this.userName = msg.userName;
+      this.client = msg.client;
+      this.username = msg.username;
       if (msg.scoreboardInfo) {
         this.updateData(this.scoreboardInfo, msg.scoreboardInfo);
       }
+      this.handleStateChange(msg);
     },
-    handleStateChange: function(state) {
-      console.log('State change', msg);
-      this.state = msg.state;
+    handleStateChange: function(msg) {
+      if (msg.state) {
+        console.log('State change', msg);
+        this.state = msg.state;
+      }
     }
   }
 }

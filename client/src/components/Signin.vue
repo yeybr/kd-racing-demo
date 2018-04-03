@@ -1,6 +1,7 @@
 <template>
-    <ons-gesture-detector>
-  <div id="signon" v-on:swipeleft="gochoose" v-on:swiperight="goscoreboard" v-on:swipebottom="gogamemaster"> 
+  <!-- <ons-gesture-detector> -->
+  <!-- <div id="signon" v-on:swipeleft="gochoose" v-on:swiperight="goscoreboard" v-on:swipebottom="gogamemaster"> -->
+  <div id="signon">
       <img class="mario" src="../assets/mario.png"/>
     <!-- submit button -->
     <div class="form-group">
@@ -9,7 +10,7 @@
     </div>
     <button type="button" class="go-btn btn" @click="signon()">Go!</button>
   </div>
-      </ons-gesture-detector>
+  <!-- </ons-gesture-detector> -->
 
 </template>
 
@@ -52,46 +53,46 @@ export default {
   // any actions
   methods: {
     gochoose: function(event) {
-      this.$router.push('choose');
+      this.$router.push("choose");
     },
     goscoreboard: function(event) {
       this.$router.push({
-          name: 'scoreboard',
-          query: {
-            username: this.username,
-            isMaster: this.usertype === 'master'
-          }
-        });
+        name: "scoreboard",
+        query: {
+          username: this.username,
+          isMaster: this.usertype === "master"
+        }
+      });
     },
     gogamemaster: function(event) {
       console.log("go as master login");
     },
     signon: function(event) {
       console.log(this.username + ", " + this.password + ", " + this.usertype);
-      if (this.usertype === 'player') {
+      if (this.usertype === "player") {
         this.$router.push({
+<<<<<<< HEAD
           name: 'choose',
+=======
+          name: "game",
+>>>>>>> 26b0920880fd2007d7fe0248e92327437cca659f
           query: {
             username: this.username
           }
         });
       } else {
         this.$router.push({
-          name: 'scoreboard',
+          name: "scoreboard",
           query: {
             username: this.username,
-            isMaster: this.usertype === 'master'
+            isMaster: this.usertype === "master"
           }
         });
       }
     },
     signout: function(event) {}
-
   }
 };
-
-
-
 </script>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->

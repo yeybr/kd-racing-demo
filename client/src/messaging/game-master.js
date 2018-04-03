@@ -1,14 +1,12 @@
 export class GameMaster {
-  constructor(solaceApi, appProps, username, isMaster, msgCallback, stateChangeCallback) {
+  constructor(solaceApi, appProps, userInfo, msgCallback) {
     this.solaceApi = solaceApi;
     this.appProps = appProps;
-    this.username =  username;
-    this.isMaster = isMaster;
+    this.username =  userInfo.username;
+    this.client = userInfo.client;
+    this.isMaster = userInfo.isMaster;
     // upon receiving a message, call this callback with json content, so that UI can get updated
     this.msgCallback = msgCallback;
-    // only call this callback to update UI if this class is up or down, handling real solace session event should be done
-    // inside this class
-    this.stateChangeCallback = stateChangeCallback;
     this.session = null;
   }
 
@@ -32,22 +30,25 @@ export class GameMaster {
           password: this.appProps.password
         });
         this.session.on(solace.SessionEventCode.UP_NOTICE, (sessionEvent) => {
-          console.log('=== Successfully connected and ready to publish messages. ===');
+          console.log('Successfully connected and ready to publish and receive messages.');
           this.register();
         });
         this.session.on(solace.SessionEventCode.CONNECT_FAILED_ERROR, (sessionEvent) => {
           console.log('Connection failed to the message router: ' + sessionEvent.infoStr +
             ' - check correct parameter values and connectivity!');
-          this.stateChangeCallback({state: 'connecting'});
+          this.msgCallback({state: 'connecting'});
         });
         this.session.on(solace.SessionEventCode.DISCONNECTED, (sessionEvent) => {
           console.log('Disconnected: ' + sessionEvent.infoStr);
-          this.stateChangeCallback({state: 'connecting'});
+          this.msgCallback({state: 'connecting'});
           if (this.session !== null) {
             this.session.dispose();
             this.session = null;
           }
-
+        });
+        this.session.on(solace.SessionEventCode.MESSAGE, (message) => {
+          console.log('Received message: "' + message.getBinaryAttachment() + '", details:\n' + message.dump());
+          this.handleMessage(message.getBinaryAttachment());
         });
         this.session.connect();
       }
@@ -59,16 +60,39 @@ export class GameMaster {
     }
   }
 
+  handleMessage(jsonMessage) {
+    if (jsonMessage) {
+      let msg = null;
+      if (typeof jsonMessage === 'string') {
+        try {
+          msg = JSON.parse(jsonMessage);
+        } catch (e) {
+          console.log('cannot parse message', e);
+        }
+      } else if (typeof jsonMessage === 'object') {
+        msg = jsonMessage;
+      } else {
+        console.log('unknown message type',  jsonMessage);
+      }
+      if (msg) {
+        // process message future if needed, such as adding new state value
+        this.msgCallback(msg);
+      }
+    }
+  }
+
   register() {
-    console.log('register spectator ' + this.username);
+    console.log('Connect spectator ' + this.username + ', client ' + this.client + ', isMaster' + this.isMaster);
     /*
-      publish to
-        game
-        username: admin
-        password: admin
+      publish to game
+      {
+        client: 1,
+        username: admin,
+        password: admin,
+      }
       reply:
         {
-          userId: 1,
+          client: 1,
           username: admin,
           scoreboardInfo: {
             teams: [
@@ -84,8 +108,8 @@ export class GameMaster {
    setTimeout(() => {
     this.msgCallback({
       state: 'watching',
-      userId: '2',
-      userName: this.username,
+      client: '2',
+      username: this.username,
       scoreboardInfo: {
         games: [
           {
@@ -152,6 +176,11 @@ export class GameMaster {
    }, 2000);
   }
 
+  // called by Scoreboard.vue destroy method
+  unregister() {
+    console.log('Let server know spectator ' + this.username + ', client ' + this.client + ' becomes inactive');
+  }
+
   disconnect() {
     // session disconnect
     console.log("Disconect");
@@ -162,7 +191,7 @@ export class GameMaster {
       }
     } catch (e) {
       console.log('Disconnect fails', e);
-      this.stateChangeCallback({state: 'connecting'});
+      this.msgCallback({state: 'connecting'});
     }
   }
 

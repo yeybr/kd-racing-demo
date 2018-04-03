@@ -4,6 +4,7 @@ import com.solace.troubleflipper.model.Game;
 import com.solace.troubleflipper.model.Player;
 import com.solace.troubleflipper.model.Team;
 import com.solace.troubleflipper.properties.TournamentProperties;
+import com.solacesystems.jcsmp.JCSMPSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -19,11 +20,14 @@ public class Tournament {
     private List<Team> teams;
     private List<Game> games;
 
+    private final JCSMPSession jcsmpSession;
+
     private final TournamentProperties tournamentProperties;
 
     @Autowired
-    public Tournament(TournamentProperties tournamentProperties) {
+    public Tournament(TournamentProperties tournamentProperties, JCSMPSession jcsmpSession) {
         this.tournamentProperties = tournamentProperties;
+        this.jcsmpSession = jcsmpSession;
     }
 
     public void addPlayer(Player player) {
