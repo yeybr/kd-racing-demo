@@ -87,25 +87,26 @@ export default {
     if (this.$route.query.username) {
       this.username = this.$route.query.username;
       // Retrive userInfo from local storage
-      let userInfo = this.retrieveFromStorage('localStorage', 'trouble_flipper_userInfo');
+      let userInfo = this.retrieveFromStorage('localStorage', 'trouble_flipper_player');
       let client = null;
       if (userInfo) {
         client = userInfo.client;
         if (userInfo.username !== this.username) {
           userInfo.username = this.username;
-          this.saveIntoStorage('localStorage', 'trouble_flipper_userInfo', userInfo);
+          this.saveIntoStorage('localStorage', 'trouble_flipper_player', userInfo);
         }
       }
+      this.client = client;
       // DO NOT initialize playerMessenger in data() function; otherwise all its memebers will become reactive
       // including the solace API. We don't want solace API's data structure to be injected with Observer stuff,
       // it causes SolaceClientFactory.init() to fail
       this.playerMessenger = new Player(this.$solace, this.$parent.appProps,
-        {username: this.username, client: client},
+        {username: this.username, client: this.client},
         this.handleMsg.bind(this));
       this.playerMessenger.connect();
     } else {
       this.$router.push({
-          name: 'signin'
+        name: 'signin'
       });
     }
   },
@@ -228,8 +229,8 @@ export default {
         } else if (this.state !== 'playing') {
           this.stopCountDown();
           if (this.state === 'waiting') {
-            console.log('Save username ' + this.username + ', client ' + this.client);
-            this.saveIntoStorage('localStorage', 'trouble_flipper_userInfo', { username: this.username, client: this.client });
+            console.log('Save username ' + this.username + ', client ' + this.client + ' to localStorage');
+            this.saveIntoStorage('localStorage', 'trouble_flipper_player', { username: this.username, client: this.client });
           }
         }
       }
