@@ -18,11 +18,11 @@ export default new Router({
       name: 'signin',
       component: Signin
     },
-    {
-      path: '/choose',
-      name: 'choose',
-      component: Choose
-    },
+    // {
+    //   path: '/choose',
+    //   name: 'choose',
+    //   component: Choose
+    // },
     {
       path: '/game',
       name: 'game',

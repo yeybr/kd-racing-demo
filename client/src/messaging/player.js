@@ -108,7 +108,7 @@ export class Player {
         username: this.username,
       };
       this.msgCallback(msg);
-    }, 2000);
+    }, 1000);
 
     // TODO (Brandon):
     //
@@ -129,8 +129,52 @@ export class Player {
     */
   }
 
+  // called by Game.vue destroy method
+  unregister() {
+    console.log('Let server know player ' + this.username + ', client ' + this.client + ' becomes inactive');
+  }
+
   startGame() {
     console.log('Send message to request to start game');
+
+    // REMOVE TESTING CODE
+    let msg = {
+      state: 'start',
+      client: '1',
+      username: this.username,
+      gameInfo: {
+        gameId: '1',
+        gameName: 'Mario',
+        teamId: '1',
+        teamName: 'Team 1',
+        win: false,
+        players: [
+          {
+            id: '1',
+            name: 'Kevin'
+          },
+          {
+            id: '2',
+            name: 'Rob'
+          },
+          {
+            id: '5',
+            name: 'Roland'
+          },
+        ],
+        stats: {
+          total: 16,
+          finished: 0,
+          totalMoves: 0,
+          correctMoves: 0
+        }
+      }
+    };
+    this.msgCallback(msg);
+  }
+
+  pickAvatar(avatar) {
+    console.log('Send message to request the selected avatar ' + avatar);
 
     // REMOVE TESTING CODE
     let msg = {
@@ -142,6 +186,7 @@ export class Player {
         gameName: 'Mario',
         teamId: '1',
         teamName: 'Team 1',
+        avatar: avatar,
         win: false,
         players: [
           {

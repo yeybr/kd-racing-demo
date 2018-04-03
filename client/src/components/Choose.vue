@@ -10,11 +10,11 @@
   </div>
   <div class="heromug yoshi"  data_id="yoshi" @click="goplay">
     <div class="heroselect"></div>
-        <div class="nametag" hero-name="bowser">Yoshi</div>
+      <div class="nametag" hero-name="bowser">Yoshi</div>
   </div>
   <div class="heromug toad" data_id="toad" @click="goplay">
     <div class="heroselect"></div>
-        <div class="nametag">Toad</div>
+      <div class="nametag">Toad</div>
   </div>
   <div class="heromug peach" data_id="peach" @click="goplay">
     <div class="heroselect"></div>

@@ -44,7 +44,44 @@ export default {
       } else if (currLen > resultLen) {
         oldArray.splice(resultLen, (currLen - resultLen));
       }
-    }
+    },
+    getStorage(type) {
+      if (type === 'localStorage') {
+        if ('localStorage' in window && window.localStorage !== null) return localStorage;
+        throw new Error('Local Storage is disabled or unavailable.');
+      } else if (type === 'sessionStorage') {
+        if ('sessionStorage' in window && window.sessionStorage !== null) return sessionStorage;
+        throw new Error('Session Storage is disabled or unavailable.');
+      }
+
+      throw new Error('Invalid storage type specified: ' + type);
+    },
+    saveIntoStorage: function(storageType, key, value) {
+      let storage = null;
+      try {
+        storage = this.getStorage(storageType);
+        if (key && value) {
+          console.log('saveIntoStorage', key, value);
+          storage.setItem(key, JSON.stringify(value));
+        }
+      } catch (e) {
+        console.log('Error occurred while saving to ' + storageType, e);
+      }
+    },
+    retrieveFromStorage: function(storageType, key) {
+      let storage = null;
+      try {
+        storage = this.getStorage(storageType);
+        let itemValue = storage.getItem(key);
+        if (itemValue !== undefined) {
+          console.log('retrieveFromStorage', key, itemValue);
+          return JSON.parse(itemValue);
+        }
+      } catch (e) {
+        console.log('Error occurred while loading from ' + storageType, e);
+      }
+      return null;
+    },
   }
 }
 </script>
