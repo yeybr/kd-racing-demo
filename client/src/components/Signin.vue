@@ -15,10 +15,10 @@
 </template>
 
 <script>
-import Utils from './Utils.vue';
+import CommonUtils from './common-utils';
 export default {
   name: "signin",
-  mixins: [Utils],
+  mixins: [CommonUtils],
   // lifecycle callbacks
   created() {
     // instance created and data bound

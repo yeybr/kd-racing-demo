@@ -77,10 +77,10 @@
 
 <script>
 import { Player } from '@/messaging/player';
-import Utils from './Utils.vue';
+import CommonUtils from './common-utils';
 export default {
   name: "game",
-  mixins: [Utils],
+  mixins: [CommonUtils],
   // lifecycle callbacks
   created() {
     console.log('game created: data bound');

@@ -23,10 +23,10 @@
 
 <script>
 import { GameMaster } from '@/messaging/game-master';
-import Utils from './Utils.vue';
+import CommonUtils from './common-utils';
 export default {
   name: 'scoreboard',
-  mixins: [Utils],
+  mixins: [CommonUtils],
   created() {
     console.log('scoreboard created: data bound');
 
