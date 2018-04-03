@@ -35,7 +35,13 @@ export default {
       let resultLen = newArray ? newArray.length : 0;
       let currLen = oldArray ? oldArray.length : 0;
       for (let i = 0; i < Math.min(currLen, resultLen); i++) {
-        this.updateData(oldArray[i], newArray[i]);
+        if (typeof oldArray[i] !== 'object') {
+          // primitive type
+          // Vue reactivity will lose if using oldArray[i] = newArray[i], workaround
+          oldArray.splice(i, 1, newArray[i]);
+        } else {
+          this.updateData(oldArray[i], newArray[i]);
+        }
       }
       if (currLen < resultLen) {
         for (let i = currLen; i < resultLen; i++) {
