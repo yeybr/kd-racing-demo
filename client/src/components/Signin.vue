@@ -15,11 +15,18 @@
 </template>
 
 <script>
+import Utils from './Utils.vue';
 export default {
   name: "signin",
+  mixins: [Utils],
   // lifecycle callbacks
   created() {
     // instance created and data bound
+    // looking for existing player information from local storage and prepopulate username
+    let userInfo = this.retrieveFromStorage('localStorage', 'trouble_flipper_player');
+    if (userInfo && userInfo.username) {
+      this.username = userInfo.username;
+    }
   },
   // mounted() {
   //   console.log('signin mounted: dom element inserted');
