@@ -1,3 +1,5 @@
+import { UsersMessage, publishMessageToTopic } from '@/messaging/messages.js';
+
 export class Player {
   constructor(solaceApi, appProps, userInfo, msgCallback) {
     this.solaceApi = solaceApi;
@@ -97,15 +99,34 @@ export class Player {
     players/<client>
     players/<teamid>
     */
-   // REMOVE TESTING CODE
-   setTimeout(()=> {
-    let msg = {
-      state: 'waiting',
-      client: '1',
-      username: this.username,
-    };
-    this.msgCallback(msg);
-   }, 2000);
+
+    // REMOVE TESTING CODE
+    setTimeout(()=> {
+      let msg = {
+        state: 'waiting',
+        client: '1',
+        username: this.username,
+      };
+      this.msgCallback(msg);
+    }, 2000);
+
+    // TODO (Brandon):
+    //
+    // * Where the heck do you get the clientId??... hard code for now...
+    //
+    /*
+    var usersMessage = new UsersMessage(this.username, '1');
+    try {
+      publishMessageToTopic('users', usersMessage, this.session, this.solaceApi);
+    } catch (error) {
+      console.log("Publish failed.");
+    }
+    // Mocked server response... remove later
+    setTimeout(() => {
+      var usersAckMessage = new UsersAckMessage(UsersAckMessage.SUCCESS);
+      this.msgCallback(usersAckMessage);
+    }, 2000);
+    */
   }
 
   startGame() {
