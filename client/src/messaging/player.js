@@ -151,15 +151,23 @@ export class Player {
         players: [
           {
             id: '1',
-            name: 'Kevin'
+            name: 'Kevin',
+            avatar: 'peach'
           },
           {
             id: '2',
-            name: 'Rob'
+            name: 'Rob',
+            avatar: 'yoshi'
           },
           {
             id: '5',
-            name: 'Roland'
+            name: 'Roland',
+            avatar: 'toad',
+          },
+          {
+            id: '5',
+            name: 'Bob',
+            avatar: 'lakitu',
           },
         ],
         stats: {
@@ -191,15 +199,23 @@ export class Player {
         players: [
           {
             id: '1',
-            name: 'Kevin'
+            name: 'Kevin',
+            avatar: 'peach'
           },
           {
             id: '2',
-            name: 'Rob'
+            name: 'Rob',
+            avatar: 'yoshi'
           },
           {
             id: '5',
-            name: 'Roland'
+            name: 'Roland',
+            avatar: 'toad',
+          },
+          {
+            id: '5',
+            name: 'Bob',
+            avatar: 'lakitu',
           },
         ],
         stats: {

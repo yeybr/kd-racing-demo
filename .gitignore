@@ -5,3 +5,6 @@
 /server/target/
 *.swp
 *.swo
+client/temp/
+client/test/
+*.log
