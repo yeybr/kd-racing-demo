@@ -13,7 +13,7 @@ public class PuzzleProducer {
     @Autowired
     public PuzzleProducer(JCSMPSession jcsmpSession) {
         this.jcsmpSession = jcsmpSession;
-        doSomething();
+
 
     }
     public void doSomething()  {

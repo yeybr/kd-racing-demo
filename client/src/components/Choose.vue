@@ -62,11 +62,12 @@ export default {
   // any actions
   methods: {
     goplay: function(event) {
+      var username = this.$route.query.username;
       console.log("play with " + event.currentTarget.getAttribute("data_id"));
      this.$router.push({
           name: 'game',
           query: {
-            username: event.currentTarget.getAttribute("data_id"),
+            username: username ? username : event.currentTarget.getAttribute("data_id"),
             avatar: event.currentTarget.getAttribute("data_id")
           }
         });
