@@ -3,7 +3,6 @@ const path = require('path')
 const utils = require('./utils')
 const config = require('../config')
 const vueLoaderConfig = require('./vue-loader.conf')
-const webpack = require('webpack');
 function resolve (dir) {
   return path.join(__dirname, '..', dir)
 }
@@ -94,9 +93,5 @@ module.exports = {
     child_process: 'empty'
   },
 plugins: [
-     new webpack.DefinePlugin({
-              'CANVAS_RENDERER': JSON.stringify(true),
-              'WEBGL_RENDERER': JSON.stringify(true)
-         })
       ]
 }
