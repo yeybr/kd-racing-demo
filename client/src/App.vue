@@ -72,4 +72,10 @@ body {
   opacity: 0;
 }
 
+.titlebar {
+    text-align: center;
+    background: #bfa5a538;
+    padding: 5px;
+}
+
 </style>

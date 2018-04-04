@@ -1,29 +1,40 @@
 <template>
-  <div class="game-panel">
+  <div id='game' class="game-panel" :class="{backgroundwhite: backgroundwhite}">
     <div v-if="state === 'playing'" class="header-section">
-      <h1>{{title}}</h1>
+      <div style="position:relative;background-image: url(static/backgrounds.png);">
+        <div class="titlebar">{{gameInfo.gameName}}/{{gameInfo.teamName}}</div>
+
+
+      </div>
+
       <div class="header-info">
-        <div class="game-info">
-          <span class="info">Puzzle: {{gameInfo.gameName}}</span>
-          <span class="info">Team: {{gameInfo.teamName}}</span>
+        <!-- <div class="game-info">
+          <span class="info">Puzzle: </span>
+          <span class="info">Team: </span>
           <div class="info">Players:
             <template v-for="(player, index) in gameInfo.players">
               {{player.name}}{{(index === gameInfo.players.length - 1) ? '': ', '}}
             </template>
           </div>
-        </div>
+        </div> -->
         <div class="user-info">
           <div class="name-tag">{{username}} </div>
           <div class="profile" :style="styleAvatar" >
+          </div>
+        </div>
+        <div class="others-info">
+          <div  v-for="(player, i) in gameInfo.players"  :index="i" :key="player.name" class="others-info-profile" :style="[player.styleAvatar]">
+                {{player.name}}
+      
           </div>
         </div>
       </div>
     </div>
     <div class="game-stats">
       <div v-if="state === 'playing'" class="status">
-        <span class="stats">Progress: {{gameInfo.stats.finished}} / {{gameInfo.stats.total}}</span>
+        <!-- <span class="stats">Progress: {{gameInfo.stats.finished}} / {{gameInfo.stats.total}}</span>
         <span class="stats">Total Moves: {{gameInfo.stats.totalMoves}}</span>
-        <span class="stats">Correct Moves: {{gameInfo.stats.correctMoves}}</span>
+        <span class="stats">Correct Moves: {{gameInfo.stats.correctMoves}}</span> -->
       </div>
       <div v-else-if="state === 'waiting'" class="status waiting">
         <label>Waiting for game to start...</label>
@@ -73,8 +84,37 @@
         </div>
       </div>
     </div>
-    <div v-if="state === 'playing'" class="status">
+    <!-- <div v-if="state === 'playing'" class="status">
       <span class="stats">Time Remaining: {{timeRemaining}}</span>
+    </div> -->
+    <!-- shape="M50,3l12,36h38l-30,22l11,36l-31-21l-31,21l11-36l-30-22h38z"		 -->
+    <div v-if="state === 'playing'" style="position:relative" >      
+
+      <div class="rank-container">
+
+        <div style="text-align:left">Team Rank: {{rank.team}}/{{rank.totalteam}}</div>
+     
+        <div style="text-align:right">Individual Rank: {{rank.personal}}/5</div>        
+      </div>
+        <div class="statusbar">
+        <loading-progress
+          :progress="timeRemaining"        
+          :indeterminate="indeterminate"
+          shape="M 0.000 4.000
+  L 5.878 8.090
+  L 3.804 1.236
+  L 9.511 -3.090
+  L 2.351 -3.236
+  L 0.000 -10.000
+  L -2.351 -3.236
+  L -9.511 -3.090
+  L -3.804 1.236
+  L -5.878 8.090
+  L 0.000 4.000"
+          size="20"		
+          fill-duration="1"
+        />  
+        </div>
     </div>
   </div>
 </template>
@@ -82,14 +122,30 @@
 <script>
 import { Player } from '@/messaging/player';
 import Utils from './Utils.vue';
+try {
+  locOrientation = screen.lockOrientation || screen.mozLockOrientation || screen.msLockOrientation || screen.orientation.lock;
+  locOrientation('landscape');
+} catch (e) {
+  //ignore
+}
+
+
 export default {
   name: "game",
   mixins: [Utils],
   // lifecycle callbacks
   created() {
     console.log('game created: data bound');
+    this.rank = {
+      personal: 1,
+      team: 1,
+      totalteam: 5
+    }
+    this.indeterminate = false;
+    
+    
     if (this.$route.query.username) {
-      this.username = this.$route.query.username;
+      this.username = this.$route.query.username;      
       // Retrive userInfo from local storage
       let userInfo = this.retrieveFromStorage('localStorage', 'trouble_flipper_userInfo');
       let client = null;
@@ -100,6 +156,7 @@ export default {
           this.saveIntoStorage('localStorage', 'trouble_flipper_userInfo', userInfo);
         }
       }
+
       // DO NOT initialize playerMessenger in data() function; otherwise all its memebers will become reactive
       // including the solace API. We don't want solace API's data structure to be injected with Observer stuff,
       // it causes SolaceClientFactory.init() to fail
@@ -113,8 +170,9 @@ export default {
       });
     }
   },
-  // mounted() {
-  // },
+   mounted() {
+  
+   },
   // beforeUpdate() {
   //   // add any customized code before DOM is re-render and patched based changes in data
   //   console.log('game beforeUpdate: data is changed, about to rerender dom');
@@ -138,6 +196,7 @@ export default {
     var size = this.getRandomInt(3) + 3;
     var splits = Math.floor(99 / size);
     var pieces = [];
+    var players = [];
     var square = 412;
     if (window.innerWidth < square) {
       square = window.innerWidth;
@@ -163,6 +222,18 @@ export default {
     let puzzlePicture = `static/puzzle${random}.png`;
     let avatarLink = '';
     console.log(puzzlePicture);
+
+    var playersHolder = [
+          {name: "player1", avatar: "yoshi"},
+          {name: "player2", avatar: "peache"},
+          {name: "player3", avatar: "toad"},
+          {name: "player4", avatar: "lakitu"}
+        ];
+console.log("players" + playersHolder);
+  
+  
+   
+ 
     return {
       size: size,
       holderStyle: holderStyle,
@@ -182,8 +253,7 @@ export default {
         teamName: '',
         timeAllowedForEachMove: 5,
         win: false,
-        players: [
-        ],
+        players: players,
         stats: {
           total: 0,
           finished: 0,
@@ -192,21 +262,37 @@ export default {
         }
       },
       puzzle: pieces,
+      backgroundwhite: false,
       selected: null,
       styleAvatar: {
         'background-image': avatarLink,
         'background-size': 'contain',
         'background-repeat': 'no-repeat',
         'background-position': 'center',
-        'height': '6vh',
-        'width': '8vw'
+        'height': '15vh',
+        'width': '25vw'
       }
     };
   },
 
   // any actions
   methods: {
+    avatarDisplay: function() {
+      if (this.gameInfo.players) {
+          this.gameInfo.players.forEach(function(player) {
+              var style = {
+                'background-image': `url("static/${player.avatar}-mario.jpg")`,
+                'background-size': 'contain',
+                'background-repeat': 'no-repeat',
+                'background-position': 'center'
+              }
+              player.styleAvatar = style;
+              player.avatarLink = `url("static/${player.avatar}-mario.jpg")`;
 
+
+       });
+      }
+    },
   beforeEnter: function (el) {
     console.log("before enter");
   },
@@ -226,6 +312,8 @@ export default {
       if (this.gameInfo.avatar) {
         this.avatarLink = `url("static/${this.gameInfo.avatar}-mario.jpg")`;
         this.styleAvatar['background-image'] = this.avatarLink;
+        this.avatarDisplay();
+        //TODO: hook in others?
       }
       this.handleStateChange(msg);
     },
@@ -251,12 +339,15 @@ export default {
       if (this.playerMessenger) {
         this.playerMessenger.startGame();
       }
+
     },
     pickAvatar: function(event) {
       console.log("Play with " + event.currentTarget.getAttribute("data_id"));
       if (this.playerMessenger) {
-        this.playerMessenger.pickAvatar(event.currentTarget.getAttribute("data_id"));
+        this.playerMessenger.pickAvatar(event.currentTarget.getAttribute("data_id"));        
+        this.backgroundwhite = true;
       }
+      
     },
     startCountDown: function() {
       console.log('start count down timer', this.timeRemaining);
@@ -341,6 +432,16 @@ export default {
         this.timeRemaining = this.timeForEachMove;
         this.startCountDown();
       }
+    },
+    starPath(x, y, size, points) {
+      // const angle = Math.PI / points;
+      // const starCoords = _.map(_.range(2 * points), (index) => {
+      //   const length = index % 2 === 0 ? size : size / 2;
+      //   return "L " + (length * Math.sin(angle * (index + 1)) + x) + ", " +
+      //     (length * Math.cos(angle * (index + 1)) + y);
+      // });
+      // const path = starCoords.toString();
+      return "M " + (x + size) + "," + (y + size) + " " + path + "z";
     }
   }
 };
@@ -376,7 +477,7 @@ a {
 
 /* header section */
 .header-section {
-  padding: 15px;
+  /* padding: 15px; */
 }
 .header-info {
   display: flex;
@@ -406,7 +507,7 @@ a {
   text-align: center;
   background: grey;
   color: white;
-  width: 8vw;
+  width: 100%;
 }
 
 /* game stats/status section */
@@ -516,6 +617,7 @@ a {
   text-align: center;
   background: #bfa5a538;
   padding: 5px;
+  font-size: 10vw;
 }
 .heros {
   display: flex;
@@ -577,4 +679,45 @@ a {
   text-align: center;
   color: white;
 }
+.rank-container {
+  display: flex;
+}
+.rank-container > div {
+   flex-basis: 50%;
+   padding: 1px 2vw;
+   /* border: 1px #80808085 solid; */
+   margin: 4px;
+}
+.vue-progress-path .progress {
+  stroke: red;
+}
+.vue-progress-path.indeterminate svg {
+    width: 50px !important;
+    height: 50px !important;
+}
+.statusbar {
+  position: absolute;
+  top: -10px; 
+  left: calc(50vw - 20px);
+}
+
+.others-info {
+  display: flex;
+      width: 60vw;
+    align-content: center;
+    align-items: center;
+        flex-wrap: wrap;
+}
+.others-info-profile {
+  /* width: 20vw;
+    height: 12vh; */
+        width: 25vw;
+    height: 8vh;
+}
+
+.backgroundwhite {
+  background: white;
+  height: 100vh;
+}
+
 </style>
