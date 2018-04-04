@@ -52,7 +52,7 @@ export default {
   // any actions
   methods: {
     gochoose: function(event) {
-      this.$router.push('choose');
+      this.$router.push('game');
     },
     goscoreboard: function(event) {
       this.$router.push({
