@@ -167,7 +167,7 @@ export class Player {
           {
             id: '5',
             name: 'Bob',
-            avatar: 'lakitu',
+            avatar: 'goomba',
           },
         ],
         stats: {
@@ -215,7 +215,7 @@ export class Player {
           {
             id: '5',
             name: 'Bob',
-            avatar: 'lakitu',
+            avatar: 'goomba',
           },
         ],
         stats: {

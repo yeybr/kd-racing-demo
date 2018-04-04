@@ -51,14 +51,15 @@
         <div class="heroselect" ></div>
         <div class="nametag" hero-name="bowser">Bowser</div>
         </div>
+         <div class="heromug goomba" data_id="goomba" @click="pickAvatar">
+        <div class="heroselect"></div>
+          <div class="nametag">Goomba</div>
+      </div>
         <div class="heromug yoshi"  data_id="yoshi" @click="pickAvatar">
           <div class="heroselect"></div>
               <div class="nametag" hero-name="bowser">Yoshi</div>
         </div>
-        <div class="heromug toad" data_id="toad" @click="pickAvatar">
-          <div class="heroselect"></div>
-              <div class="nametag">Toad</div>
-        </div>
+     
         <div class="heromug peach" data_id="peach" @click="pickAvatar">
           <div class="heroselect"></div>
           <div class="nametag">Peach</div>
@@ -216,13 +217,13 @@ export default {
     let avatarLink = '';
     console.log(puzzlePicture);
 
-    var playersHolder = [
-          {name: "player1", avatar: "yoshi"},
-          {name: "player2", avatar: "peache"},
-          {name: "player3", avatar: "toad"},
-          {name: "player4", avatar: "lakitu"}
-        ];
-console.log("players" + playersHolder);
+//     var playersHolder = [
+//           {name: "player1", avatar: "yoshi"},
+//           {name: "player2", avatar: "peache"},
+//           {name: "player3", avatar: "toad"},
+//           {name: "player4", avatar: "lakitu"}
+//         ];
+// console.log("players" + playersHolder);
   
   
    
@@ -668,6 +669,10 @@ a {
 
 .heromug.toad {
   background-image: url(../assets/toad-mario.jpg);
+}
+
+.heromug.goomba {
+  background-image: url(../assets/goomba-mario.jpg);
 }
 
 .heromug.mario {
