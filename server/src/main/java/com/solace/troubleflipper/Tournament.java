@@ -34,7 +34,22 @@ public class Tournament {
         players.add(player);
     }
 
+    public Collection<Player> getPlayers() {
+        return players;
+    }
+
     public void prepareTeams() {
         // TODO implement an algorithm to create teams, name them, and assign players to them
+        tournamentProperties.setPlayersPerTeam(players.size());
+        tournamentProperties.setTeamNames(new String[]{"Team"});
+
+        Team team = new Team();
+        team.setName("Team");
+        for (Player player : players) {
+            team.addPlayer(player);
+        }
+
+        Game game = new Game();
+        game.setTeam(team);
     }
 }

@@ -5,6 +5,7 @@ import java.util.UUID;
 public class Player {
     private String id;
     private String gamerTag;
+    private String clientName;
     private Team team;
     private int rightMoves;
     private int wrongMoves;
@@ -25,6 +26,12 @@ public class Player {
     public void setGamerTag(String gamerTag) {
         this.gamerTag = gamerTag;
     }
+
+    public String getClientName() {
+        return clientName;
+    }
+
+    public void setClientName(String clientName) { this.clientName = clientName; }
 
     public Team getTeam() {
         return team;
