@@ -14,11 +14,18 @@
 </template>
 
 <script>
+import CommonUtils from './common-utils';
 export default {
   name: "signin",
+  mixins: [CommonUtils],
   // lifecycle callbacks
   created() {
     // instance created and data bound
+    // looking for existing player information from local storage and prepopulate username
+    let userInfo = this.retrieveFromStorage('localStorage', 'trouble_flipper_player');
+    if (userInfo && userInfo.username) {
+      this.username = userInfo.username;
+    }
   },
   // mounted() {
   //   console.log('signin mounted: dom element inserted');

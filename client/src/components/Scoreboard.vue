@@ -23,10 +23,10 @@
 
 <script>
 import { GameMaster } from '@/messaging/game-master';
-import Utils from './Utils.vue';
+import CommonUtils from './common-utils';
 export default {
   name: 'scoreboard',
-  mixins: [Utils],
+  mixins: [CommonUtils],
   created() {
     console.log('scoreboard created: data bound');
 
@@ -35,8 +35,19 @@ export default {
       // this.isMaster = this.$route.query.isMaster;
       this.username = 'admin';
       this.isMaster = true;
+      // Retrive userInfo from local storage
+      let userInfo = this.retrieveFromStorage('localStorage', 'trouble_flipper_spectator');
+      let client = null;
+      if (userInfo) {
+        client = userInfo.client;
+        if (userInfo.username !== this.username) {
+          userInfo.username = this.username;
+          this.saveIntoStorage('localStorage', 'trouble_flipper_spectator', userInfo);
+        }
+      }
+      this.client = client;
       this.masterMessenger = new GameMaster(this.$solace, this.$parent.appProps,
-        {username: this.username, isMaster: this.isMaster, client: null},
+        {username: this.username, isMaster: this.isMaster, client: this.client},
         this.handleMsg.bind(this));
       this.masterMessenger.connect();
     // } else {
@@ -95,6 +106,10 @@ export default {
       if (msg.state) {
         console.log('State change', msg);
         this.state = msg.state;
+        if (this.state === 'watching') {
+          console.log('Save username ' + this.username + ', client ' + this.client + ' to localStorage');
+          this.saveIntoStorage('localStorage', 'trouble_flipper_spectator', { username: this.username, client: this.client });
+        }
       }
     }
   }
