@@ -33,23 +33,24 @@ export default {
   -moz-osx-font-smoothing: grayscale;
   color: #2c3e50;
   font-family: Bangers;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
 }
 
 body {
   background-image: url("assets/backgrounds.png");
-  /*background-size: cover;*/
-  /* height: 100%; */
   overflow-y: auto;
 }
 
- /* Transitions using the page hook */
-    page-enter-active, .page-leave-active {
-      transition: all .30s ease-out;
-    }
-    .page-enter, .page-leave-active {
-      opacity: 0;
-      transform-origin: 50% 50%;
-    }
+/* Transitions using the page hook */
+page-enter-active, .page-leave-active {
+  transition: all .30s ease-out;
+}
+.page-enter, .page-leave-active {
+  opacity: 0;
+  transform-origin: 50% 50%;
+}
 
 .fade-enter-active, .fade-leave-active {
   transition: opacity .5s;
@@ -73,9 +74,9 @@ body {
 }
 
 .titlebar {
-    text-align: center;
-    background: #bfa5a538;
-    padding: 5px;
+  text-align: center;
+  background: #bfa5a538;
+  padding: 5px;
 }
 
 </style>
