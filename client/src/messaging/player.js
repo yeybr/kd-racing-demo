@@ -147,8 +147,45 @@ export class Player {
     console.log("pieces done");
     this.shuffle(pieces);
     console.log("shuffle");
+
     let msg = {
-      puzzle: pieces
+      // pieces are from server message
+      puzzle: pieces,
+      // hardcode teamInfo without avatar so that the GUI can transition to pick avatar view
+      teamInfo: {
+        // teamId can be from message destination string or server message
+        teamId: '1',
+        teamName: 'Team 1',
+        puzzleName: 'puzzle3',
+        timeAllowedForEachMove: 10,
+        players: [
+          {
+            clientId: this.clientId,
+            username: this.username
+          },
+          {
+            clientId: '1',
+            username: 'Kevin'
+          },
+          {
+            clientId: '2',
+            username: 'Rob'
+          },
+          {
+            clientId: '5',
+            username: 'Roland'
+          },
+          {
+            clientId: '6',
+            username: 'Bob'
+          },
+        ],
+        rank: {
+          personal: 1,
+          team: 1,
+          totalTeam: 5
+        }
+      }
     };
     this.msgCallback(msg);
   }
@@ -177,9 +214,12 @@ export class Player {
     console.log('Send message to request the selected avatar ' + avatar);
 
     // REMOVE TESTING CODE
-    // fake team message to hardcode the rest of the properties
+    // fake team message to hardcode the rest of the properties, when integrating with the server, make sure the attributes that are not
+    // available in the server message are provided with hardcoded value.
     let msg = {
+      // hardcode teamInfo with avatar
       teamInfo: {
+        // teamId can be from message destination string or server message
         teamId: '1',
         teamName: 'Team 1',
         puzzleName: 'puzzle3',

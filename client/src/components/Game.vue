@@ -273,10 +273,7 @@ export default {
 
   computed: {
     progress: function() {
-      if (
-        typeof this.timeRemaining === "number" &&
-        typeof this.timeForEachMove === "number"
-      ) {
+      if (typeof this.timeRemaining === "number" && typeof this.timeForEachMove === "number" && this.timeForEachMove > 0) {
         return this.timeRemaining / this.timeForEachMove;
       }
       return 0;
@@ -441,7 +438,7 @@ export default {
         this.countdownTimer = setInterval(() => {
           this.timeRemaining--;
           if (this.timeRemaining <= 0) {
-            console.log("no time left", this.timeRemaining);
+            // console.log("no time left", this.timeRemaining);
             this.stopCountDown();
             this.randomSwap();
           }
@@ -457,10 +454,12 @@ export default {
     },
     cleanupGame: function() {
       // clear puzzle
-      this.updateArray(this.puzzle, []);
-      this.updateArray(this.teamInfo.players, []);
-      this.teamInfo.teamId = '';
-      this.teamInfo.teamName = '';
+      this.puzzle.splice(0, this.puzzle.length);
+      if (this.teamInfo) {
+        this.teamInfo.players.splice(0, this.teamInfo.players.length);
+        this.teamInfo.teamId = '';
+        this.teamInfo.teamName = '';
+      }
     },
     randomSwap: function() {
       console.log("random swap");
