@@ -59,7 +59,7 @@ export class Player {
         this.session.on(solace.SessionEventCode.MESSAGE, (message) => {
           console.log('Received message: "' + message.getBinaryAttachment() + '", details:\n' + message.dump());
           var topic = message.getDestination().getName();
-          this.handleMessageBrandon(topic, message.getBinaryAttachment());
+          this.handleMessage(topic, message.getBinaryAttachment());
         });
         this.session.connect();
       }
@@ -87,7 +87,7 @@ export class Player {
     }
   }
 
-  handleMessageBrandon(topic, message) {
+  handleMessage(topic, message) {
       if (typeof message !== 'string') {
         console.log('Error: unexpected message type');
         return;
@@ -103,28 +103,6 @@ export class Player {
         console.log('Error: ' + e);
       }
 
-  }
-
-  handleMessage(jsonMessage) {
-    var messsageInstance = parseReceivedMessage(topic, message.getBinaryAttachment());
-    if (jsonMessage) {
-      let msg = null;
-      if (typeof jsonMessage === 'string') {
-        try {
-          msg = JSON.parse(jsonMessage);
-        } catch (e) {
-          console.log('cannot parse message', e);
-        }
-      } else if (typeof jsonMessage === 'object') {
-        msg = jsonMessage;
-      } else {
-        console.log('unknown message type',  jsonMessage);
-      }
-      if (msg) {
-        // process message future if needed, such as adding new state value
-        this.msgCallback(msg);
-      }
-    }
   }
 
   register() {
@@ -146,30 +124,12 @@ export class Player {
     players/<teamid>
     */
 
-    // REMOVE TESTING CODE
-    //setTimeout(()=> {
-    //  let msg = new UsersAckMessage(UsersAckMessage.SUCCESS, this.username, this.clientId);
-    //  this.msgCallback(msg);
-    //}, 500);
-
-    // TODO (Brandon):
-    //
-    // * Where the heck do you get the clientId??... hard code for now...
-    //
-    
     var usersMessage = new UsersMessage(this.username, this.clientId);
     try {
       publishMessageToTopic('users', usersMessage, this.session, this.solaceApi);
     } catch (error) {
       console.log("Publish failed. error = " + error);
     }
-    /*
-    // Mocked server response... remove later
-    setTimeout(() => {
-      var usersAckMessage = new UsersAckMessage(UsersAckMessage.SUCCESS);
-      this.msgCallback(usersAckMessage);
-    }, 2000);
-    */
   }
 
   // called by Game.vue destroy method
@@ -181,7 +141,13 @@ export class Player {
     console.log('Send message to request to start game');
 
     // REMOVE TESTING CODE
-    // current team message only contain puzzle pieces, should also return teamId; otherwise don't know where to send swap message
+    setTimeout(()=> {
+      this.msgCallback(this.simulateStartGameResponse());
+    }, 0);
+  }
+
+  // TODO REMOVE TESTING CODE
+  simulateStartGameResponse() {
     var size = 5;
     var pieces = [];
     for (var i = 0; i < size * size; ++i) {
@@ -189,10 +155,7 @@ export class Player {
         index: i
       });
     }
-    console.log("pieces done");
     this.shuffle(pieces);
-    console.log("shuffle");
-
     let msg = {
       // pieces are from server message
       puzzle: pieces,
@@ -202,7 +165,7 @@ export class Player {
         teamId: '1',
         teamName: 'Team 1',
         puzzleName: 'puzzle3',
-        timeAllowedForEachMove: 10,
+        timeAllowedForEachMove: 0,
         players: [
           {
             clientId: this.clientId,
@@ -232,9 +195,10 @@ export class Player {
         }
       }
     };
-    this.msgCallback(msg);
+    return msg;
   }
 
+  // TODO REMOVE TESTING CODE
   shuffle(array) {
     var currentIndex = array.length,
       temporaryValue,
@@ -259,8 +223,14 @@ export class Player {
     console.log('Send message to request the selected avatar ' + avatar);
 
     // REMOVE TESTING CODE
-    // fake team message to hardcode the rest of the properties, when integrating with the server, make sure the attributes that are not
-    // available in the server message are provided with hardcoded value.
+    setTimeout(() => {
+      this.msgCallback(this.simulatePickAvatarResponse(avatar));
+    }, 0);
+  }
+
+  // when integrating with the server, make sure the attributes that are not
+  // available in the server message are provided with hardcoded value.
+  simulatePickAvatarResponse(avatar) {
     let msg = {
       // hardcode teamInfo with avatar
       teamInfo: {
@@ -303,7 +273,32 @@ export class Player {
         }
       }
     };
-    this.msgCallback(msg);
+    return msg;
+  }
+
+  swap(piece1, piece2, puzzle) {
+    console.log('publish swap message to server', piece1, piece2);
+
+    // TESTING CODE
+    setTimeout(() => {
+      this.msgCallback(this.simulateSwapResponse(piece1, piece2, puzzle));
+    }, 0);
+  }
+
+  simulateSwapResponse(piece1, piece2, puzzle) {
+    // console.log(piece1, piece2, puzzle);
+    let piece1Index = puzzle.findIndex(p => {
+      return p.index == piece1.index;
+    });
+    let piece2Index = puzzle.findIndex(p => {
+      return p.index == piece2.index;
+    });
+    var temp = puzzle[piece1Index];
+    puzzle[piece1Index] = puzzle[piece2Index];
+    puzzle[piece2Index] = temp;
+    return {
+      puzzle: puzzle
+    };
   }
 
   disconnect() {
