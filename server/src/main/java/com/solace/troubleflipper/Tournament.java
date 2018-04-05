@@ -48,8 +48,16 @@ public class Tournament {
         for (Player player : players) {
             team.addPlayer(player);
         }
+        teams = new ArrayList<>();
+        teams.add(team);
 
         Game game = new Game();
         game.setTeam(team);
+        games = new ArrayList<>();
+        games.add(game);
+    }
+
+    public List<Game> getGames() {
+        return games;
     }
 }

@@ -43,6 +43,14 @@ public class Game {
         // TODO Abhi swap the pieces and publish the puzzle array
     }
 
+    public void start() {
+        for (int i = 0; i < 25; i++) {
+            PuzzlePiece puzzlePiece = new PuzzlePiece();
+            puzzlePiece.setIndex(i);
+            puzzleBoard.add(puzzlePiece);
+        }
+    }
+
     public boolean isGameWon() {
         boolean result = true;
         for (int i = 0; i < puzzleBoard.size(); ++i) {
