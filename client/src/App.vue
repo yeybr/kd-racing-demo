@@ -1,9 +1,8 @@
 <template>
   <div id="app">
-    <!-- <img src="./assets/logo.png"> -->
-     <transition name="page" >
+     <!-- <transition name="page" > -->
         <router-view class="view"></router-view>
-      </transition>
+      <!-- </transition> -->
   </div>
 </template>
 
@@ -41,6 +40,7 @@ export default {
 body {
   background-image: url("assets/backgrounds.png");
   overflow-y: auto;
+  height: 100%;
 }
 
 /* Transitions using the page hook */

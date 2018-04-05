@@ -1,6 +1,6 @@
 <template>
-    <ons-gesture-detector>
-  <div id="signon" v-on:swipeleft="gochoose" v-on:swiperight="goscoreboard" v-on:swipebottom="gogamemaster"> 
+    <!-- <ons-gesture-detector> -->
+  <div id="signon" v-on:swipeleft="gochoose" v-on:swiperight="goscoreboard" v-on:swipebottom="gogamemaster">
       <img class="mario" src="../assets/mario.png"/>
     <!-- submit button -->
     <div class="form-group">
@@ -9,7 +9,7 @@
     </div>
     <button type="button" class="go-btn btn" @click="signon()">Go!</button>
   </div>
-      </ons-gesture-detector>
+      <!-- </ons-gesture-detector> -->
 
 </template>
 
