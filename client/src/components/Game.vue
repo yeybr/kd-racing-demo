@@ -196,38 +196,6 @@ export default {
 
   // Underlying model
   data() {
-    // var square = 412;
-    // if (window.innerWidth < square) {
-    //   square = window.innerWidth;
-    // }
-    // var puzzleStyle = `width: ${square}px; height: ${square}px;`;
-
-    // var size = this.getRandomInt(3) + 3;
-    // var splits = Math.floor(99 / size);
-    // var movePercent = splits / 100;
-    // var unit = square * movePercent;
-    // var holderStyle = {
-    //   width: unit + "px",
-    //   height: unit + "px"
-    // };
-
-    // var pieces = [];
-    // for (var i = 0; i < size * size; ++i) {
-    //   pieces.push({
-    //     index: i,
-    //     style: `width: ${square}px; margin-left: -${unit *
-    //       (i % size)}px; margin-top: -${unit * Math.floor(i / size)}px;`,
-    //     selected: false
-    //   });
-    // }
-    // console.log("pieces done");
-    // this.shuffle(pieces);
-    // console.log("shuffle");
-
-    // let random = this.getRandomInt(4) + 1;
-    // let puzzlePicture = `static/puzzle${random}.png`;
-    // console.log(puzzlePicture);
-
     let avatarLink = "";
     return {
       title: "Trouble Flipper",
@@ -289,20 +257,6 @@ export default {
 
   // any actions
   methods: {
-    avatarDisplay: function() {
-      if (this.teamInfo.players) {
-        this.teamInfo.players.forEach(function(player) {
-          var style = {
-            "background-image": `url("static/${player.avatar}-mario.jpg")`,
-            "background-size": "contain",
-            "background-repeat": "no-repeat",
-            "background-position": "center"
-          };
-          player.styleAvatar = style;
-          player.avatarLink = `url("static/${player.avatar}-mario.jpg")`;
-        });
-      }
-    },
     getRandomInt: function(max) {
       return Math.floor(Math.random() * Math.floor(max));
     },
@@ -463,30 +417,9 @@ export default {
     },
     randomSwap: function() {
       console.log("random swap");
-      // TODO: send message to server to request random swap
       var piece1 = this.puzzle[this.getRandomInt(9)];
       var piece2 = this.puzzle[this.getRandomInt(9)];
       this.swap(piece1, piece2);
-      this.$forceUpdate();
-    },
-    shuffle: function(array) {
-      var currentIndex = array.length,
-        temporaryValue,
-        randomIndex;
-
-      // While there remain elements to shuffle...
-      while (0 !== currentIndex) {
-        // Pick a remaining element...
-        randomIndex = Math.floor(Math.random() * currentIndex);
-        currentIndex -= 1;
-
-        // And swap it with the current element.
-        temporaryValue = array[currentIndex];
-        array[currentIndex] = array[randomIndex];
-        array[randomIndex] = temporaryValue;
-      }
-
-      return array;
     },
     select: function(e) {
       let isAlreadySelected = this.puzzle.find(p => {
@@ -501,19 +434,12 @@ export default {
     },
     swap: function(a, b) {
       console.log(a.index, b.index);
-      let aIndex = this.puzzle.findIndex(p => {
-        return p.index == a.index;
+      let piece1 = {index: a.index};
+      let piece2 = {index: b.index};
+      let pieces = this.puzzle.map((piece) => {
+        return {index: piece.index};
       });
-      let bIndex = this.puzzle.findIndex(p => {
-        return p.index == b.index;
-      });
-      // send message to swap
-      var temp = this.puzzle[aIndex];
-      this.puzzle[aIndex] = this.puzzle[bIndex];
-      this.puzzle[bIndex] = temp;
-      a.selected = false;
-      b.selected = false;
-      this.checkWinCondition();
+      this.playerMessenger.swap(piece1, piece2, pieces);
     },
     checkWinCondition: function() {
       this.win = this.puzzle.reduce((result, piece, i) => {

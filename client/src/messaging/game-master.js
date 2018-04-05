@@ -50,7 +50,7 @@ export class GameMaster {
         });
         this.session.on(solace.SessionEventCode.MESSAGE, (message) => {
           console.log('Received message: "' + message.getBinaryAttachment() + '", details:\n' + message.dump());
-          this.handleMessage(message.getBinaryAttachment());
+          this.handleMessage(message.getDestination(), message.getBinaryAttachment());
         });
         this.session.connect();
       }
@@ -62,7 +62,7 @@ export class GameMaster {
     }
   }
 
-  handleMessage(jsonMessage) {
+  handleMessage(destination, jsonMessage) {
     if (jsonMessage) {
       let msg = null;
       if (typeof jsonMessage === 'string') {

@@ -28,7 +28,7 @@ public class JCSMPConfiguration {
         props.setProperty(JCSMPProperties.PASSWORD, solaceCloudProperties.getPassword());
         props.setProperty(JCSMPProperties.HOST, solaceCloudProperties.getUrl());
         props.setProperty(JCSMPProperties.REAPPLY_SUBSCRIPTIONS, true);
-        props.setProperty(JCSMPProperties.CLIENT_NAME, "trouble-flipper");
+        props.setProperty(JCSMPProperties.CLIENT_NAME, "trouble-flipper-monica");
         props.setProperty(JCSMPProperties.APPLICATION_DESCRIPTION, "The Java application running the trouble flipper server");
 
         // reconnect behaviour
