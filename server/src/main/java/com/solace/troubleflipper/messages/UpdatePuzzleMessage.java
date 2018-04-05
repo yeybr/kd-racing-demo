@@ -9,12 +9,22 @@ public class UpdatePuzzleMessage {
 
     private List<PuzzlePiece> puzzle;
 
+    private String teamId;
+
     public List<PuzzlePiece> getPuzzle() {
         return puzzle;
     }
 
     public void setPuzzle(List<PuzzlePiece> puzzle) {
         this.puzzle = puzzle;
+    }
+
+    public String getTeamId() {
+        return teamId;
+    }
+
+    public void setTeamId(String teamId) {
+        this.teamId = teamId;
     }
 
     public String toString() {

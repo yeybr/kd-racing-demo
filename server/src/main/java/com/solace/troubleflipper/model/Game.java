@@ -1,6 +1,7 @@
 package com.solace.troubleflipper.model;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class Game {
@@ -49,6 +50,7 @@ public class Game {
             puzzlePiece.setIndex(i);
             puzzleBoard.add(puzzlePiece);
         }
+        Collections.shuffle(puzzleBoard);
     }
 
     public boolean isGameWon() {

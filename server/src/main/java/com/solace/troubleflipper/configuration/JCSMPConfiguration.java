@@ -98,9 +98,11 @@ public class JCSMPConfiguration {
                                 for (Game game : tournament.getGames()) {
                                     game.start();
                                     for (Player player : game.getTeam().getPlayers()) {
-                                        Topic topic = JCSMPFactory.onlyInstance().createTopic("team/" + player.getTeam().getId());
+                                        String teamId =  player.getTeam().getId();
+                                        Topic topic = JCSMPFactory.onlyInstance().createTopic("team/" + teamId);
                                         TextMessage textMessage = JCSMPFactory.onlyInstance().createMessage(TextMessage.class);
                                         UpdatePuzzleMessage updatePuzzleMessage = new UpdatePuzzleMessage();
+                                        updatePuzzleMessage.setTeamId(teamId);
                                         updatePuzzleMessage.setPuzzle(game.getPuzzleBoard());
                                         textMessage.setText(mapper.writeValueAsString(updatePuzzleMessage));
                                         try {
