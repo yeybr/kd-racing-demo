@@ -284,7 +284,7 @@ export class Player {
   }
 
   simulateSwapResponse(piece1, piece2, puzzle) {
-    console.log(piece1, piece2, puzzle);
+    // console.log(piece1, piece2, puzzle);
     let piece1Index = puzzle.findIndex(p => {
       return p.index == piece1.index;
     });
