@@ -8,11 +8,16 @@ import com.solace.troubleflipper.model.PuzzlePiece;
 import com.solacesystems.jcsmp.*;
 import org.junit.Before;
 import org.junit.Test;
+import org.springframework.beans.factory.annotation.Value;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.util.Properties;
 import java.util.UUID;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 public class IntegrationTests {
 
@@ -115,16 +120,20 @@ public class IntegrationTests {
 
         public PlayerSimulator(String username) throws JCSMPException {
             this.username = username;
-            JCSMPSession session = createSession("integration-tests");
+            JCSMPSession session = createSession(username);
             XMLMessageConsumer consumer = session.getMessageConsumer(new XMLMessageListener() {
 
                 @Override
                 public void onReceive(BytesXMLMessage message) {
+                    System.out.printf("TextMessage received: '%s'%n",
+                            ((TextMessage)message).getText());
                     try {
-                        UpdatePuzzleMessage updatePuzzleMessage = mapper.readValue(message.getBytes(), UpdatePuzzleMessage.class);
+                        UpdatePuzzleMessage updatePuzzleMessage = mapper.readValue(((TextMessage)message).getText(), UpdatePuzzleMessage.class);
                         System.out.println(updatePuzzleMessage);
                         currentMessage = updatePuzzleMessage;
-                        PlayerSimulator.this.notify();
+                        synchronized (PlayerSimulator.this) {
+                            PlayerSimulator.this.notify();
+                        }
                     } catch (IOException ex) {
                         currentMessage = null;
                         ex.printStackTrace();
@@ -169,7 +178,9 @@ public class IntegrationTests {
 
                 // Wait for the notification which means the first message is received
                 try {
-                    PlayerSimulator.this.wait();
+                    synchronized (PlayerSimulator.this) {
+                        PlayerSimulator.this.wait();
+                    }
                 } catch (InterruptedException ex) {
                     System.out.println(usernameThread + " was interrupted while waiting for notification");
                     ex.printStackTrace();
@@ -187,7 +198,7 @@ public class IntegrationTests {
         private void addPlayer() throws IOException, JCSMPException {
             AddUserMessage addUserMessage = new AddUserMessage();
             addUserMessage.setUsername(username);
-            addUserMessage.setClient(username + " " + UUID.randomUUID().toString());
+            addUserMessage.setClient(username);
             TextMessage msg = JCSMPFactory.onlyInstance().createMessage(TextMessage.class);
             msg.setText(mapper.writeValueAsString(addUserMessage));
             Topic topic = JCSMPFactory.onlyInstance().createTopic("users");

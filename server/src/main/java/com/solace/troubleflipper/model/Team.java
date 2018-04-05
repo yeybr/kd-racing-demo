@@ -34,4 +34,8 @@ public class Team {
         characters.put(character, player);
         player.setCharacter(character);
     }
+
+    public List<Player> getPlayers() {
+        return players;
+    }
 }

@@ -3,7 +3,10 @@ package com.solace.troubleflipper.configuration;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.solace.troubleflipper.messages.AddUserMessage;
 import com.solace.troubleflipper.messages.TournamentMessage;
+import com.solace.troubleflipper.messages.UpdatePuzzleMessage;
+import com.solace.troubleflipper.model.Game;
 import com.solace.troubleflipper.model.Player;
+import com.solace.troubleflipper.model.PuzzlePiece;
 import com.solace.troubleflipper.properties.SolaceCloudProperties;
 import com.solace.troubleflipper.properties.TournamentProperties;
 import com.solace.troubleflipper.Tournament;
@@ -15,6 +18,8 @@ import java.io.IOException;
 @Configuration
 public class JCSMPConfiguration {
 
+    private XMLMessageProducer producer;
+
     @Bean
     public JCSMPSession getJCSMPConnector(SolaceCloudProperties solaceCloudProperties) throws JCSMPException {
         JCSMPProperties props = new JCSMPProperties();
@@ -23,7 +28,7 @@ public class JCSMPConfiguration {
         props.setProperty(JCSMPProperties.PASSWORD, solaceCloudProperties.getPassword());
         props.setProperty(JCSMPProperties.HOST, solaceCloudProperties.getUrl());
         props.setProperty(JCSMPProperties.REAPPLY_SUBSCRIPTIONS, true);
-        props.setProperty(JCSMPProperties.CLIENT_NAME, "trouble-flipper-kevin");
+        props.setProperty(JCSMPProperties.CLIENT_NAME, "trouble-flipper");
         props.setProperty(JCSMPProperties.APPLICATION_DESCRIPTION, "The Java application running the trouble flipper server");
 
         // reconnect behaviour
@@ -44,6 +49,20 @@ public class JCSMPConfiguration {
         TournamentProperties tournamentProperties = new TournamentProperties();
         final Tournament tournament = new Tournament(tournamentProperties, session);
 
+        producer = session.getMessageProducer(new JCSMPStreamingPublishEventHandler() {
+
+            @Override
+            public void handleError(String s, JCSMPException e, long l) {
+                e.printStackTrace();
+            }
+
+            @Override
+            public void responseReceived(String s) {
+                System.out.println("Received response: " + s);
+            }
+
+        });
+
         final XMLMessageConsumer cons = session.getMessageConsumer(new XMLMessageListener() {
 
             @Override
@@ -62,24 +81,37 @@ public class JCSMPConfiguration {
                                 player.setClientName(addUserMessage.getClient());
                                 tournament.addPlayer(player);
                             }
-                        }
-
-                        if ((msg.getDestination()).toString().equals("tournament")) {
+                        } else if ((msg.getDestination()).toString().equals("tournaments")) {
                             TournamentMessage tournamentMessage = mapper.readValue(((TextMessage) msg).getText(), TournamentMessage.class);
 
                             if ((tournamentMessage.getAction().equals("buildTeams")) && (tournament.getPlayers().size() > 0)) {
                                 tournament.prepareTeams();
-                                Tournament tournament = new Tournament(tournamentProperties, session);
-                            }
-                            for (Player player : tournament.getPlayers()) {
-                                ClientName clientName = JCSMPFactory.onlyInstance().createClientName(player.getClientName());
-                                Topic topic = JCSMPFactory.onlyInstance().createTopic("team/"+player.getTeam().getId());
-                                try {
-                                    session.addSubscription(clientName, topic, JCSMPSession.WAIT_FOR_CONFIRM);
-                                } catch (JCSMPException ex) {
-                                    System.err.println("Encountered a JCSMPException, closing consumer channel... " + ex.getMessage());
+                                for (Player player : tournament.getPlayers()) {
+                                    Topic topic = JCSMPFactory.onlyInstance().createTopic("team/" + player.getTeam().getId());
+                                    ClientName clientName = JCSMPFactory.onlyInstance().createClientName(player.getGamerTag());
+                                    try {
+                                        session.addSubscription(clientName, topic, JCSMPSession.WAIT_FOR_CONFIRM);
+                                    } catch (JCSMPException ex) {
+                                        System.err.println("Encountered a JCSMPException, closing consumer channel... " + ex.getMessage());
+                                    }
+                                }
+                                for (Game game : tournament.getGames()) {
+                                    game.start();
+                                    for (Player player : game.getTeam().getPlayers()) {
+                                        Topic topic = JCSMPFactory.onlyInstance().createTopic("team/" + player.getTeam().getId());
+                                        TextMessage textMessage = JCSMPFactory.onlyInstance().createMessage(TextMessage.class);
+                                        UpdatePuzzleMessage updatePuzzleMessage = new UpdatePuzzleMessage();
+                                        updatePuzzleMessage.setPuzzle(game.getPuzzleBoard());
+                                        textMessage.setText(mapper.writeValueAsString(updatePuzzleMessage));
+                                        try {
+                                            producer.send(textMessage, topic);
+                                        } catch (JCSMPException ex) {
+                                            System.err.println("Encountered a JCSMPException, closing consumer channel... " + ex.getMessage());
+                                        }
+                                    }
                                 }
                             }
+
                         }
                     } catch (IOException e) {
                         throw new IllegalStateException(e);
@@ -99,35 +131,12 @@ public class JCSMPConfiguration {
         final Topic topic = JCSMPFactory.onlyInstance().createTopic("users");
         session.addSubscription(topic);
 
+        final Topic tournamentsTopic = JCSMPFactory.onlyInstance().createTopic("tournaments");
+        session.addSubscription(tournamentsTopic);
+
         cons.start();
 
         return session;
     }
 
-    @Bean
-    public XMLMessageProducer getProducer(JCSMPSession session) throws JCSMPException {
-        XMLMessageProducer producer = session.getMessageProducer(new JCSMPStreamingPublishCorrelatingEventHandler() {
-
-            @Override
-            public void handleError(String s, JCSMPException e, long l) {
-
-            }
-
-            @Override
-            public void responseReceived(String s) {
-
-            }
-
-            @Override
-            public void responseReceivedEx(Object o) {
-
-            }
-
-            @Override
-            public void handleErrorEx(Object o, JCSMPException e, long l) {
-
-            }
-        });
-        return producer;
-    }
 }
