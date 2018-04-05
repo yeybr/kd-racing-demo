@@ -3,10 +3,7 @@
     <div v-if="state === 'playing'" class="header-section">
       <div style="position:relative;background-image: url(static/backgrounds.png);">
         <div class="titlebar">{{gameInfo.gameName}}/{{gameInfo.teamName}}</div>
-
-
       </div>
-
       <div class="header-info">
         <!-- <div class="game-info">
           <span class="info">Puzzle: </span>
@@ -24,8 +21,7 @@
         </div>
         <div class="others-info">
           <div  v-for="(player, i) in gameInfo.players"  :index="i" :key="player.name" class="others-info-profile" :style="[player.styleAvatar]">
-                {{player.name}}
-      
+            {{player.name}}
           </div>
         </div>
       </div>
@@ -51,14 +47,15 @@
         <div class="heroselect" ></div>
         <div class="nametag" hero-name="bowser">Bowser</div>
         </div>
+         <div class="heromug goomba" data_id="goomba" @click="pickAvatar">
+        <div class="heroselect"></div>
+          <div class="nametag">Goomba</div>
+      </div>
         <div class="heromug yoshi"  data_id="yoshi" @click="pickAvatar">
           <div class="heroselect"></div>
               <div class="nametag" hero-name="bowser">Yoshi</div>
         </div>
-        <div class="heromug toad" data_id="toad" @click="pickAvatar">
-          <div class="heroselect"></div>
-              <div class="nametag">Toad</div>
-        </div>
+
         <div class="heromug peach" data_id="peach" @click="pickAvatar">
           <div class="heroselect"></div>
           <div class="nametag">Peach</div>
@@ -71,14 +68,12 @@
     </div>
     <div v-if="state === 'playing'" id="puzzle-area">
       <div id="puzzle" :style="puzzleStyle">
-         
-         <transition-group name="puzzleswap" >
+        <transition-group name="puzzleswap" >
           <div  v-for="(piece, i) in puzzle" @click="select" :index="piece.index" :key="piece.index" class="spot" :class="{selected: piece.selected}" :style="[holderStyle]">
-          <img :src="puzzlePicture" :index="i" v-bind:style="piece.style"/>
-          <div class="highlight"></div>
-        </div>
-         </transition-group>        
-
+            <img :src="puzzlePicture" :index="i" v-bind:style="piece.style"/>
+            <div class="highlight"></div>
+          </div>
+        </transition-group>
         <div v-if="gameInfo.win" id="win">
           Winner!
         </div>
@@ -88,33 +83,30 @@
       <span class="stats">Time Remaining: {{timeRemaining}}</span>
     </div> -->
     <!-- shape="M50,3l12,36h38l-30,22l11,36l-31-21l-31,21l11-36l-30-22h38z"		 -->
-    <div v-if="state === 'playing'" style="position:relative" >      
-
-      <div class="rank-container">
-
-        <div style="text-align:left">Team Rank: {{rank.team}}/{{rank.totalteam}}</div>
-     
-        <div style="text-align:right">Individual Rank: {{rank.personal}}/5</div>        
-      </div>
-        <div class="statusbar">
+    <div v-if="state === 'playing'" class="rank-container">
+      <div class="rank">Team Rank: {{rank.team}}/{{rank.totalteam}}</div>
+      <div class="statusbar">
         <loading-progress
-          :progress="timeRemaining"        
+          :progress="timeRemaining"
           :indeterminate="indeterminate"
           shape="M 0.000 4.000
-  L 5.878 8.090
-  L 3.804 1.236
-  L 9.511 -3.090
-  L 2.351 -3.236
-  L 0.000 -10.000
-  L -2.351 -3.236
-  L -9.511 -3.090
-  L -3.804 1.236
-  L -5.878 8.090
-  L 0.000 4.000"
-          size="20"		
+          L 5.878 8.090
+          L 3.804 1.236
+          L 9.511 -3.090
+          L 2.351 -3.236
+          L 0.000 -10.000
+          L -2.351 -3.236
+          L -9.511 -3.090
+          L -3.804 1.236
+          L -5.878 8.090
+          L 0.000 4.000"
+          size="0"
+          height="40"
+          width="40"
           fill-duration="1"
-        />  
-        </div>
+        />
+      </div>
+      <div class="rank">Individual Rank: {{rank.personal}}/5</div>
     </div>
   </div>
 </template>
@@ -134,10 +126,10 @@ export default {
       totalteam: 5
     }
     this.indeterminate = false;
-    
-    
+
+
     if (this.$route.query.username) {
-      this.username = this.$route.query.username;      
+      this.username = this.$route.query.username;
       // Retrive userInfo from local storage
       let userInfo = this.retrieveFromStorage('localStorage', 'trouble_flipper_player');
       let client = null;
@@ -164,7 +156,7 @@ export default {
     }
   },
    mounted() {
-  
+
    },
   // beforeUpdate() {
   //   // add any customized code before DOM is re-render and patched based changes in data
@@ -204,7 +196,7 @@ export default {
       });
     }
     var holderStyle = { 'width': unit + 'px',
-                        'height': unit + 'px'} ; 
+                        'height': unit + 'px'} ;
 
     var puzzleStyle = `width: ${square}px; height: ${square}px;`;
     console.log("pieces done");
@@ -222,16 +214,9 @@ export default {
           {name: "player3", avatar: "toad"},
           {name: "player4", avatar: "lakitu"}
         ];
-console.log("players" + playersHolder);
-  
-  
-   
- 
+    console.log("players" + playersHolder);
+
     return {
-      size: size,
-      holderStyle: holderStyle,
-      puzzleStyle: puzzleStyle,
-      puzzlePicture: puzzlePicture,
       title: 'Trouble Flipper',
       state: 'connecting',
       timeRemaining: 5, // timing remaining for current move before shuffle
@@ -254,7 +239,12 @@ console.log("players" + playersHolder);
           correctMoves: 0
         }
       },
+      // puzzles
+      puzzlePicture: puzzlePicture,
       puzzle: pieces,
+      size: size,
+      holderStyle: holderStyle,
+      puzzleStyle: puzzleStyle,
       backgroundwhite: false,
       selected: null,
       styleAvatar: {
@@ -286,19 +276,20 @@ console.log("players" + playersHolder);
        });
       }
     },
-  beforeEnter: function (el) {
-    console.log("before enter");
-  },
-  afterLeave: function (el) {
-    console.log("after leaver"  + el);
-  },
     getRandomInt: function(max) {
       return Math.floor(Math.random() * Math.floor(max));
     },
     handleMsg: function(msg) {
       console.log('Got message', msg);
-      this.client = msg.client;
-      this.username = msg.username;
+      if (msg.client) {
+        this.client = msg.client;
+      }
+      if (msg.username) {
+        this.username = msg.username;
+      }
+      if (msg.puzzle) {
+        this.puzzle = puzzle;
+      }
       if (msg.gameInfo) {
         this.updateData(this.gameInfo, msg.gameInfo);
       }
@@ -337,10 +328,10 @@ console.log("players" + playersHolder);
     pickAvatar: function(event) {
       console.log("Play with " + event.currentTarget.getAttribute("data_id"));
       if (this.playerMessenger) {
-        this.playerMessenger.pickAvatar(event.currentTarget.getAttribute("data_id"));        
+        this.playerMessenger.pickAvatar(event.currentTarget.getAttribute("data_id"));
         this.backgroundwhite = true;
       }
-      
+
     },
     startCountDown: function() {
       console.log('start count down timer', this.timeRemaining);
@@ -393,10 +384,10 @@ console.log("players" + playersHolder);
       });
       let index = e.target.previousElementSibling.attributes.index.value;
       this.selected = this.puzzle[index];
-      this.selected.selected = true;       
+      this.selected.selected = true;
        if (isAlreadySelected) {
         this.swap(isAlreadySelected, this.selected);
-      } 
+      }
     },
     swap: function(a, b) {
       console.log(a.index, b.index);
@@ -406,6 +397,7 @@ console.log("players" + playersHolder);
       let bIndex = this.puzzle.findIndex(p => {
         return p.index == b.index;
       });
+      // send message to swap
       var temp = this.puzzle[aIndex];
       this.puzzle[aIndex] = this.puzzle[bIndex];
       this.puzzle[bIndex] = temp;
@@ -474,7 +466,6 @@ a {
   flex-direction: column;
   justify-content: flex-start;
   width: 100%;
-  height: 100%;
   flex: 1 1 auto;
 }
 
@@ -511,6 +502,20 @@ a {
   background: grey;
   color: white;
   width: 100%;
+}
+
+.others-info {
+  display: flex;
+  width: 60vw;
+  align-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.others-info-profile {
+  /* width: 20vw;
+    height: 12vh; */
+  width: 25vw;
+  height: 8vh;
 }
 
 /* game stats/status section */
@@ -556,6 +561,7 @@ a {
   display: flex;
   align-items: center;
   justify-content: center;
+  min-height: 412px;
 }
 #puzzle {
   border: solid 1px grey;
@@ -574,10 +580,8 @@ a {
   border: solid 1px grey;
   box-sizing: border-box;
   position: relative;
-
-    transition: 0.6s;
-    transform-style: preserve-3d;
-    position: relative;
+  transition: 0.6s;
+  transform-style: preserve-3d;
 }
 .spot.selected {
   border: solid 1px red;
@@ -620,7 +624,7 @@ a {
   text-align: center;
   background: #bfa5a538;
   padding: 5px;
-  font-size: 10vw;
+  font-size: 9vw;
 }
 .heros {
   display: flex;
@@ -670,6 +674,10 @@ a {
   background-image: url(../assets/toad-mario.jpg);
 }
 
+.heromug.goomba {
+  background-image: url(../assets/goomba-mario.jpg);
+}
+
 .heromug.mario {
   background-image: url(../assets/mario-mario.jpg);
 }
@@ -683,11 +691,15 @@ a {
   color: white;
 }
 .rank-container {
+  position: relative;
   display: flex;
+  flex-direction: row;
+  justify-content: space-around;
+  align-items: flex-end;
+  margin-bottom: 5px;
 }
-.rank-container > div {
-   flex-basis: 50%;
-   padding: 1px 2vw;
+.rank-container .rank {
+   padding: 15px 10px 5px 10px;
    /* border: 1px #80808085 solid; */
    margin: 4px;
 }
@@ -695,32 +707,20 @@ a {
   stroke: red;
 }
 .vue-progress-path.indeterminate svg {
-    width: 50px !important;
-    height: 50px !important;
+    /* width: 50px !important;
+    height: 50px !important; */
 }
-.statusbar {
-  position: absolute;
-  top: -10px; 
-  left: calc(50vw - 20px);
-}
-
-.others-info {
+.rank-container .statusbar {
+  flex: 1 1 auto;
   display: flex;
-      width: 60vw;
-    align-content: center;
-    align-items: center;
-        flex-wrap: wrap;
-}
-.others-info-profile {
-  /* width: 20vw;
-    height: 12vh; */
-        width: 25vw;
-    height: 8vh;
+  flex-direction: row;
+  justify-content: center;
+  align-items: flex-end;
+  position: relative;
 }
 
 .backgroundwhite {
   background: white;
-  height: 100vh;
 }
 
 </style>

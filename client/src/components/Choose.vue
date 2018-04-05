@@ -12,9 +12,9 @@
     <div class="heroselect"></div>
       <div class="nametag" hero-name="bowser">Yoshi</div>
   </div>
-  <div class="heromug toad" data_id="toad" @click="goplay">
+  <div class="heromug goomba" data_id="goomba" @click="goplay">
     <div class="heroselect"></div>
-      <div class="nametag">Toad</div>
+      <div class="nametag">Goomba</div>
   </div>
   <div class="heromug peach" data_id="peach" @click="goplay">
     <div class="heroselect"></div>
@@ -166,6 +166,9 @@ a {
 .heromug.toad {
   background-image: url(../assets/toad-mario.jpg);
 }
+.heromug.goomba {
+  background-image: url(../assets/goomba-mario.jpg);
+}
 
 .heromug.mario {
   background-image: url(../assets/mario-mario.jpg);
@@ -202,9 +205,5 @@ ul li {
 .form-group {
   margin: 0 40px;
 }
-.titlebar {
-    text-align: center;
-    background: #bfa5a538;
-    padding: 5px;
-}
+
 </style>

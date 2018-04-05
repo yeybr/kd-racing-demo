@@ -5,8 +5,6 @@ import Game from '@/components/Game'
 import Choose from '@/components/Choose'
 import Scorebard from '@/components/Scoreboard'
 
-import YeGame from '@/components/YeGame'
-import Invader from '@/components/YeGameInvader'
 Vue.use(Router)
 
 export default new Router({
@@ -34,16 +32,6 @@ export default new Router({
       path: '/scoreboard',
       name: 'scoreboard',
       component: Scorebard
-    },
-    {
-      path: '/yegame',
-      name: 'yegame',
-      component: YeGame
-    },
-    {
-      path: '/invader',
-      name: 'invader',
-      component: Invader
     }
-  ]
+    ]
 })
