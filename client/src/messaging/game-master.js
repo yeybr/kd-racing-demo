@@ -3,7 +3,7 @@ export class GameMaster {
     this.solaceApi = solaceApi;
     this.appProps = appProps;
     this.username =  userInfo.username;
-    this.client = userInfo.client;
+    this.clientId = userInfo.clientId;
     this.isMaster = userInfo.isMaster;
     // upon receiving a message, call this callback with json content, so that UI can get updated
     this.msgCallback = msgCallback;
@@ -15,7 +15,7 @@ export class GameMaster {
     // handle session events, messages
     try {
       if (!this.session) {
-        console.log("Creating the connection", this.solaceApi, this.appProps);
+        // console.log("Creating the connection", this.solaceApi, this.appProps);
         let solace = this.solaceApi;
         var factoryProps = new solace.SolclientFactoryProperties();
         factoryProps.profile = solace.SolclientFactoryProfiles.version10;
@@ -27,10 +27,12 @@ export class GameMaster {
           url: this.appProps.url,
           vpnName: this.appProps.vpn,
           userName: this.appProps.username,
-          password: this.appProps.password
+          password: this.appProps.password,
+          clientName: this.clientId || ''
         });
         this.session.on(solace.SessionEventCode.UP_NOTICE, (sessionEvent) => {
-          console.log('Successfully connected and ready to publish and receive messages.');
+          this.clientId = this.session.getSessionProperties().clientName;
+          console.log('Successfully connected with clientId ' + this.clientId);
           this.register();
         });
         this.session.on(solace.SessionEventCode.CONNECT_FAILED_ERROR, (sessionEvent) => {
@@ -82,17 +84,17 @@ export class GameMaster {
   }
 
   register() {
-    console.log('Connect spectator ' + this.username + ', client ' + this.client + ', isMaster' + this.isMaster);
+    console.log('Connect spectator ' + this.username + ', clientId ' + this.clientId + ', isMaster' + this.isMaster);
     /*
       publish to game
       {
-        client: 1,
+        clientId: 1,
         username: admin,
         password: admin,
       }
       reply:
         {
-          client: 1,
+          clientId: 1,
           username: admin,
           scoreboardInfo: {
             teams: [
@@ -108,7 +110,7 @@ export class GameMaster {
    setTimeout(() => {
     this.msgCallback({
       state: 'watching',
-      client: '2',
+      clientId: '2',
       username: this.username,
       scoreboardInfo: {
         games: [
@@ -178,7 +180,7 @@ export class GameMaster {
 
   // called by Scoreboard.vue destroy method
   unregister() {
-    console.log('Let server know spectator ' + this.username + ', client ' + this.client + ' becomes inactive');
+    console.log('Let server know spectator ' + this.username + ', clientId ' + this.clientId + ' becomes inactive');
   }
 
   disconnect() {

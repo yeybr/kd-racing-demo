@@ -37,17 +37,17 @@ export default {
       this.isMaster = true;
       // Retrive userInfo from local storage
       let userInfo = this.retrieveFromStorage('localStorage', 'trouble_flipper_spectator');
-      let client = null;
+      let clientId = null;
       if (userInfo) {
-        client = userInfo.client;
+        clientId = userInfo.clientId;
         if (userInfo.username !== this.username) {
           userInfo.username = this.username;
           this.saveIntoStorage('localStorage', 'trouble_flipper_spectator', userInfo);
         }
       }
-      this.client = client;
+      this.clientId = clientId;
       this.masterMessenger = new GameMaster(this.$solace, this.$parent.appProps,
-        {username: this.username, isMaster: this.isMaster, client: this.client},
+        {username: this.username, isMaster: this.isMaster, clientId: this.clientId},
         this.handleMsg.bind(this));
       this.masterMessenger.connect();
     // } else {
@@ -81,7 +81,7 @@ export default {
     return {
       msg: 'Trouble Flipper Scoreboard',
       state: 'connecting',
-      client: "",
+      clientId: "",
       username: "",
       isMaster: false,
       scoreboardInfo: {
@@ -95,7 +95,7 @@ export default {
   methods: {
     handleMsg: function(msg) {
       console.log('Got message', msg);
-      this.client = msg.client;
+      this.clientId = msg.clientId;
       this.username = msg.username;
       if (msg.scoreboardInfo) {
         this.updateData(this.scoreboardInfo, msg.scoreboardInfo);
@@ -107,8 +107,8 @@ export default {
         console.log('State change', msg);
         this.state = msg.state;
         if (this.state === 'watching') {
-          console.log('Save username ' + this.username + ', client ' + this.client + ' to localStorage');
-          this.saveIntoStorage('localStorage', 'trouble_flipper_spectator', { username: this.username, client: this.client });
+          console.log('Save username ' + this.username + ', clientId ' + this.clientId + ' to localStorage');
+          this.saveIntoStorage('localStorage', 'trouble_flipper_spectator', { username: this.username, clientId: this.clientId });
         }
       }
     }

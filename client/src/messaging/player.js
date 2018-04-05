@@ -1,11 +1,11 @@
-import { UsersMessage, publishMessageToTopic } from '@/messaging/messages.js';
+import { UsersMessage, UsersAckMessage, publishMessageToTopic } from '@/messaging/messages.js';
 
 export class Player {
   constructor(solaceApi, appProps, userInfo, msgCallback) {
     this.solaceApi = solaceApi;
     this.appProps = appProps;
     this.username = userInfo.username;
-    this.client = userInfo.client;
+    this.clientId = userInfo.clientId;
     // upon receiving a message, call this callback with json content, so that UI can get updated
     this.msgCallback = msgCallback;
     this.session = null;
@@ -15,7 +15,7 @@ export class Player {
     // create session, publisher, subscriber
     try {
       if (!this.session) {
-        console.log('Creating the connection', this.solaceApi, this.appProps);
+        // console.log('Creating the connection', this.solaceApi, this.appProps);
         let solace = this.solaceApi;
         var factoryProps = new solace.SolclientFactoryProperties();
         factoryProps.profile = solace.SolclientFactoryProfiles.version10;
@@ -27,20 +27,22 @@ export class Player {
           url: this.appProps.url,
           vpnName: this.appProps.vpn,
           userName: this.appProps.username,
-          password: this.appProps.password
+          password: this.appProps.password,
+          clientName: this.clientId || ''
         });
         this.session.on(solace.SessionEventCode.UP_NOTICE, (sessionEvent) => {
-          console.log('Successfully connected and ready to send and receive messages.');
+          this.clientId = this.session.getSessionProperties().clientName;
+          console.log('Successfully connected with clientId ' + this.clientId);
           this.register();
         });
         this.session.on(solace.SessionEventCode.CONNECT_FAILED_ERROR, (sessionEvent) => {
           console.log('Connection failed to the message router: ' + sessionEvent.infoStr +
             ' - check correct parameter values and connectivity!');
-          this.msgCallback({state: 'connecting'});
+          this.msgCallback({connected: false});
         });
         this.session.on(solace.SessionEventCode.DISCONNECTED, (sessionEvent) => {
           console.log('Disconnected: ' + sessionEvent.infoStr);
-          this.msgCallback({state: 'connecting'});
+          this.msgCallback({connected: false});
           if (this.session !== null) {
             this.session.dispose();
             this.session = null;
@@ -82,33 +84,29 @@ export class Player {
   }
 
   register() {
-    console.log('Connect player ' + this.username + ', client ' + this.client);
+    console.log('Connect player ' + this.username + ', clientId ' + this.clientId);
     /*
-    publish request to players, client is optional. If client is present, the server should resume
+    publish request to players, clientId is optional. If clientId is present, the server should resume
     the user's game if it is active
     {
-      client: 1,
+      clientId: 1,
       username: test
     }
     reply:
       {
-        client: 1,
+        clientId: 1,
         username: test
       }
     subscribe to
-    players/<client>
+    players/<clientId>
     players/<teamid>
     */
 
     // REMOVE TESTING CODE
     setTimeout(()=> {
-      let msg = {
-        state: 'waiting',
-        client: '1',
-        username: this.username,
-      };
+      let msg = new UsersAckMessage(UsersAckMessage.SUCCESS, this.username, this.clientId);
       this.msgCallback(msg);
-    }, 1000);
+    }, 500);
 
     // TODO (Brandon):
     //
@@ -131,98 +129,91 @@ export class Player {
 
   // called by Game.vue destroy method
   unregister() {
-    console.log('Let server know player ' + this.username + ', client ' + this.client + ' becomes inactive');
+    console.log('Let server know player ' + this.username + ', clientId ' + this.clientId + ' becomes inactive');
   }
 
   startGame() {
     console.log('Send message to request to start game');
 
     // REMOVE TESTING CODE
+    // current team message only contain puzzle pieces
+    var size = 5;
+    var pieces = [];
+    for (var i = 0; i < size * size; ++i) {
+      pieces.push({
+        index: i
+      });
+    }
+    console.log("pieces done");
+    this.shuffle(pieces);
+    console.log("shuffle");
     let msg = {
-      state: 'start',
-      client: '1',
-      username: this.username,
-      gameInfo: {
-        gameId: '1',
-        gameName: 'Mario',
-        teamId: '1',
-        teamName: 'Team 1',
-        win: false,
-        players: [
-          {
-            id: '1',
-            name: 'Kevin',
-            avatar: 'peach'
-          },
-          {
-            id: '2',
-            name: 'Rob',
-            avatar: 'yoshi'
-          },
-          {
-            id: '5',
-            name: 'Roland',
-            avatar: 'toad',
-          },
-          {
-            id: '5',
-            name: 'Bob',
-            avatar: 'goomba',
-          },
-        ],
-        stats: {
-          total: 16,
-          finished: 0,
-          totalMoves: 0,
-          correctMoves: 0
-        }
-      }
+      puzzle: pieces
     };
     this.msgCallback(msg);
+  }
+
+  shuffle(array) {
+    var currentIndex = array.length,
+      temporaryValue,
+      randomIndex;
+
+    // While there remain elements to shuffle...
+    while (0 !== currentIndex) {
+      // Pick a remaining element...
+      randomIndex = Math.floor(Math.random() * currentIndex);
+      currentIndex -= 1;
+
+      // And swap it with the current element.
+      temporaryValue = array[currentIndex];
+      array[currentIndex] = array[randomIndex];
+      array[randomIndex] = temporaryValue;
+    }
+
+    return array;
   }
 
   pickAvatar(avatar) {
     console.log('Send message to request the selected avatar ' + avatar);
 
     // REMOVE TESTING CODE
+    // fake team message to hardcode the rest of the properties
     let msg = {
-      state: 'playing',
-      client: '1',
-      username: this.username,
+      players: [
+        {
+          clientId: this.clientId,
+          username: this.username,
+          avatar: avatar
+        },
+        {
+          clientId: '1',
+          username: 'Kevin',
+          avatar: 'peach'
+        },
+        {
+          clientId: '2',
+          username: 'Rob',
+          avatar: 'yoshi'
+        },
+        {
+          clientId: '5',
+          username: 'Roland',
+          avatar: 'toad',
+        },
+        {
+          clientId: '6',
+          username: 'Bob',
+          avatar: 'goomba',
+        },
+      ],
       gameInfo: {
-        gameId: '1',
-        gameName: 'Mario',
-        teamId: '1',
         teamName: 'Team 1',
-        avatar: avatar,
-        win: false,
-        players: [
-          {
-            id: '1',
-            name: 'Kevin',
-            avatar: 'peach'
-          },
-          {
-            id: '2',
-            name: 'Rob',
-            avatar: 'yoshi'
-          },
-          {
-            id: '5',
-            name: 'Roland',
-            avatar: 'toad',
-          },
-          {
-            id: '5',
-            name: 'Bob',
-            avatar: 'goomba',
-          },
-        ],
-        stats: {
-          total: 16,
-          finished: 0,
-          totalMoves: 0,
-          correctMoves: 0
+        puzzleName: 'puzzle3',
+        timeAllowedForEachMove: 10,
+        rank: {
+          personal: 1,
+          team: 1,
+          totalTeam: 5
         }
       }
     };

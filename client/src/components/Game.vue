@@ -2,15 +2,15 @@
   <div id='game' class="game-panel" :class="{backgroundwhite: backgroundwhite}">
     <div v-show="state === 'playing'" class="header-section">
       <div style="position:relative;background-image: url(static/backgrounds.png);">
-        <div class="titlebar">{{gameInfo.gameName}}/{{gameInfo.teamName}}</div>
+        <div class="titlebar">{{gameInfo.teamName}}</div>
       </div>
       <div class="header-info">
         <!-- <div class="game-info">
           <span class="info">Puzzle: </span>
           <span class="info">Team: </span>
           <div class="info">Players:
-            <template v-for="(player, index) in gameInfo.players">
-              {{player.name}}{{(index === gameInfo.players.length - 1) ? '': ', '}}
+            <template v-for="(player, index) in players">
+              {{player.name}}{{(index === players.length - 1) ? '': ', '}}
             </template>
           </div>
         </div> -->
@@ -20,8 +20,8 @@
           </div>
         </div>
         <div class="others-info">
-          <div  v-for="(player, i) in gameInfo.players"  :index="i" :key="player.name" class="others-info-profile" :style="[player.styleAvatar]">
-            {{player.name}}
+          <div v-for="(player, i) in otherPlayers"  :index="i" :key="player.clientId" class="others-info-profile" :style="[player.styleAvatar]">
+            {{player.username}}
           </div>
         </div>
       </div>
@@ -73,7 +73,7 @@
             <div class="highlight"></div>
           </div>
         </transition-group>
-        <div v-if="gameInfo.win" id="win">
+        <div v-if="win" id="win">
           Winner!
         </div>
       </div>
@@ -83,22 +83,22 @@
     </div> -->
     <!-- shape="M50,3l12,36h38l-30,22l11,36l-31-21l-31,21l11-36l-30-22h38z"		 -->
     <div v-if="state === 'playing'" class="rank-container backgroundwhite">
-      <div class="rank">Team Rank: {{rank.team}}/{{rank.totalteam}}</div>
+      <div class="rank">Team Rank: {{gameInfo.rank.team}}/{{gameInfo.rank.totalTeam}}</div>
       <div class="statusbar">
         <span class="label">
         Time Remaining
         </span>
-        <!-- <loading-progress
+        <loading-progress
           :progress="progress"
           :indeterminate="indeterminate"
+          :counter-clockwise="counterClockwise"
           shape="circle"
           size="20"
           height="40"
           width="40"
           fill-duration="1"
-          counterClockwise=false
-        /> -->
-        <loading-progress
+        />
+        <!-- <loading-progress
           :progress="progress"
           :indeterminate="indeterminate"
           shape="M 0.000 4.000
@@ -116,14 +116,15 @@
           height="40"
           width="40"
           fill-duration="1"
-        />
+        /> -->
       </div>
-      <div class="rank">Individual Rank: {{rank.personal}}/5</div>
+      <div class="rank">Individual Rank: {{gameInfo.rank.personal}}/5</div>
     </div>
   </div>
 </template>
 
 <script>
+import { UsersAckMessage } from '@/messaging/messages.js';
 import { Player } from "@/messaging/player";
 import CommonUtils from "./common-utils";
 export default {
@@ -132,12 +133,8 @@ export default {
   // lifecycle callbacks
   created() {
     console.log("game created: data bound");
-    this.rank = {
-      personal: 1,
-      team: 1,
-      totalteam: 5
-    };
     this.indeterminate = false;
+    this.counterClockwise = true;
 
     if (this.$route.query.username) {
       this.username = this.$route.query.username;
@@ -146,9 +143,9 @@ export default {
         "localStorage",
         "trouble_flipper_player"
       );
-      let client = null;
+      let clientId = null;
       if (userInfo) {
-        client = userInfo.client;
+        clientId = userInfo.clientId;
         if (userInfo.username !== this.username) {
           userInfo.username = this.username;
           this.saveIntoStorage(
@@ -159,14 +156,14 @@ export default {
         }
       }
 
-      this.client = client;
+      this.clientId = clientId;
       // DO NOT initialize playerMessenger in data() function; otherwise all its memebers will become reactive
       // including the solace API. We don't want solace API's data structure to be injected with Observer stuff,
       // it causes SolaceClientFactory.init() to fail
       this.playerMessenger = new Player(
         this.$solace,
         this.$parent.appProps,
-        { username: this.username, client: this.client },
+        { username: this.username, clientId: this.clientId },
         this.handleMsg.bind(this)
       );
       this.playerMessenger.connect();
@@ -197,76 +194,67 @@ export default {
 
   // Underlying model
   data() {
-    var size = this.getRandomInt(3) + 3;
-    var splits = Math.floor(99 / size);
-    var pieces = [];
-    var players = [];
-    var square = 412;
-    if (window.innerWidth < square) {
-      square = window.innerWidth;
-    }
-    var movePercent = splits / 100;
-    var unit = square * movePercent;
-    for (var i = 0; i < size * size; ++i) {
-      pieces.push({
-        index: i,
-        style: `width: ${square}px; margin-left: -${unit *
-          (i % size)}px; margin-top: -${unit * Math.floor(i / size)}px;`,
-        selected: false
-      });
-    }
-    var holderStyle = {
-      width: unit + "px",
-      height: unit + "px"
-    };
+    // var square = 412;
+    // if (window.innerWidth < square) {
+    //   square = window.innerWidth;
+    // }
+    // var puzzleStyle = `width: ${square}px; height: ${square}px;`;
 
-    var puzzleStyle = `width: ${square}px; height: ${square}px;`;
-    console.log("pieces done");
-    this.shuffle(pieces);
-    console.log("shuffle");
+    // var size = this.getRandomInt(3) + 3;
+    // var splits = Math.floor(99 / size);
+    // var movePercent = splits / 100;
+    // var unit = square * movePercent;
+    // var holderStyle = {
+    //   width: unit + "px",
+    //   height: unit + "px"
+    // };
 
-    let random = this.getRandomInt(4) + 1;
-    let puzzlePicture = `static/puzzle${random}.png`;
+    // var pieces = [];
+    // for (var i = 0; i < size * size; ++i) {
+    //   pieces.push({
+    //     index: i,
+    //     style: `width: ${square}px; margin-left: -${unit *
+    //       (i % size)}px; margin-top: -${unit * Math.floor(i / size)}px;`,
+    //     selected: false
+    //   });
+    // }
+    // console.log("pieces done");
+    // this.shuffle(pieces);
+    // console.log("shuffle");
+
+    // let random = this.getRandomInt(4) + 1;
+    // let puzzlePicture = `static/puzzle${random}.png`;
+    // console.log(puzzlePicture);
+
     let avatarLink = "";
-    console.log(puzzlePicture);
-
-    var playersHolder = [
-      { name: "player1", avatar: "yoshi" },
-      { name: "player2", avatar: "peache" },
-      { name: "player3", avatar: "toad" },
-      { name: "player4", avatar: "lakitu" }
-    ];
-    console.log("players" + playersHolder);
-
     return {
       title: "Trouble Flipper",
       state: "connecting",
-      timeRemaining: 5, // timing remaining for current move before shuffle
-      timeForEachMove: 5,
-      client: "",
+      win: false,
+      timeRemaining: 0, // timing remaining for current move before shuffle
+      timeForEachMove: 0,
+      clientId: "",
       username: this.username,
       avatarLink: avatarLink,
+      players: [],
       gameInfo: {
-        id: "",
-        name: "",
-        teamId: "",
         teamName: "",
-        timeAllowedForEachMove: 5,
-        win: false,
-        players: players,
-        stats: {
-          total: 0,
-          finished: 0,
-          totalMoves: 0,
-          correctMoves: 0
+        timeAllowedForEachMove: 0,
+        rank: {
+          personal: 0,
+          team: 0,
+          totalTeam: 0
         }
       },
       // puzzles
-      puzzlePicture: puzzlePicture,
-      puzzle: pieces,
-      size: size,
-      holderStyle: holderStyle,
-      puzzleStyle: puzzleStyle,
+      puzzle: [],
+      // puzzle: pieces,
+      puzzlePicture: 'static/puzzle1.png',
+      holderStyle: {
+        width: "0px",
+        height: "0px"
+      },
+      puzzleStyle: '',
       backgroundwhite: false,
       selected: null,
       styleAvatar: {
@@ -289,14 +277,21 @@ export default {
         return this.timeRemaining / this.timeForEachMove;
       }
       return 0;
+    },
+    otherPlayers: function() {
+      if (Array.isArray(this.players) && this.players.length > 0) {
+        return this.players.filter((player) => {
+          return player.clientId !== this.clientId;
+        })
+      }
     }
   },
 
   // any actions
   methods: {
     avatarDisplay: function() {
-      if (this.gameInfo.players) {
-        this.gameInfo.players.forEach(function(player) {
+      if (this.players) {
+        this.players.forEach(function(player) {
           var style = {
             "background-image": `url("static/${player.avatar}-mario.jpg")`,
             "background-size": "contain",
@@ -313,58 +308,107 @@ export default {
     },
     handleMsg: function(msg) {
       console.log("Got message", msg);
-      if (msg.client) {
-        this.client = msg.client;
-      }
-      if (msg.username) {
+      let newState = null;
+      if (msg instanceof UsersAckMessage) {
+        // user connect reply
+        this.clientId = msg.clientId;
         this.username = msg.username;
+        newState = 'waiting';
       }
-      if (msg.puzzle) {
-        this.puzzle = puzzle;
+      // if (msg.clientId) {
+      //   this.clientId = msg.clientId;
+      // }
+      // if (msg.username) {
+      //   this.username = msg.username;
+      // }
+      if (msg.puzzle && this.puzzle.length === 0) {
+        // first team message
+        let pieces = msg.puzzle;
+        // assume is 5 x 5
+        let size = 5;
+        var square = 412;
+        if (window.innerWidth < square) {
+          square = window.innerWidth;
+        }
+        this.puzzleStyle = `width: ${square}px; height: ${square}px;`;
+
+        var splits = Math.floor(99 / size);
+        var movePercent = splits / 100;
+        var unit = square * movePercent;
+        this.holderStyle.width = unit + "px";
+        this.holderStyle.height = unit + "px";
+
+        for (var i = 0; i < size * size; ++i) {
+          pieces[i].style = `width: ${square}px; margin-left: -${unit *
+              (pieces[i].index % size)}px; margin-top: -${unit * Math.floor(pieces[i].index / size)}px;`;
+          pieces[i].selected = false;
+        }
+        this.updateArray(this.puzzle, pieces);
+        newState = 'start';
+      }
+      if (msg.players) {
+        this.updateArray(this.players, msg.players);
+        this.players.forEach((player) => {
+          if (player.avatar) {
+            newState = 'playing';
+            let style = {
+              "background-image": `url("static/${player.avatar}-mario.jpg")`,
+              "background-size": "contain",
+              "background-repeat": "no-repeat",
+              "background-position": "center"
+            };
+            player.styleAvatar = style;
+            player.avatarLink = `url("static/${player.avatar}-mario.jpg")`;
+          }
+          if (player.clientId === this.clientId) {
+            this.avatarLink = `url("static/${player.avatar}-mario.jpg")`;
+            this.styleAvatar["background-image"] = this.avatarLink;
+          }
+        });
       }
       if (msg.gameInfo) {
         this.updateData(this.gameInfo, msg.gameInfo);
-      }
-      if (this.gameInfo.avatar) {
-        this.avatarLink = `url("static/${this.gameInfo.avatar}-mario.jpg")`;
-        this.styleAvatar["background-image"] = this.avatarLink;
-        this.avatarDisplay();
-        //TODO: hook in others?
-      }
-      this.handleStateChange(msg);
-    },
-    handleStateChange: function(msg) {
-      if (msg.state) {
-        console.log("State change", msg);
-        let currentState = this.state;
-        this.state = msg.state;
-        if (currentState !== "playing" && this.state === "playing") {
-          this.backgroundwhite = true;
-          this.timeForEachMove =
-            this.gameInfo && this.gameInfo.timeAllowedForEachMove
-              ? this.gameInfo.timeAllowedForEachMove
-              : 5;
-          this.timeRemaining = this.timeForEachMove;
-          this.startCountDown();
-        } else if (this.state !== "playing") {
-          this.stopCountDown();
-          if (this.state === "waiting") {
-            console.log(
-              "Save username " +
-                this.username +
-                ", client " +
-                this.client +
-                " to localStorage"
-            );
-            this.saveIntoStorage("localStorage", "trouble_flipper_player", {
-              username: this.username,
-              client: this.client
-            });
-          } else if (this.state === "start") {
-
-          }
+        if (this.gameInfo.puzzleName) {
+          this.puzzlePicture = `static/${this.gameInfo.puzzleName}.png`;
         }
       }
+      if (msg.connected == false) {
+        newState = 'connecting';
+      }
+      this.handleStateChange(newState);
+    },
+    handleStateChange: function(newState) {
+      if (!newState) {
+        return;
+      }
+      console.log("New state change", newState);
+      let currentState = this.state;
+      this.state = newState;
+      if (currentState !== "playing" && this.state === "playing") {
+        this.backgroundwhite = true;
+        this.timeForEachMove =
+          this.gameInfo && this.gameInfo.timeAllowedForEachMove
+            ? this.gameInfo.timeAllowedForEachMove
+            : 0;
+        this.timeRemaining = this.timeForEachMove;
+        this.startCountDown();
+      } else if (this.state !== "playing") {
+        this.stopCountDown();
+        if (this.state === "waiting") {
+          console.log(
+            "Save username " +
+              this.username +
+              ", clientId " +
+              this.clientId +
+              " to localStorage"
+          );
+          this.saveIntoStorage("localStorage", "trouble_flipper_player", {
+            username: this.username,
+            clientId: this.clientId
+          });
+        }
+      }
+
     },
     startGame: function() {
       if (this.playerMessenger) {
@@ -380,16 +424,18 @@ export default {
       }
     },
     startCountDown: function() {
-      console.log("start count down timer", this.timeRemaining);
       this.stopCountDown();
-      this.countdownTimer = setInterval(() => {
-        this.timeRemaining--;
-        if (this.timeRemaining <= 0) {
-          console.log("no time left", this.timeRemaining);
-          this.stopCountDown();
-          this.randomSwap();
-        }
-      }, 1000);
+      if (this.timeForEachMove > 0) {
+        console.log("start count down timer", this.timeRemaining);
+        this.countdownTimer = setInterval(() => {
+          this.timeRemaining--;
+          if (this.timeRemaining <= 0) {
+            console.log("no time left", this.timeRemaining);
+            this.stopCountDown();
+            this.randomSwap();
+          }
+        }, 1000);
+      }
     },
     stopCountDown: function() {
       if (this.countdownTimer) {
@@ -453,10 +499,10 @@ export default {
       this.checkWinCondition();
     },
     checkWinCondition: function() {
-      this.gameInfo.win = this.puzzle.reduce((result, piece, i) => {
+      this.win = this.puzzle.reduce((result, piece, i) => {
         return result && piece.index == i;
       }, true);
-      if (this.gameInfo.win) {
+      if (this.win) {
         console.log("WINNER!");
         this.stopCountDown();
       } else {

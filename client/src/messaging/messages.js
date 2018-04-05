@@ -52,7 +52,7 @@ export class UsersMessage extends TroubleFlipperMessage {
 //
 // * Pending review...
 //
-export class UsersAckMessage extends TroubleFlipperMessage {
+export class UsersAckMessage extends UsersMessage {
   static get SUCCESS() {
     return "success";
   }
@@ -60,8 +60,8 @@ export class UsersAckMessage extends TroubleFlipperMessage {
     return "failure";
   }
 
-  constructor(result) {
-    super();
+  constructor(result, username, clientId) {
+    super(username, clientId);
     this.result = result;
   }
 
