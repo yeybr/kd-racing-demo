@@ -2,15 +2,15 @@
   <div id='game' class="game-panel" :class="{backgroundwhite: backgroundwhite}">
     <div v-show="state === 'playing'" class="header-section">
       <div style="position:relative;background-image: url(static/backgrounds.png);">
-        <div class="titlebar">{{gameInfo.teamName}}</div>
+        <div class="titlebar">{{teamInfo.teamName}}</div>
       </div>
       <div class="header-info">
         <!-- <div class="game-info">
           <span class="info">Puzzle: </span>
           <span class="info">Team: </span>
           <div class="info">Players:
-            <template v-for="(player, index) in players">
-              {{player.name}}{{(index === players.length - 1) ? '': ', '}}
+            <template v-for="(player, index) in teamInfo.players">
+              {{player.name}}{{(index === teamInfo.players.length - 1) ? '': ', '}}
             </template>
           </div>
         </div> -->
@@ -28,9 +28,9 @@
     </div>
     <div class="game-stats">
       <!-- <div v-show="state === 'playing'" class="status">
-        <span class="stats">Progress: {{gameInfo.stats.finished}} / {{gameInfo.stats.total}}</span>
-        <span class="stats">Total Moves: {{gameInfo.stats.totalMoves}}</span>
-        <span class="stats">Correct Moves: {{gameInfo.stats.correctMoves}}</span>
+        <span class="stats">Progress: {{teamInfo.stats.finished}} / {{teamInfo.stats.total}}</span>
+        <span class="stats">Total Moves: {{teamInfo.stats.totalMoves}}</span>
+        <span class="stats">Correct Moves: {{teamInfo.stats.correctMoves}}</span>
       </div> -->
       <div v-show="state === 'waiting'" class="status waiting">
         <label>Waiting for game to start...</label>
@@ -83,11 +83,12 @@
     </div> -->
     <!-- shape="M50,3l12,36h38l-30,22l11,36l-31-21l-31,21l11-36l-30-22h38z"		 -->
     <div v-if="state === 'playing'" class="rank-container backgroundwhite">
-      <div class="rank">Team Rank: {{gameInfo.rank.team}}/{{gameInfo.rank.totalTeam}}</div>
+      <div class="rank">Team Rank: {{teamInfo.rank.team}}/{{teamInfo.rank.totalTeam}}</div>
       <div class="statusbar">
-        <span class="label">
+        <span v-if="timeForEachMove > 0" class="label">
         Time Remaining
         </span>
+        <template v-if="timeForEachMove > 0">
         <loading-progress
           :progress="progress"
           :indeterminate="indeterminate"
@@ -117,8 +118,9 @@
           width="40"
           fill-duration="1"
         /> -->
+        </template>
       </div>
-      <div class="rank">Individual Rank: {{gameInfo.rank.personal}}/5</div>
+      <div class="rank">Individual Rank: {{teamInfo.rank.personal}}/5</div>
     </div>
   </div>
 </template>
@@ -236,10 +238,11 @@ export default {
       clientId: "",
       username: this.username,
       avatarLink: avatarLink,
-      players: [],
-      gameInfo: {
+      teamInfo: {
+        teamId: "",
         teamName: "",
         timeAllowedForEachMove: 0,
+        players: [],
         rank: {
           personal: 0,
           team: 0,
@@ -279,8 +282,8 @@ export default {
       return 0;
     },
     otherPlayers: function() {
-      if (Array.isArray(this.players) && this.players.length > 0) {
-        return this.players.filter((player) => {
+      if (Array.isArray(this.teamInfo.players) && this.teamInfo.players.length > 0) {
+        return this.teamInfo.players.filter((player) => {
           return player.clientId !== this.clientId;
         })
       }
@@ -290,8 +293,8 @@ export default {
   // any actions
   methods: {
     avatarDisplay: function() {
-      if (this.players) {
-        this.players.forEach(function(player) {
+      if (this.teamInfo.players) {
+        this.teamInfo.players.forEach(function(player) {
           var style = {
             "background-image": `url("static/${player.avatar}-mario.jpg")`,
             "background-size": "contain",
@@ -347,36 +350,39 @@ export default {
           pieces[i].selected = false;
         }
         this.updateArray(this.puzzle, pieces);
-      }
-      if (msg.players) {
-        let newPlayers = msg.players;
-        let me = null;
-        newPlayers.forEach((player) => {
-          if (player.avatar) {
-            newState = 'playing';
-            let style = {
-              "background-image": `url("static/${player.avatar}-mario.jpg")`,
-              "background-size": "contain",
-              "background-repeat": "no-repeat",
-              "background-position": "center"
-            };
-            player.styleAvatar = style;
-            player.avatarLink = `url("static/${player.avatar}-mario.jpg")`;
-          }
-          if (player.clientId === this.clientId) {
-            me = player;
-          }
-        });
-        this.updateArray(this.players, newPlayers);
-        if (me) {
-          this.avatarLink = `url("static/${me.avatar}-mario.jpg")`;
-          this.styleAvatar["background-image"] = this.avatarLink;
+        this.selected = null;
+        if (newState !== 'start') {
+          this.checkWinCondition();
         }
       }
-      if (msg.gameInfo) {
-        this.updateData(this.gameInfo, msg.gameInfo);
-        if (this.gameInfo.puzzleName) {
-          this.puzzlePicture = `static/${this.gameInfo.puzzleName}.png`;
+      if (msg.teamInfo) {
+        if (msg.teamInfo.players) {
+          let newPlayers = msg.teamInfo.players;
+          let me = null;
+          newPlayers.forEach((player) => {
+            if (player.avatar) {
+              newState = 'playing';
+              let style = {
+                "background-image": `url("static/${player.avatar}-mario.jpg")`,
+                "background-size": "contain",
+                "background-repeat": "no-repeat",
+                "background-position": "center"
+              };
+              player.styleAvatar = style;
+              player.avatarLink = `url("static/${player.avatar}-mario.jpg")`;
+            }
+            if (player.clientId === this.clientId) {
+              me = player;
+            }
+          });
+          if (me) {
+            this.avatarLink = `url("static/${me.avatar}-mario.jpg")`;
+            this.styleAvatar["background-image"] = this.avatarLink;
+          }
+        }
+        this.updateData(this.teamInfo, msg.teamInfo);
+        if (this.teamInfo.puzzleName) {
+          this.puzzlePicture = `static/${this.teamInfo.puzzleName}.png`;
         }
       }
       this.handleStateChange(newState);
@@ -391,8 +397,8 @@ export default {
       if (currentState !== "playing" && this.state === "playing") {
         this.backgroundwhite = true;
         this.timeForEachMove =
-          this.gameInfo && this.gameInfo.timeAllowedForEachMove
-            ? this.gameInfo.timeAllowedForEachMove
+          this.teamInfo && this.teamInfo.timeAllowedForEachMove
+            ? this.teamInfo.timeAllowedForEachMove
             : 0;
         this.timeRemaining = this.timeForEachMove;
         this.startCountDown();
@@ -452,6 +458,9 @@ export default {
     cleanupGame: function() {
       // clear puzzle
       this.updateArray(this.puzzle, []);
+      this.updateArray(this.teamInfo.players, []);
+      this.teamInfo.teamId = '';
+      this.teamInfo.teamName = '';
     },
     randomSwap: function() {
       console.log("random swap");

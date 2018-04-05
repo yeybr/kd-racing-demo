@@ -179,37 +179,38 @@ export class Player {
     // REMOVE TESTING CODE
     // fake team message to hardcode the rest of the properties
     let msg = {
-      players: [
-        {
-          clientId: this.clientId,
-          username: this.username,
-          avatar: avatar
-        },
-        {
-          clientId: '1',
-          username: 'Kevin',
-          avatar: 'peach'
-        },
-        {
-          clientId: '2',
-          username: 'Rob',
-          avatar: 'yoshi'
-        },
-        {
-          clientId: '5',
-          username: 'Roland',
-          avatar: 'toad',
-        },
-        {
-          clientId: '6',
-          username: 'Bob',
-          avatar: 'goomba',
-        },
-      ],
-      gameInfo: {
+      teamInfo: {
+        teamId: '1',
         teamName: 'Team 1',
         puzzleName: 'puzzle3',
         timeAllowedForEachMove: 10,
+        players: [
+          {
+            clientId: this.clientId,
+            username: this.username,
+            avatar: avatar
+          },
+          {
+            clientId: '1',
+            username: 'Kevin',
+            avatar: 'peach'
+          },
+          {
+            clientId: '2',
+            username: 'Rob',
+            avatar: 'yoshi'
+          },
+          {
+            clientId: '5',
+            username: 'Roland',
+            avatar: 'toad',
+          },
+          {
+            clientId: '6',
+            username: 'Bob',
+            avatar: 'goomba',
+          },
+        ],
         rank: {
           personal: 1,
           team: 1,
