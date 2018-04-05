@@ -136,7 +136,7 @@ export class Player {
     console.log('Send message to request to start game');
 
     // REMOVE TESTING CODE
-    // current team message only contain puzzle pieces
+    // current team message only contain puzzle pieces, should also return teamId; otherwise don't know where to send swap message
     var size = 5;
     var pieces = [];
     for (var i = 0; i < size * size; ++i) {

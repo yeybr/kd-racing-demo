@@ -321,14 +321,11 @@ export default {
         this.handleStateChange(newState);
         return;
       }
-      // if (msg.clientId) {
-      //   this.clientId = msg.clientId;
-      // }
-      // if (msg.username) {
-      //   this.username = msg.username;
-      // }
-      if (msg.puzzle && msg.puzzle.length > 0 && this.puzzle.length === 0) {
-        // must be first team message
+      if (msg.puzzle && msg.puzzle.length > 0) {
+        if (this.puzzle.length === 0) {
+          // must be first team message, transition to select avatar
+          newState = 'start';
+        }
         let pieces = msg.puzzle;
         // assume is 5 x 5
         let size = 5;
@@ -350,11 +347,11 @@ export default {
           pieces[i].selected = false;
         }
         this.updateArray(this.puzzle, pieces);
-        newState = 'start';
       }
       if (msg.players) {
-        this.updateArray(this.players, msg.players);
-        this.players.forEach((player) => {
+        let newPlayers = msg.players;
+        let me = null;
+        newPlayers.forEach((player) => {
           if (player.avatar) {
             newState = 'playing';
             let style = {
@@ -367,10 +364,14 @@ export default {
             player.avatarLink = `url("static/${player.avatar}-mario.jpg")`;
           }
           if (player.clientId === this.clientId) {
-            this.avatarLink = `url("static/${player.avatar}-mario.jpg")`;
-            this.styleAvatar["background-image"] = this.avatarLink;
+            me = player;
           }
         });
+        this.updateArray(this.players, newPlayers);
+        if (me) {
+          this.avatarLink = `url("static/${me.avatar}-mario.jpg")`;
+          this.styleAvatar["background-image"] = this.avatarLink;
+        }
       }
       if (msg.gameInfo) {
         this.updateData(this.gameInfo, msg.gameInfo);
@@ -409,9 +410,10 @@ export default {
             username: this.username,
             clientId: this.clientId
           });
+        } else if (this.state === "connecting") {
+          this.cleanupGame();
         }
       }
-
     },
     startGame: function() {
       if (this.playerMessenger) {
@@ -446,6 +448,10 @@ export default {
         clearInterval(this.countdownTimer);
         this.countdownTimer = null;
       }
+    },
+    cleanupGame: function() {
+      // clear puzzle
+      this.updateArray(this.puzzle, []);
     },
     randomSwap: function() {
       console.log("random swap");
