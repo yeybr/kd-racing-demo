@@ -314,6 +314,12 @@ export default {
         this.clientId = msg.clientId;
         this.username = msg.username;
         newState = 'waiting';
+        this.handleStateChange(newState);
+        return;
+      } else if (msg.connected == false) {
+        newState = 'connecting';
+        this.handleStateChange(newState);
+        return;
       }
       // if (msg.clientId) {
       //   this.clientId = msg.clientId;
@@ -321,8 +327,8 @@ export default {
       // if (msg.username) {
       //   this.username = msg.username;
       // }
-      if (msg.puzzle && this.puzzle.length === 0) {
-        // first team message
+      if (msg.puzzle && msg.puzzle.length > 0 && this.puzzle.length === 0) {
+        // must be first team message
         let pieces = msg.puzzle;
         // assume is 5 x 5
         let size = 5;
@@ -371,9 +377,6 @@ export default {
         if (this.gameInfo.puzzleName) {
           this.puzzlePicture = `static/${this.gameInfo.puzzleName}.png`;
         }
-      }
-      if (msg.connected == false) {
-        newState = 'connecting';
       }
       this.handleStateChange(newState);
     },
