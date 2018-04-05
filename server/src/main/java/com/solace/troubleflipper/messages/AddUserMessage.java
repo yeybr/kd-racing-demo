@@ -3,7 +3,7 @@ package com.solace.troubleflipper.messages;
 public class AddUserMessage {
 
     private String username;
-    private String client;
+    private String clientId;
 
     public String getUsername() {
         return username;
@@ -13,11 +13,11 @@ public class AddUserMessage {
         this.username = username;
     }
 
-    public String getClient() {
-        return client;
+    public String getClientId() {
+        return clientId;
     }
 
-    public void setClient(String client) {
-        this.client = client;
+    public void setClientId(String clientId) {
+        this.clientId = clientId;
     }
 }

@@ -126,7 +126,7 @@
 </template>
 
 <script>
-import { UsersAckMessage } from '@/messaging/messages.js';
+import { UsersAckMessage, parseReceivedMessage } from '@/messaging/messages.js';
 import { Player } from "@/messaging/player";
 import CommonUtils from "./common-utils";
 export default {

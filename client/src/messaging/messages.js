@@ -97,8 +97,9 @@ export class TournamentsMessage extends TroubleFlipperMessage {
 //   in the future
 //
 export function parseReceivedMessage(topic, msg) {
-  if (topic === 'users') {
-    return Object.assign(new UsersMessage, msg);
+  if (topic.startsWith('user/')) {
+    console.log('user/ message');
+    return Object.assign(new UsersAckMessage, msg);
   } else {
     console.log('Unexpected topic');
     return null;
@@ -121,7 +122,7 @@ export function publishMessageToTopic(topic, msg, session, solaceApi) {
     solaceMessage.setDestination(solace.SolclientFactory.createTopicDestination(topic));
     solaceMessage.setBinaryAttachment(msgPayload);
     solaceMessage.setDeliveryMode(solace.MessageDeliveryModeType.DIRECT);
-    session.send(message);
+    session.send(solaceMessage);
   }
 }
 

@@ -2,6 +2,7 @@ package com.solace.troubleflipper.configuration;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.solace.troubleflipper.messages.AddUserMessage;
+import com.solace.troubleflipper.messages.AddUserAckMessage;
 import com.solace.troubleflipper.messages.TournamentMessage;
 import com.solace.troubleflipper.messages.UpdatePuzzleMessage;
 import com.solace.troubleflipper.model.Game;
@@ -75,11 +76,22 @@ public class JCSMPConfiguration {
                         if ((msg.getDestination()).toString().equals("users")) {
                             AddUserMessage addUserMessage = mapper.readValue(((TextMessage) msg).getText(), AddUserMessage.class);
 
-                            if (!tournament.getPlayers().stream().anyMatch(item -> addUserMessage.getClient().equals(item.getClientName()))) {
+                            if (!tournament.getPlayers().stream().anyMatch(item -> addUserMessage.getClientId().equals(item.getClientName()))) {
                                 Player player = new Player();
                                 player.setGamerTag(addUserMessage.getUsername());
-                                player.setClientName(addUserMessage.getClient());
+                                player.setClientName(addUserMessage.getClientId());
                                 tournament.addPlayer(player);
+
+                                Topic topic = JCSMPFactory.onlyInstance().createTopic("user/" + player.getClientName());
+                                TextMessage textMessage = JCSMPFactory.onlyInstance().createMessage(TextMessage.class);
+                                AddUserAckMessage addUserAckMessage = new AddUserAckMessage(addUserMessage, AddUserAckMessage.RESULT_SUCCESS);
+                                textMessage.setText(mapper.writeValueAsString(addUserAckMessage));
+                                try {
+                                    producer.send(textMessage, topic);
+                                    System.out.println("Sending user ack message");
+                                } catch (JCSMPException ex) {
+                                    System.err.println("Encountered a JCSMPException, closing consumer channel... " + ex.getMessage());
+                                }
                             }
                         } else if ((msg.getDestination()).toString().equals("tournaments")) {
                             TournamentMessage tournamentMessage = mapper.readValue(((TextMessage) msg).getText(), TournamentMessage.class);
@@ -120,6 +132,74 @@ public class JCSMPConfiguration {
                     }
                 } else {
                     System.out.println("Message received.");
+
+                    try {
+                        if ((msg.getDestination()).toString().equals("users")) {
+                            // TODO (Brandon): FIXME... we need to handle incomplete reads...
+                            //
+                            byte[] buf = new byte[1024];
+                            msg.readAttachmentBytes(buf);
+                            String msgStr = new String(buf);
+                            AddUserMessage addUserMessage = mapper.readValue(msgStr, AddUserMessage.class);
+
+                            if (!tournament.getPlayers().stream().anyMatch(item -> addUserMessage.getClientId().equals(item.getClientName()))) {
+                                Player player = new Player();
+                                player.setGamerTag(addUserMessage.getUsername());
+                                player.setClientName(addUserMessage.getClientId());
+                                tournament.addPlayer(player);
+
+                                Topic topic = JCSMPFactory.onlyInstance().createTopic("user/" + player.getClientName());
+                                BytesMessage bytesMessage = JCSMPFactory.onlyInstance().createMessage(BytesMessage.class);
+                                AddUserAckMessage addUserAckMessage = new AddUserAckMessage(addUserMessage, AddUserAckMessage.RESULT_SUCCESS);
+                                bytesMessage.setData(mapper.writeValueAsString(addUserAckMessage).getBytes());
+                                try {
+                                    producer.send(bytesMessage, topic);
+                                } catch (JCSMPException ex) {
+                                    System.err.println("Encountered a JCSMPException, closing consumer channel... " + ex.getMessage());
+                                }
+                            }
+                        } else if ((msg.getDestination()).toString().equals("tournaments")) {
+                            // TODO (Brandon): FIXME... we need to handle incomplete reads...
+                            //
+                            byte[] buf = new byte[1024];
+                            msg.readAttachmentBytes(buf);
+                            String msgStr = new String(buf);
+                            TournamentMessage tournamentMessage = mapper.readValue(msgStr, TournamentMessage.class);
+
+                            if ((tournamentMessage.getAction().equals("buildTeams")) && (tournament.getPlayers().size() > 0)) {
+                                tournament.prepareTeams();
+                                for (Player player : tournament.getPlayers()) {
+                                    Topic topic = JCSMPFactory.onlyInstance().createTopic("team/" + player.getTeam().getId());
+                                    ClientName clientName = JCSMPFactory.onlyInstance().createClientName(player.getGamerTag());
+                                    try {
+                                        session.addSubscription(clientName, topic, JCSMPSession.WAIT_FOR_CONFIRM);
+                                    } catch (JCSMPException ex) {
+                                        System.err.println("Encountered a JCSMPException, closing consumer channel... " + ex.getMessage());
+                                    }
+                                }
+                                for (Game game : tournament.getGames()) {
+                                    game.start();
+                                    for (Player player : game.getTeam().getPlayers()) {
+                                        String teamId =  player.getTeam().getId();
+                                        Topic topic = JCSMPFactory.onlyInstance().createTopic("team/" + teamId);
+                                        BytesMessage bytesMessage = JCSMPFactory.onlyInstance().createMessage(BytesMessage.class);
+                                        UpdatePuzzleMessage updatePuzzleMessage = new UpdatePuzzleMessage();
+                                        updatePuzzleMessage.setTeamId(teamId);
+                                        updatePuzzleMessage.setPuzzle(game.getPuzzleBoard());
+                                        bytesMessage.setData(mapper.writeValueAsString(updatePuzzleMessage).getBytes());
+                                        try {
+                                            producer.send(bytesMessage, topic);
+                                        } catch (JCSMPException ex) {
+                                            System.err.println("Encountered a JCSMPException, closing consumer channel... " + ex.getMessage());
+                                        }
+                                    }
+                                }
+                            }
+
+                        }
+                    } catch (IOException e) {
+                        throw new IllegalStateException(e);
+                    }
                 }
                 System.out.printf("Message Dump:%n%s%n",msg.dump());
             }

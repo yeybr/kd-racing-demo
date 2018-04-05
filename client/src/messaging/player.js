@@ -1,4 +1,4 @@
-import { UsersMessage, UsersAckMessage, publishMessageToTopic } from '@/messaging/messages.js';
+import { UsersMessage, UsersAckMessage, publishMessageToTopic, parseReceivedMessage } from '@/messaging/messages.js';
 
 export class Player {
   constructor(solaceApi, appProps, userInfo, msgCallback) {
@@ -33,7 +33,8 @@ export class Player {
         this.session.on(solace.SessionEventCode.UP_NOTICE, (sessionEvent) => {
           this.clientId = this.session.getSessionProperties().clientName;
           console.log('Successfully connected with clientId ' + this.clientId);
-          this.register();
+          //this.register();
+          this.subscribeToTopic('user/' + this.clientId);
         });
         this.session.on(solace.SessionEventCode.CONNECT_FAILED_ERROR, (sessionEvent) => {
           console.log('Connection failed to the message router: ' + sessionEvent.infoStr +
@@ -48,9 +49,17 @@ export class Player {
             this.session = null;
           }
         });
+        this.session.on(solace.SessionEventCode.SUBSCRIPTION_OK, (sessionEvent) => {
+          var topicName = sessionEvent.correlationKey;
+          console.log('Successfully subscribed to topic: ' + topicName);
+          if (topicName === 'user/' + this.clientId) {
+            this.register();
+          }
+        });
         this.session.on(solace.SessionEventCode.MESSAGE, (message) => {
           console.log('Received message: "' + message.getBinaryAttachment() + '", details:\n' + message.dump());
-          this.handleMessage(message.getBinaryAttachment());
+          var topic = message.getDestination().getName();
+          this.handleMessageBrandon(topic, message.getBinaryAttachment());
         });
         this.session.connect();
       }
@@ -62,7 +71,42 @@ export class Player {
     }
   }
 
+  subscribeToTopic(topic) {
+    if (this.session !== null) {
+      let solace = this.solaceApi;
+      try {
+        this.session.subscribe(
+          solace.SolclientFactory.createTopicDestination(topic),
+          true,
+          topic,
+          10000
+        );
+      } catch (e) {
+        console.log('Subscribe failed.');
+      }
+    }
+  }
+
+  handleMessageBrandon(topic, message) {
+      if (typeof message !== 'string') {
+        console.log('Error: unexpected message type');
+        return;
+      }
+
+      try {
+        var messageInstance = parseReceivedMessage(topic, message);
+        if (messageInstance !== null) {
+          console.log('here');
+          this.msgCallback(messageInstance);
+        }
+      } catch (e) {
+        console.log('Error: ' + e);
+      }
+
+  }
+
   handleMessage(jsonMessage) {
+    var messsageInstance = parseReceivedMessage(topic, message.getBinaryAttachment());
     if (jsonMessage) {
       let msg = null;
       if (typeof jsonMessage === 'string') {
@@ -103,22 +147,23 @@ export class Player {
     */
 
     // REMOVE TESTING CODE
-    setTimeout(()=> {
-      let msg = new UsersAckMessage(UsersAckMessage.SUCCESS, this.username, this.clientId);
-      this.msgCallback(msg);
-    }, 500);
+    //setTimeout(()=> {
+    //  let msg = new UsersAckMessage(UsersAckMessage.SUCCESS, this.username, this.clientId);
+    //  this.msgCallback(msg);
+    //}, 500);
 
     // TODO (Brandon):
     //
     // * Where the heck do you get the clientId??... hard code for now...
     //
-    /*
-    var usersMessage = new UsersMessage(this.username, '1');
+    
+    var usersMessage = new UsersMessage(this.username, this.clientId);
     try {
       publishMessageToTopic('users', usersMessage, this.session, this.solaceApi);
     } catch (error) {
-      console.log("Publish failed.");
+      console.log("Publish failed. error = " + error);
     }
+    /*
     // Mocked server response... remove later
     setTimeout(() => {
       var usersAckMessage = new UsersAckMessage(UsersAckMessage.SUCCESS);
