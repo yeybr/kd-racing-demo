@@ -1,5 +1,5 @@
-import { UsersMessage, UsersAckMessage, TournamentsMessage, publishMessageToTopic, parseReceivedMessage } from '@/messaging/messages.js';
-
+import { UsersMessage, UsersAckMessage, TournamentsMessage, TeamsMessage, publishMessageToTopic, parseReceivedMessage } from '@/messaging/messages.js';
+import { SwapMessage } from '@/messaging/messages.js';
 export class Player {
   constructor(solaceApi, appProps, userInfo, msgCallback) {
     this.solaceApi = solaceApi;
@@ -94,6 +94,10 @@ export class Player {
 
       try {
         var messageInstance = parseReceivedMessage(topic, message);
+        if (messageInstance instanceof TeamsMessage) {
+          // set team topic
+          this.teamTopic = topic;
+        }
         if (messageInstance !== null) {
           this.msgCallback(messageInstance);
         }
@@ -138,64 +142,12 @@ export class Player {
   startGame() {
     console.log('Send message to request to start game');
 
-    // REMOVE TESTING CODE
-    //setTimeout(()=> {
-    //  this.msgCallback(this.simulateStartGameResponse());
-    //}, 0);
-
     var tournamentsMessage = new TournamentsMessage();
     try {
       publishMessageToTopic('tournaments', tournamentsMessage, this.session, this.solaceApi);
     } catch (error) {
       console.log("Publish failed. error = ", error);
     }
-  }
-
-  // TODO REMOVE TESTING CODE
-  simulateStartGameResponse() {
-    var size = 5;
-    var pieces = [];
-    for (var i = 0; i < size * size; ++i) {
-      pieces.push({
-        index: i
-      });
-    }
-    this.shuffle(pieces);
-    let msg = {
-      // pieces are from server message
-      puzzle: pieces,
-      // hardcode teamInfo without avatar so that the GUI can transition to pick avatar view
-      teamInfo: {
-        // teamId can be from message destination string or server message
-        teamId: '1',
-        teamName: 'Team 1',
-        puzzleName: 'puzzle3',
-        timeAllowedForEachMove: 10,
-        totalTeam: 5
-      }
-    };
-    return msg;
-  }
-
-  // TODO REMOVE TESTING CODE
-  shuffle(array) {
-    var currentIndex = array.length,
-      temporaryValue,
-      randomIndex;
-
-    // While there remain elements to shuffle...
-    while (0 !== currentIndex) {
-      // Pick a remaining element...
-      randomIndex = Math.floor(Math.random() * currentIndex);
-      currentIndex -= 1;
-
-      // And swap it with the current element.
-      temporaryValue = array[currentIndex];
-      array[currentIndex] = array[randomIndex];
-      array[randomIndex] = temporaryValue;
-    }
-
-    return array;
   }
 
   pickAvatar(avatar) {
@@ -210,55 +162,54 @@ export class Player {
   // when integrating with the server, make sure the attributes that are not
   // available in the server message are provided with hardcoded value.
   simulatePickAvatarResponse(avatar) {
-    let msg = {
-      // hardcode teamInfo with avatar
-      teamInfo: {
-        // teamId can be from message destination string or server message
-        teamId: '1',
-        teamName: 'Team 1',
-        puzzleName: 'puzzle3',
-        timeAllowedForEachMove: 10,
-        totalTeam: 5,
-        teamRank: 1,
-        players: [
-          {
-            clientId: this.clientId,
-            username: this.username,
-            avatar: avatar,
-            rank: 2
-          },
-          {
-            clientId: '1',
-            username: 'Kevin',
-            avatar: 'peach',
-            rank: 1
-          },
-          {
-            clientId: '2',
-            username: 'Rob',
-            avatar: 'yoshi',
-            rank: 3
-          },
-          {
-            clientId: '5',
-            username: 'Roland',
-            avatar: 'toad',
-            rank: 4
-          },
-          {
-            clientId: '6',
-            username: 'Bob',
-            avatar: 'goomba',
-            rank: 5
-          },
-        ]
-      }
-    };
+    let msg = Object.assign(new TeamsMessage, {
+      // players with avatar
+      players: [
+        {
+          clientId: this.clientId,
+          username: this.username,
+          avatar: avatar,
+          rank: 2
+        },
+        {
+          clientId: '1',
+          username: 'Kevin',
+          avatar: 'peach',
+          rank: 1
+        },
+        {
+          clientId: '2',
+          username: 'Rob',
+          avatar: 'yoshi',
+          rank: 3
+        },
+        {
+          clientId: '5',
+          username: 'Roland',
+          avatar: 'toad',
+          rank: 4
+        },
+        {
+          clientId: '6',
+          username: 'Bob',
+          avatar: 'goomba',
+          rank: 5
+        },
+      ]
+    });
     return msg;
   }
 
   swap(piece1, piece2, puzzle) {
     console.log('publish swap message to server', piece1, piece2);
+
+    // The response from server is not the whole puzzle, but echo back the request
+    // var swapMessage = new SwapMessage(piece1, piece2);
+    // try {
+    //   publishMessageToTopic(this.teamTopic, swapMessage, this.session, this.solaceApi);
+    // } catch (error) {
+    //   console.log("Publish failed. error = ", error);
+    // }
 
     // TESTING CODE
     setTimeout(() => {
@@ -277,9 +228,9 @@ export class Player {
     var temp = puzzle[piece1Index];
     puzzle[piece1Index] = puzzle[piece2Index];
     puzzle[piece2Index] = temp;
-    return {
+    return Object.assign(new TeamsMessage, {
       puzzle: puzzle
-    };
+    });
   }
 
   disconnect() {

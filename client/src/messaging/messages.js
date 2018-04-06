@@ -76,16 +76,18 @@ export class TournamentsMessage extends TroubleFlipperMessage {
 }
 
 export class TeamsMessage extends TroubleFlipperMessage {
-  constructor(puzzle) {
+  constructor() {
     super();
-    this.puzzle = puzzle;
-  }
-
-  getPuzzle() {
-    return puzzle;
   }
 }
 
+export class SwapMessage extends TroubleFlipperMessage {
+  constructor(piece1, piece2) {
+    super();
+    this.piece1 = piece1;
+    this.piece2 = piece2;
+  }
+}
 
 // Should be called on received messages. Returns message object.
 //

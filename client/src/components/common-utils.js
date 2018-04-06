@@ -81,7 +81,6 @@ export default {
       try {
         storage = this.getStorage(storageType);
         if (key && value) {
-          console.log('saveIntoStorage', key, value);
           storage.setItem(key, JSON.stringify(value));
         }
       } catch (e) {
