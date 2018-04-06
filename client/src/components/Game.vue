@@ -83,7 +83,7 @@
     </div> -->
     <!-- shape="M50,3l12,36h38l-30,22l11,36l-31-21l-31,21l11-36l-30-22h38z"		 -->
     <div v-if="state === 'playing'" class="rank-container backgroundwhite">
-      <div class="rank">Team Rank: {{teamInfo.rank.team}}/{{teamInfo.rank.totalTeam}}</div>
+      <div class="rank">Team Rank: {{teamInfo.teamRank}}/{{teamInfo.totalTeam}}</div>
       <div class="statusbar">
         <span v-if="timeForEachMove > 0" class="label">
         Time Remaining
@@ -120,7 +120,7 @@
         /> -->
         </template>
       </div>
-      <div class="rank">Individual Rank: {{teamInfo.rank.personal}}/5</div>
+      <div class="rank">Individual Rank: {{rank}}/5</div>
     </div>
   </div>
 </template>
@@ -206,16 +206,14 @@ export default {
       clientId: "",
       username: this.username,
       avatarLink: avatarLink,
+      rank: 0,
       teamInfo: {
         teamId: "",
         teamName: "",
         timeAllowedForEachMove: 0,
         players: [],
-        rank: {
-          personal: 0,
-          team: 0,
-          totalTeam: 0
-        }
+        totalTeam: 0,
+        teamRank: 0,
       },
       // puzzles
       puzzle: [],
@@ -329,6 +327,7 @@ export default {
           if (me) {
             this.avatarLink = `url("static/${me.avatar}-mario.jpg")`;
             this.styleAvatar["background-image"] = this.avatarLink;
+            this.rank = me.rank;
           }
         }
         this.updateData(this.teamInfo, msg.teamInfo);

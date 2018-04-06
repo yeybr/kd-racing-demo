@@ -165,33 +165,8 @@ export class Player {
         teamName: 'Team 1',
         puzzleName: 'puzzle3',
         timeAllowedForEachMove: 10,
-        players: [
-          {
-            clientId: this.clientId,
-            username: this.username
-          },
-          {
-            clientId: '1',
-            username: 'Kevin'
-          },
-          {
-            clientId: '2',
-            username: 'Rob'
-          },
-          {
-            clientId: '5',
-            username: 'Roland'
-          },
-          {
-            clientId: '6',
-            username: 'Bob'
-          },
-        ],
-        rank: {
-          personal: 1,
-          team: 1,
-          totalTeam: 5
-        }
+        rank: 0,
+        totalTeam: 5
       }
     };
     return msg;
@@ -238,38 +213,40 @@ export class Player {
         teamName: 'Team 1',
         puzzleName: 'puzzle3',
         timeAllowedForEachMove: 10,
+        totalTeam: 5,
+        teamRank: 1,
         players: [
           {
             clientId: this.clientId,
             username: this.username,
-            avatar: avatar
+            avatar: avatar,
+            rank: 2
           },
           {
             clientId: '1',
             username: 'Kevin',
-            avatar: 'peach'
+            avatar: 'peach',
+            rank: 1
           },
           {
             clientId: '2',
             username: 'Rob',
-            avatar: 'yoshi'
+            avatar: 'yoshi',
+            rank: 3
           },
           {
             clientId: '5',
             username: 'Roland',
             avatar: 'toad',
+            rank: 4
           },
           {
             clientId: '6',
             username: 'Bob',
             avatar: 'goomba',
+            rank: 5
           },
-        ],
-        rank: {
-          personal: 1,
-          team: 1,
-          totalTeam: 5
-        }
+        ]
       }
     };
     return msg;
