@@ -165,7 +165,6 @@ export class Player {
         teamName: 'Team 1',
         puzzleName: 'puzzle3',
         timeAllowedForEachMove: 10,
-        rank: 0,
         totalTeam: 5
       }
     };

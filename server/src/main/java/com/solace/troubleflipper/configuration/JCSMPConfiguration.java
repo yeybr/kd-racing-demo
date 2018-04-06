@@ -146,7 +146,7 @@ public class JCSMPConfiguration {
                             Player player = null;
                             if (firstMatch.isPresent()) {
                                 player = firstMatch.get();
-                                System.out.println("Found existing player" + player);
+                                System.out.println("Found existing player " + player.getClientName());
                             }
                             if (player == null) {
                                 player = new Player();
