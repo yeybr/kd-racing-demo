@@ -198,7 +198,7 @@ public class IntegrationTests {
         private void addPlayer() throws IOException, JCSMPException {
             AddUserMessage addUserMessage = new AddUserMessage();
             addUserMessage.setUsername(username);
-            addUserMessage.setClient(username);
+            addUserMessage.setClientId(username);
             TextMessage msg = JCSMPFactory.onlyInstance().createMessage(TextMessage.class);
             msg.setText(mapper.writeValueAsString(addUserMessage));
             Topic topic = JCSMPFactory.onlyInstance().createTopic("users");
