@@ -2,6 +2,7 @@ package com.solace.troubleflipper;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.solace.troubleflipper.messages.AddUserMessage;
+import com.solace.troubleflipper.messages.SwapPiecesMessage;
 import com.solace.troubleflipper.messages.TournamentMessage;
 import com.solace.troubleflipper.messages.UpdatePuzzleMessage;
 import com.solace.troubleflipper.model.PuzzlePiece;
@@ -95,6 +96,11 @@ public class IntegrationTests {
         // Assert both players received a valid puzzle
         assertCurrentMessageIsUpdatePuzzleMessage(player1);
         assertCurrentMessageIsUpdatePuzzleMessage(player2);
+
+        Thread.sleep(1000);
+
+        // Simulate the pieces being switched by player 1
+        player1.swapPieces(3, 5);
     }
 
     private static void assertCurrentMessageIsUpdatePuzzleMessage(PlayerSimulator player) {
@@ -117,6 +123,7 @@ public class IntegrationTests {
         private Thread thread;
         private Object currentMessage;
         private String failureReason;
+        private String teamId;
 
         public PlayerSimulator(String username) throws JCSMPException {
             this.username = username;
@@ -130,6 +137,7 @@ public class IntegrationTests {
                     try {
                         UpdatePuzzleMessage updatePuzzleMessage = mapper.readValue(((TextMessage)message).getText(), UpdatePuzzleMessage.class);
                         System.out.println(updatePuzzleMessage);
+                        teamId = updatePuzzleMessage.getTeamId();
                         currentMessage = updatePuzzleMessage;
                         synchronized (PlayerSimulator.this) {
                             PlayerSimulator.this.notify();
@@ -202,6 +210,24 @@ public class IntegrationTests {
             TextMessage msg = JCSMPFactory.onlyInstance().createMessage(TextMessage.class);
             msg.setText(mapper.writeValueAsString(addUserMessage));
             Topic topic = JCSMPFactory.onlyInstance().createTopic("users");
+            this.producer.send(msg, topic);
+        }
+
+        public void swapPieces(int piece1Index, int piece2Index) throws IOException, JCSMPException {
+            PuzzlePiece piece1 = new PuzzlePiece();
+            piece1.setIndex(piece1Index);
+
+            PuzzlePiece piece2 = new PuzzlePiece();
+            piece2.setIndex(piece2Index);
+
+            SwapPiecesMessage message = new SwapPiecesMessage();
+            message.setPiece1(piece1);
+            message.setPiece2(piece2);
+
+            TextMessage msg = JCSMPFactory.onlyInstance().createMessage(TextMessage.class);
+            msg.setText(mapper.writeValueAsString(message));
+
+            Topic topic = JCSMPFactory.onlyInstance().createTopic("games/" + teamId);
             this.producer.send(msg, topic);
         }
 
