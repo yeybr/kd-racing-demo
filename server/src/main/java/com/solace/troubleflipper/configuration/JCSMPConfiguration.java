@@ -175,7 +175,7 @@ public class JCSMPConfiguration {
                                 tournament.prepareTeams();
                                 for (Player player : tournament.getPlayers()) {
                                     Topic topic = JCSMPFactory.onlyInstance().createTopic("team/" + player.getTeam().getId());
-                                    ClientName clientName = JCSMPFactory.onlyInstance().createClientName(player.getGamerTag());
+                                    ClientName clientName = JCSMPFactory.onlyInstance().createClientName(player.getClientName());
                                     try {
                                         session.addSubscription(clientName, topic, JCSMPSession.WAIT_FOR_CONFIRM);
                                     } catch (JCSMPException ex) {

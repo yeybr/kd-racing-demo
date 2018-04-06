@@ -126,7 +126,7 @@
 </template>
 
 <script>
-import { UsersAckMessage, parseReceivedMessage } from '@/messaging/messages.js';
+import { UsersAckMessage, TeamsMessage, parseReceivedMessage } from '@/messaging/messages.js';
 import { Player } from "@/messaging/player";
 import CommonUtils from "./common-utils";
 export default {
@@ -268,11 +268,16 @@ export default {
         newState = 'waiting';
         this.handleStateChange(newState);
         return;
+      } else if (msg instanceof TeamsMessage) {
+        this.handleTeamsMessage(msg);
       } else if (msg.connected == false) {
         newState = 'connecting';
         this.handleStateChange(newState);
         return;
       }
+    },
+    handleTeamsMessage: function(msg) {
+      let newState = null;
       if (msg.puzzle && msg.puzzle.length > 0) {
         if (this.puzzle.length === 0) {
           // must be first team message, transition to select avatar

@@ -1,4 +1,4 @@
-import { UsersMessage, UsersAckMessage, publishMessageToTopic, parseReceivedMessage } from '@/messaging/messages.js';
+import { UsersMessage, UsersAckMessage, TournamentsMessage, publishMessageToTopic, parseReceivedMessage } from '@/messaging/messages.js';
 
 export class Player {
   constructor(solaceApi, appProps, userInfo, msgCallback) {
@@ -33,7 +33,6 @@ export class Player {
         this.session.on(solace.SessionEventCode.UP_NOTICE, (sessionEvent) => {
           this.clientId = this.session.getSessionProperties().clientName;
           console.log('Successfully connected with clientId ' + this.clientId);
-          //this.register();
           this.subscribeToTopic('user/' + this.clientId);
         });
         this.session.on(solace.SessionEventCode.CONNECT_FAILED_ERROR, (sessionEvent) => {
@@ -140,9 +139,16 @@ export class Player {
     console.log('Send message to request to start game');
 
     // REMOVE TESTING CODE
-    setTimeout(()=> {
-      this.msgCallback(this.simulateStartGameResponse());
-    }, 0);
+    //setTimeout(()=> {
+    //  this.msgCallback(this.simulateStartGameResponse());
+    //}, 0);
+
+    var tournamentsMessage = new TournamentsMessage();
+    try {
+      publishMessageToTopic('tournaments', tournamentsMessage, this.session, this.solaceApi);
+    } catch (error) {
+      console.log("Publish failed. error = ", error);
+    }
   }
 
   // TODO REMOVE TESTING CODE
