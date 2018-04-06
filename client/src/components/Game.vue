@@ -269,7 +269,20 @@ export default {
         this.handleStateChange(newState);
         return;
       } else if (msg instanceof TeamsMessage) {
-        this.handleTeamsMessage(msg);
+        let tempMsg = {
+          // pieces are from server message
+          puzzle: msg.puzzle,
+          // hardcode teamInfo without avatar so that the GUI can transition to pick avatar view
+          teamInfo: {
+            // teamId can be from message destination string or server message
+            teamId: '1',
+            teamName: 'Team 1',
+            puzzleName: 'puzzle3',
+            timeAllowedForEachMove: 10,
+            totalTeam: 5
+          }
+        };
+        this.handleTeamsMessage(tempMsg);
       } else if (msg.connected == false) {
         newState = 'connecting';
         this.handleStateChange(newState);
