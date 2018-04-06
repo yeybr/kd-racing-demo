@@ -15,6 +15,7 @@ import com.solacesystems.jcsmp.*;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import java.io.IOException;
+import java.util.Optional;
 
 @Configuration
 public class JCSMPConfiguration {
@@ -75,7 +76,6 @@ public class JCSMPConfiguration {
                     try {
                         if ((msg.getDestination()).toString().equals("users")) {
                             AddUserMessage addUserMessage = mapper.readValue(((TextMessage) msg).getText(), AddUserMessage.class);
-
                             if (!tournament.getPlayers().stream().anyMatch(item -> addUserMessage.getClientId().equals(item.getClientName()))) {
                                 Player player = new Player();
                                 player.setGamerTag(addUserMessage.getUsername());
@@ -141,22 +141,27 @@ public class JCSMPConfiguration {
                             msg.readAttachmentBytes(buf);
                             String msgStr = new String(buf);
                             AddUserMessage addUserMessage = mapper.readValue(msgStr, AddUserMessage.class);
-
-                            if (!tournament.getPlayers().stream().anyMatch(item -> addUserMessage.getClientId().equals(item.getClientName()))) {
-                                Player player = new Player();
+                            Optional<Player> firstMatch = tournament.getPlayers().stream().filter(item ->
+                                    addUserMessage.getClientId().equals(item.getClientName())).findFirst();
+                            Player player = null;
+                            if (firstMatch.isPresent()) {
+                                player = firstMatch.get();
+                                System.out.println("Found existing player" + player);
+                            }
+                            if (player == null) {
+                                player = new Player();
                                 player.setGamerTag(addUserMessage.getUsername());
                                 player.setClientName(addUserMessage.getClientId());
                                 tournament.addPlayer(player);
-
-                                Topic topic = JCSMPFactory.onlyInstance().createTopic("user/" + player.getClientName());
-                                BytesMessage bytesMessage = JCSMPFactory.onlyInstance().createMessage(BytesMessage.class);
-                                AddUserAckMessage addUserAckMessage = new AddUserAckMessage(addUserMessage, AddUserAckMessage.RESULT_SUCCESS);
-                                bytesMessage.setData(mapper.writeValueAsString(addUserAckMessage).getBytes());
-                                try {
-                                    producer.send(bytesMessage, topic);
-                                } catch (JCSMPException ex) {
-                                    System.err.println("Encountered a JCSMPException, closing consumer channel... " + ex.getMessage());
-                                }
+                            }
+                            Topic topic = JCSMPFactory.onlyInstance().createTopic("user/" + player.getClientName());
+                            BytesMessage bytesMessage = JCSMPFactory.onlyInstance().createMessage(BytesMessage.class);
+                            AddUserAckMessage addUserAckMessage = new AddUserAckMessage(addUserMessage, AddUserAckMessage.RESULT_SUCCESS);
+                            bytesMessage.setData(mapper.writeValueAsString(addUserAckMessage).getBytes());
+                            try {
+                                producer.send(bytesMessage, topic);
+                            } catch (JCSMPException ex) {
+                                System.err.println("Encountered a JCSMPException, closing consumer channel... " + ex.getMessage());
                             }
                         } else if ((msg.getDestination()).toString().equals("tournaments")) {
                             // TODO (Brandon): FIXME... we need to handle incomplete reads...

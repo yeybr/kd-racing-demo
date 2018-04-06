@@ -97,11 +97,12 @@ export class TournamentsMessage extends TroubleFlipperMessage {
 //   in the future
 //
 export function parseReceivedMessage(topic, msg) {
+  let msgObj = JSON.parse(msg);
   if (topic.startsWith('user/')) {
     console.log('user/ message');
-    return Object.assign(new UsersAckMessage, msg);
+    return new UsersAckMessage(msgObj.result, msgObj.username, msgObj.clientId);
   } else {
-    console.log('Unexpected topic');
+    console.log('Unexpected topic', topic);
     return null;
   }
 }

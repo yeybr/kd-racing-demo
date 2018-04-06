@@ -82,7 +82,7 @@ export class Player {
           10000
         );
       } catch (e) {
-        console.log('Subscribe failed.');
+        console.log('Subscribe failed.', e);
       }
     }
   }
@@ -96,11 +96,10 @@ export class Player {
       try {
         var messageInstance = parseReceivedMessage(topic, message);
         if (messageInstance !== null) {
-          console.log('here');
           this.msgCallback(messageInstance);
         }
       } catch (e) {
-        console.log('Error: ' + e);
+        console.log('Error:', e);
       }
 
   }
@@ -128,7 +127,7 @@ export class Player {
     try {
       publishMessageToTopic('users', usersMessage, this.session, this.solaceApi);
     } catch (error) {
-      console.log("Publish failed. error = " + error);
+      console.log("Publish failed. error = ", error);
     }
   }
 
@@ -165,7 +164,7 @@ export class Player {
         teamId: '1',
         teamName: 'Team 1',
         puzzleName: 'puzzle3',
-        timeAllowedForEachMove: 0,
+        timeAllowedForEachMove: 10,
         players: [
           {
             clientId: this.clientId,
