@@ -100,7 +100,7 @@ export function parseReceivedMessage(topic, msg) {
   let msgObj = JSON.parse(msg);
   if (topic.startsWith('user/')) {
     console.log('user/ message');
-    return new UsersAckMessage(msgObj.result, msgObj.username, msgObj.clientId);
+    return Object.assign(new UsersAckMessage, msgObj);
   } else {
     console.log('Unexpected topic', topic);
     return null;
