@@ -1,10 +1,7 @@
 package com.solace.troubleflipper.configuration;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.solace.troubleflipper.messages.AddUserMessage;
-import com.solace.troubleflipper.messages.AddUserAckMessage;
-import com.solace.troubleflipper.messages.TournamentMessage;
-import com.solace.troubleflipper.messages.UpdatePuzzleMessage;
+import com.solace.troubleflipper.messages.*;
 import com.solace.troubleflipper.model.Game;
 import com.solace.troubleflipper.model.Player;
 import com.solace.troubleflipper.model.PuzzlePiece;
@@ -126,6 +123,20 @@ public class JCSMPConfiguration {
                                 }
                             }
 
+                        } else if ((msg.getDestination()).toString().startsWith("game")) {
+                            SwapPiecesMessage swapPiecesMessage = mapper.readValue(((TextMessage) msg).getText(), SwapPiecesMessage.class);
+                            String topicSplit[] = (msg.getDestination()).toString().split("/");
+                            String teamId = topicSplit[1];
+                            System.out.printf(teamId);
+                            Game game = tournament.getGame(teamId);
+                            game.swapPieces(swapPiecesMessage.getPiece1(),swapPiecesMessage.getPiece2());
+                            Topic topic = JCSMPFactory.onlyInstance().createTopic("team/" + teamId);
+                            TextMessage textMessage = game.getTextMessage(mapper);
+                            try {
+                                producer.send(textMessage, topic);
+                            } catch (JCSMPException ex) {
+                                System.err.println("Encountered a JCSMPException, closing consumer channel... " + ex.getMessage());
+                            }
                         }
                     } catch (IOException e) {
                         throw new IllegalStateException(e);
@@ -184,19 +195,17 @@ public class JCSMPConfiguration {
                                 }
                                 for (Game game : tournament.getGames()) {
                                     game.start();
-                                    for (Player player : game.getTeam().getPlayers()) {
-                                        String teamId =  player.getTeam().getId();
-                                        Topic topic = JCSMPFactory.onlyInstance().createTopic("team/" + teamId);
-                                        BytesMessage bytesMessage = JCSMPFactory.onlyInstance().createMessage(BytesMessage.class);
-                                        UpdatePuzzleMessage updatePuzzleMessage = new UpdatePuzzleMessage();
-                                        updatePuzzleMessage.setTeamId(teamId);
-                                        updatePuzzleMessage.setPuzzle(game.getPuzzleBoard());
-                                        bytesMessage.setData(mapper.writeValueAsString(updatePuzzleMessage).getBytes());
-                                        try {
-                                            producer.send(bytesMessage, topic);
-                                        } catch (JCSMPException ex) {
-                                            System.err.println("Encountered a JCSMPException, closing consumer channel... " + ex.getMessage());
-                                        }
+                                    String teamId =  game.getTeam().getId();
+                                    Topic topic = JCSMPFactory.onlyInstance().createTopic("team/" + teamId);
+                                    BytesMessage bytesMessage = JCSMPFactory.onlyInstance().createMessage(BytesMessage.class);
+                                    UpdatePuzzleMessage updatePuzzleMessage = new UpdatePuzzleMessage();
+                                    updatePuzzleMessage.setTeamId(teamId);
+                                    updatePuzzleMessage.setPuzzle(game.getPuzzleBoard());
+                                    bytesMessage.setData(mapper.writeValueAsString(updatePuzzleMessage).getBytes());
+                                    try {
+                                        producer.send(bytesMessage, topic);
+                                    } catch (JCSMPException ex) {
+                                        System.err.println("Encountered a JCSMPException, closing consumer channel... " + ex.getMessage());
                                     }
                                 }
                             }
@@ -220,6 +229,9 @@ public class JCSMPConfiguration {
 
         final Topic tournamentsTopic = JCSMPFactory.onlyInstance().createTopic("tournaments");
         session.addSubscription(tournamentsTopic);
+
+        final Topic gamesTopic = JCSMPFactory.onlyInstance().createTopic("games/>");
+        session.addSubscription(gamesTopic);
 
         cons.start();
 
