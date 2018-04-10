@@ -144,7 +144,7 @@ public class IntegrationTests {
                 @Override
                 public void onReceive(BytesXMLMessage message) {
                     try {
-                        System.out.printf("Message received: '%s'%n", message.dump());
+                        System.out.printf("Message received: %s%n", message.dump());
                         String msgStr = getMessageStr(message);
                         UpdatePuzzleMessage updatePuzzleMessage = mapper.readValue(msgStr, UpdatePuzzleMessage.class);
                         System.out.println(updatePuzzleMessage);
