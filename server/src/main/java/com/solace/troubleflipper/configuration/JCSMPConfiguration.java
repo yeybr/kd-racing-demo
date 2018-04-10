@@ -27,7 +27,7 @@ public class JCSMPConfiguration {
         props.setProperty(JCSMPProperties.PASSWORD, solaceCloudProperties.getPassword());
         props.setProperty(JCSMPProperties.HOST, solaceCloudProperties.getUrl());
         props.setProperty(JCSMPProperties.REAPPLY_SUBSCRIPTIONS, true);
-        props.setProperty(JCSMPProperties.CLIENT_NAME, "trouble-flipper-monica");
+        props.setProperty(JCSMPProperties.CLIENT_NAME, "trouble-flipper");
         props.setProperty(JCSMPProperties.APPLICATION_DESCRIPTION, "The Java application running the trouble flipper server");
 
         // reconnect behaviour
@@ -182,7 +182,7 @@ public class JCSMPConfiguration {
         if (message instanceof TextMessage) {
             return ((TextMessage) message).getText();
         }
-        if (message != null && message.hasAttachment()) {
+        if (message.hasAttachment()) {
             byte[] buf = new byte[message.getAttachmentContentLength()];
             message.readAttachmentBytes(buf);
             String msgStr = new String(buf);
