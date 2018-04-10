@@ -97,6 +97,7 @@ export class Player {
         if (messageInstance instanceof TeamsMessage) {
           // set team topic
           this.teamTopic = topic;
+          this.gameTopic = 'games/' + messageInstance.teamId;
         }
         if (messageInstance !== null) {
           this.msgCallback(messageInstance);
@@ -201,36 +202,15 @@ export class Player {
   }
 
   swap(piece1, piece2, puzzle) {
-    console.log('publish swap message to server', piece1, piece2);
+    console.log('publish swap message to ' + this.gameTopic, piece1, piece2);
 
     // The response from server is not the whole puzzle, but echo back the request
-    // var swapMessage = new SwapMessage(piece1, piece2);
-    // try {
-    //   publishMessageToTopic(this.teamTopic, swapMessage, this.session, this.solaceApi);
-    // } catch (error) {
-    //   console.log("Publish failed. error = ", error);
-    // }
-
-    // TESTING CODE
-    setTimeout(() => {
-      this.msgCallback(this.simulateSwapResponse(piece1, piece2, puzzle));
-    }, 0);
-  }
-
-  simulateSwapResponse(piece1, piece2, puzzle) {
-    // console.log(piece1, piece2, puzzle);
-    let piece1Index = puzzle.findIndex(p => {
-      return p.index == piece1.index;
-    });
-    let piece2Index = puzzle.findIndex(p => {
-      return p.index == piece2.index;
-    });
-    var temp = puzzle[piece1Index];
-    puzzle[piece1Index] = puzzle[piece2Index];
-    puzzle[piece2Index] = temp;
-    return Object.assign(new TeamsMessage, {
-      puzzle: puzzle
-    });
+    var swapMessage = new SwapMessage(piece1, piece2);
+    try {
+      publishMessageToTopic(this.gameTopic, swapMessage, this.session, this.solaceApi);
+    } catch (error) {
+      console.log("Publish failed. error = ", error);
+    }
   }
 
   disconnect() {
