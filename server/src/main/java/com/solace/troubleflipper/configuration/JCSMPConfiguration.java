@@ -136,17 +136,21 @@ public class JCSMPConfiguration {
                             String teamId = topicSplit[1];
                             System.out.printf(teamId);
                             Game game = tournament.getGame(teamId);
-                            game.swapPieces(swapPiecesMessage.getPiece1(), swapPiecesMessage.getPiece2());
-                            Topic topic = JCSMPFactory.onlyInstance().createTopic("team/" + teamId);
-                            BytesMessage bytesMessage = JCSMPFactory.onlyInstance().createMessage(BytesMessage.class);
-                            UpdatePuzzleMessage updatePuzzleMessage = new UpdatePuzzleMessage();
-                            updatePuzzleMessage.setTeamId(teamId);
-                            updatePuzzleMessage.setPuzzle(game.getPuzzleBoard());
-                            bytesMessage.setData(mapper.writeValueAsString(updatePuzzleMessage).getBytes());
-                            try {
-                                producer.send(bytesMessage, topic);
-                            } catch (JCSMPException ex) {
-                                System.err.println("Encountered a JCSMPException, closing consumer channel... " + ex.getMessage());
+                            if (game != null) {
+                                game.swapPieces(swapPiecesMessage.getPiece1(), swapPiecesMessage.getPiece2());
+                                Topic topic = JCSMPFactory.onlyInstance().createTopic("team/" + teamId);
+                                BytesMessage bytesMessage = JCSMPFactory.onlyInstance().createMessage(BytesMessage.class);
+                                UpdatePuzzleMessage updatePuzzleMessage = new UpdatePuzzleMessage();
+                                updatePuzzleMessage.setTeamId(teamId);
+                                updatePuzzleMessage.setPuzzle(game.getPuzzleBoard());
+                                bytesMessage.setData(mapper.writeValueAsString(updatePuzzleMessage).getBytes());
+                                try {
+                                    producer.send(bytesMessage, topic);
+                                } catch (JCSMPException ex) {
+                                    System.err.println("Encountered a JCSMPException, closing consumer channel... " + ex.getMessage());
+                                }
+                            } else {
+                                System.err.println("Cannot find team for teamId " + teamId);
                             }
                         }
                     }

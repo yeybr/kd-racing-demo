@@ -4,6 +4,7 @@ import Signin from '@/components/Signin'
 import Game from '@/components/Game'
 import Choose from '@/components/Choose'
 import Scorebard from '@/components/Scoreboard'
+import GameMaster from '@/components/GameMaster'
 
 Vue.use(Router)
 
@@ -32,6 +33,11 @@ export default new Router({
       path: '/scoreboard',
       name: 'scoreboard',
       component: Scorebard
+    },
+    {
+      path: '/game-master',
+      name: 'game-master',
+      component: GameMaster
     }
-    ]
+  ]
 })

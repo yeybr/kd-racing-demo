@@ -62,12 +62,15 @@ public class Tournament {
     }
 
     public Game getGame(String teamId) throws IOException {
+        if (teams == null) {
+            return null;
+        }
         for(Team team:teams) {
             if(team.getId().equals(teamId)) {
                 return team.getGame();
             }
         }
-        throw new IOException("no team found for teamId value: " + teamId);
+        return null;
     }
 
     public List<Game> getGames() {
