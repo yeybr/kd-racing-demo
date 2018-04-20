@@ -27,7 +27,7 @@
 </template>
 
 <script>
-import CommonUtils from './common-utils';
+import CommonUtils from "./common-utils";
 export default {
   name: "signin",
   mixins: [CommonUtils],
@@ -35,7 +35,10 @@ export default {
   created() {
     // instance created and data bound
     // looking for existing player information from local storage and prepopulate username
-    let userInfo = this.retrieveFromStorage('localStorage', 'trouble_flipper_player');
+    let userInfo = this.retrieveFromStorage(
+      "localStorage",
+      "trouble_flipper_player"
+    );
     if (userInfo && userInfo.username) {
       this.username = userInfo.username;
     }
@@ -72,46 +75,42 @@ export default {
   // any actions
   methods: {
     gochoose: function(event) {
-      this.$router.push('game');
+      this.$router.push("game");
     },
     goscoreboard: function(event) {
       this.$router.push({
-          name: 'scoreboard',
-          query: {
-            username: this.username,
-            isMaster: this.usertype === 'master'
-          }
-        });
+        name: "scoreboard",
+        query: {
+          username: this.username,
+          isMaster: this.usertype === "master"
+        }
+      });
     },
     gogamemaster: function(event) {
       console.log("go as master login");
     },
     signon: function(event) {
       console.log(this.username + ", " + this.password + ", " + this.usertype);
-      if (this.usertype === 'player') {
+      if (this.usertype === "player") {
         this.$router.push({
-          name: 'game',
+          name: "game",
           query: {
             username: this.username
           }
         });
       } else {
         this.$router.push({
-          name: 'scoreboard',
+          name: "scoreboard",
           query: {
             username: this.username,
-            isMaster: this.usertype === 'master'
+            isMaster: this.usertype === "master"
           }
         });
       }
     },
     signout: function(event) {}
-
   }
 };
-
-
-
 </script>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
@@ -175,22 +174,25 @@ input {
   min-height: 70px;
 }
 
-
 .red {
-      color: #d41345;
-    text-shadow: -.5vw -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
+  color: #d41345;
+  text-shadow: -0.5vw -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000,
+    1px 1px 0 #000;
 }
 .blue {
-    color: rgb(5, 139, 255);
-    text-shadow: -.5vw -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
+  color: rgb(5, 139, 255);
+  text-shadow: -0.5vw -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000,
+    1px 1px 0 #000;
 }
 
 .yellow {
-    color: rgb(255, 252, 0);
-    text-shadow: -.5vw -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
+  color: rgb(255, 252, 0);
+  text-shadow: -0.5vw -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000,
+    1px 1px 0 #000;
 }
 .green {
-    color: rgb(37, 173, 33);
-    text-shadow: -.5vw -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
+  color: rgb(37, 173, 33);
+  text-shadow: -0.5vw -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000,
+    1px 1px 0 #000;
 }
 </style>
