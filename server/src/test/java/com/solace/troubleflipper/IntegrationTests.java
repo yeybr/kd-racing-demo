@@ -5,6 +5,7 @@ import com.solace.troubleflipper.messages.AddUserMessage;
 import com.solace.troubleflipper.messages.SwapPiecesMessage;
 import com.solace.troubleflipper.messages.TournamentMessage;
 import com.solace.troubleflipper.messages.UpdatePuzzleMessage;
+import com.solace.troubleflipper.model.Game;
 import com.solace.troubleflipper.model.PuzzlePiece;
 import com.solacesystems.jcsmp.*;
 import org.junit.Before;
@@ -13,6 +14,8 @@ import org.springframework.beans.factory.annotation.Value;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
 import java.util.UUID;
 
@@ -100,6 +103,8 @@ public class IntegrationTests {
         Thread.sleep(1000);
 
         // Simulate the pieces being switched by player 1
+        UpdatePuzzleMessage playerUpdatePuzzleMessage = (UpdatePuzzleMessage) player1.getCurrentMessage();
+        List<PuzzlePiece> puzzle = new ArrayList(playerUpdatePuzzleMessage.getPuzzle());
         player1.swapPieces(3, 5);
     }
 
@@ -114,6 +119,12 @@ public class IntegrationTests {
             int index = puzzlePiece.getIndex();
             assertTrue("Invalid index for puzzle piece: " + index, index >= 0 && index < 25);
         }
+    }
+
+    private static  void assertPiecesAreSwapped(PlayerSimulator player, List<PuzzlePiece> puzzzleSnap) {
+        assertNotNull("Puzzle not received", player.getCurrentMessage());
+        // Verify message is received for topic game/teamId
+        // Compare new message puzzle with puzzleSnap, two pieced should be different and the value should be 3 and 5
     }
 
     public static class PlayerSimulator {
@@ -132,10 +143,10 @@ public class IntegrationTests {
 
                 @Override
                 public void onReceive(BytesXMLMessage message) {
-                    System.out.printf("TextMessage received: '%s'%n",
-                            ((TextMessage)message).getText());
                     try {
-                        UpdatePuzzleMessage updatePuzzleMessage = mapper.readValue(((TextMessage)message).getText(), UpdatePuzzleMessage.class);
+                        System.out.printf("Message received: %s%n", message.dump());
+                        String msgStr = getMessageStr(message);
+                        UpdatePuzzleMessage updatePuzzleMessage = mapper.readValue(msgStr, UpdatePuzzleMessage.class);
                         System.out.println(updatePuzzleMessage);
                         teamId = updatePuzzleMessage.getTeamId();
                         currentMessage = updatePuzzleMessage;
@@ -211,6 +222,22 @@ public class IntegrationTests {
             msg.setText(mapper.writeValueAsString(addUserMessage));
             Topic topic = JCSMPFactory.onlyInstance().createTopic("users");
             this.producer.send(msg, topic);
+        }
+
+        private String getMessageStr(BytesXMLMessage message) throws IOException {
+            if (message == null) {
+                return null;
+            }
+            if (message instanceof TextMessage) {
+                return ((TextMessage) message).getText();
+            }
+            if (message.hasAttachment()) {
+                byte[] buf = new byte[message.getAttachmentContentLength()];
+                message.readAttachmentBytes(buf);
+                String msgStr = new String(buf);
+                return msgStr;
+            }
+            return null;
         }
 
         public void swapPieces(int piece1Index, int piece2Index) throws IOException, JCSMPException {

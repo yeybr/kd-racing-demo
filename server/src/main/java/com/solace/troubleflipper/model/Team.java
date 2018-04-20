@@ -8,6 +8,7 @@ public class Team {
     private String name;
     private Map<Character, Player> characters = new HashMap<>();
     private List<Player> players = new ArrayList<>();
+    private Game game;
 
     public Team() {
         id = UUID.randomUUID().toString();
@@ -23,6 +24,14 @@ public class Team {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public void setGame (Game game) {
+        this.game=game;
+    }
+
+    public Game getGame () {
+        return game;
     }
 
     public void addPlayer(Player player) {

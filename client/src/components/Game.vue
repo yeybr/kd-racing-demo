@@ -5,15 +5,6 @@
         <div class="titlebar">{{teamInfo.teamName}}</div>
       </div>
       <div class="header-info">
-        <!-- <div class="game-info">
-          <span class="info">Puzzle: </span>
-          <span class="info">Team: </span>
-          <div class="info">Players:
-            <template v-for="(player, index) in teamInfo.players">
-              {{player.name}}{{(index === teamInfo.players.length - 1) ? '': ', '}}
-            </template>
-          </div>
-        </div> -->
         <div class="user-info">
           <div class="name-tag">{{username}} </div>
           <div class="profile" :style="styleAvatar" >
@@ -27,11 +18,6 @@
       </div>
     </div>
     <div class="game-stats">
-      <!-- <div v-show="state === 'playing'" class="status">
-        <span class="stats">Progress: {{teamInfo.stats.finished}} / {{teamInfo.stats.total}}</span>
-        <span class="stats">Total Moves: {{teamInfo.stats.totalMoves}}</span>
-        <span class="stats">Correct Moves: {{teamInfo.stats.correctMoves}}</span>
-      </div> -->
       <div v-show="state === 'waiting'" class="status waiting">
         <label>Waiting for game to start...</label>
         <button type="button" class="start-btn btn" @click="startGame()">Start Game!</button>
@@ -126,7 +112,7 @@
 </template>
 
 <script>
-import { UsersAckMessage, parseReceivedMessage } from '@/messaging/messages.js';
+import { UsersAckMessage, TeamsMessage, parseReceivedMessage } from '@/messaging/messages.js';
 import { Player } from "@/messaging/player";
 import CommonUtils from "./common-utils";
 export default {
@@ -198,6 +184,7 @@ export default {
   data() {
     let avatarLink = "";
     return {
+      // UI only
       title: "Trouble Flipper",
       state: "connecting",
       win: false,
@@ -207,17 +194,6 @@ export default {
       username: this.username,
       avatarLink: avatarLink,
       rank: 0,
-      teamInfo: {
-        teamId: "",
-        teamName: "",
-        timeAllowedForEachMove: 0,
-        players: [],
-        totalTeam: 0,
-        teamRank: 0,
-      },
-      // puzzles
-      puzzle: [],
-      // puzzle: pieces,
       puzzlePicture: 'static/puzzle1.png',
       holderStyle: {
         width: "0px",
@@ -233,6 +209,17 @@ export default {
         "background-position": "center",
         height: "15vh",
         width: "25vw"
+      },
+      // From server
+      puzzle: [],
+      teamInfo: {
+        teamId: "",
+        teamName: "",
+        players: [],
+        puzzleName: "",
+        totalTeam: 0,
+        teamRank: 0,
+        timeAllowedForEachMove: 0
       }
     };
   },
@@ -268,11 +255,38 @@ export default {
         newState = 'waiting';
         this.handleStateChange(newState);
         return;
+      } else if (msg instanceof TeamsMessage) {
+        let teamMsg = {};
+        if (msg.puzzle) {
+          teamMsg.puzzle = msg.puzzle;
+        }
+        let teamInfo = {
+          teamName: 'Team 1',
+          puzzleName: 'puzzle3',
+          timeAllowedForEachMove: 10,
+          totalTeam: 5,
+        };
+        teamMsg.teamInfo = teamInfo;
+        if (msg.teamId) {
+          teamInfo.teamId = msg.teamId;
+        } else {
+          teamInfo.teamId = this.teamInfo.teamId;
+        }
+        if (msg.players) {
+          teamInfo.players = msg.players;
+        } else {
+          teamInfo.players = this.teamInfo.players;
+        }
+        this.handleTeamsMessage(teamMsg);
       } else if (msg.connected == false) {
         newState = 'connecting';
         this.handleStateChange(newState);
         return;
       }
+    },
+    handleTeamsMessage: function(msg) {
+      console.log('teamMsg', msg);
+      let newState = null;
       if (msg.puzzle && msg.puzzle.length > 0) {
         if (this.puzzle.length === 0) {
           // must be first team message, transition to select avatar

@@ -8,6 +8,7 @@ import com.solacesystems.jcsmp.JCSMPSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -45,16 +46,28 @@ public class Tournament {
 
         Team team = new Team();
         team.setName("Team");
+        Game game = new Game();
+        game.setTeam(team);
+        team.setGame(game);
+
         for (Player player : players) {
             team.addPlayer(player);
         }
+
         teams = new ArrayList<>();
         teams.add(team);
 
-        Game game = new Game();
-        game.setTeam(team);
         games = new ArrayList<>();
         games.add(game);
+    }
+
+    public Game getGame(String teamId) throws IOException {
+        for(Team team:teams) {
+            if(team.getId().equals(teamId)) {
+                return team.getGame();
+            }
+        }
+        throw new IOException("no team found for teamId value: " + teamId);
     }
 
     public List<Game> getGames() {

@@ -4,14 +4,6 @@
 // Messaging related code should reside in this file.
 //
 //
-// NOTES (Brandon):
-//
-// * Not yet properly integrated with the rest of the application.
-// * Where/how do we get the client-id from the VMR??
-// * A few holes in our 'Add user to team' use case:
-//   - We need an acknowledgement from the server after sending the UsersMessage
-//     to tell the client to advance from 'Connecting' to 'Waiting' state.
-//
 
 
 //
@@ -48,10 +40,6 @@ export class UsersMessage extends TroubleFlipperMessage {
 
 // Acknowledgement message from the server for UsersMessage.
 //
-// NOTES (Brandon)
-//
-// * Pending review...
-//
 export class UsersAckMessage extends UsersMessage {
   static get SUCCESS() {
     return "success";
@@ -87,6 +75,20 @@ export class TournamentsMessage extends TroubleFlipperMessage {
   }
 }
 
+export class TeamsMessage extends TroubleFlipperMessage {
+  constructor() {
+    super();
+  }
+}
+
+export class SwapMessage extends TroubleFlipperMessage {
+  constructor(piece1, piece2) {
+    super();
+    this.piece1 = piece1;
+    this.piece2 = piece2;
+  }
+}
+
 // Should be called on received messages. Returns message object.
 //
 // NOTES (Brandon):
@@ -99,8 +101,9 @@ export class TournamentsMessage extends TroubleFlipperMessage {
 export function parseReceivedMessage(topic, msg) {
   let msgObj = JSON.parse(msg);
   if (topic.startsWith('user/')) {
-    console.log('user/ message');
     return Object.assign(new UsersAckMessage, msgObj);
+  } else if (topic.startsWith('team/')) {
+    return Object.assign(new TeamsMessage, msgObj);
   } else {
     console.log('Unexpected topic', topic);
     return null;
