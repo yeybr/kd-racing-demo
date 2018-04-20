@@ -1,13 +1,18 @@
 <template>
+
     <!-- <ons-gesture-detector> -->
   <div id="signon" v-on:swipeleft="gochoose" v-on:swiperight="goscoreboard" v-on:swipebottom="gogamemaster">
       <img class="mario" src="../assets/mario.png"/>
     <!-- submit button -->
     <div class="form-group">
-      <label for="usr">Enter your gamer tag</label>
+      <label for="usr"><span class="red">E</span><span class="green">n</span><span class="yellow">t</span><span class="blue">e</span><span class="red">r</span> your gamer tag</label>
       <input type="text" class="form-control" id="usr" v-model="username">
     </div>
     <button type="button" class="go-btn btn" @click="signon()">Go!</button>
+    <audio  controls autoplay src="https://archive.org/download/SuperMarioBros.ThemeMusic/SuperMarioBros.mp3">
+    
+<p>If you are reading this, it is because your browser does not support the audio element.     </p>
+</audio>
   </div>
       <!-- </ons-gesture-detector> -->
 
@@ -163,4 +168,21 @@ input {
 }
 
 
+.red {
+      color: #d41345;
+    text-shadow: -10px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
+}
+.blue {
+    color: rgb(0, 75, 187);
+    text-shadow: -10px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
+}
+
+.yellow {
+    color: rgb(226, 210, 120);
+    text-shadow: -10px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
+}
+.green {
+    color: rgb(37, 173, 33);
+    text-shadow: -10px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
+}
 </style>
