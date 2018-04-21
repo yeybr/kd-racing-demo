@@ -7,7 +7,7 @@
       <div class="header-info">
         <div class="user-info">
           <div class="name-tag">{{username}} </div>
-          <div class="profile" :style="styleAvatar" >
+          <div class="profile" :style="styleAvatar" @click="power">
           </div>
         </div>
         <div class="others-info">
@@ -69,44 +69,32 @@
     </div> -->
     <!-- shape="M50,3l12,36h38l-30,22l11,36l-31-21l-31,21l11-36l-30-22h38z"		 -->
     <div v-if="state === 'playing'" class="rank-container backgroundwhite">
-      <div class="rank">Team Rank: {{teamInfo.teamRank}}/{{teamInfo.totalTeam}}</div>
+      <div class="rank">
+        <div class="label">Team Rank</div>
+        <div class="value">
+          {{teamInfo.teamRank}}/{{teamInfo.totalTeam}}
+        </div>
+      </div>
       <div class="statusbar">
-        <span v-if="timeForEachMove > 0" class="label">
-        Time Remaining
-        </span>
         <template v-if="timeForEachMove > 0">
-        <loading-progress
-          :progress="progress"
-          :indeterminate="indeterminate"
-          :counter-clockwise="counterClockwise"
-          shape="circle"
-          size="20"
-          height="40"
-          width="40"
-          fill-duration="1"
-        />
-        <!-- <loading-progress
-          :progress="progress"
-          :indeterminate="indeterminate"
-          shape="M 0.000 4.000
-          L 5.878 8.090
-          L 3.804 1.236
-          L 9.511 -3.090
-          L 2.351 -3.236
-          L 0.000 -10.000
-          L -2.351 -3.236
-          L -9.511 -3.090
-          L -3.804 1.236
-          L -5.878 8.090
-          L 0.000 4.000"
-          size="0"
-          height="40"
-          width="40"
-          fill-duration="1"
-        /> -->
+          <loading-progress
+            :progress="progress"
+            :indeterminate="indeterminate"
+            :counter-clockwise="counterClockwise"
+            shape="circle"
+            size="20"
+            height="40"
+            width="40"
+            fill-duration="1"
+          />
         </template>
       </div>
-      <div class="rank">Individual Rank: {{rank}}/5</div>
+      <div class="rank">
+        <div class="label">Overall Rank</div>
+        <div class="value">
+          {{rank}}
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -339,6 +327,7 @@ export default {
             }
           });
           if (me) {
+            this.character = me.avatar;
             this.avatarLink = `url("static/${me.avatar}-mario.jpg")`;
             this.styleAvatar["background-image"] = this.avatarLink;
             this.rank = me.rank;
@@ -453,6 +442,15 @@ export default {
         return {index: piece.index};
       });
       this.playerMessenger.swap(piece1, piece2, pieces);
+    },
+    power: function() {
+      if (this.character === "peach") {
+        console.log("Peach Heal power activated!");
+        this.playerMessenger.peachHeal("mario");
+      } else if (this.character === "mario" && this.selected) {
+        let puzzlePiece = {index: this.selected.index};
+        this.playerMessenger.starPower(puzzlePiece);
+      }
     },
     checkWinCondition: function() {
       this.win = this.puzzle.reduce((result, piece, i) => {
@@ -615,10 +613,6 @@ a {
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 412px;
-}
-#puzzle {
-  border: solid 1px grey;
 }
 .hidden-image {
   position: fixed;
@@ -678,7 +672,7 @@ a {
   text-align: center;
   background: #bfa5a538;
   padding: 5px;
-  font-size: 9vw;
+  font-size: 4vh;
 }
 .heros {
   display: flex;
@@ -749,21 +743,24 @@ a {
   display: flex;
   flex-direction: row;
   justify-content: space-around;
-  align-items: flex-end;
-  margin-bottom: 5px;
-  min-height: 50px;
+  align-items: stretch;
+  min-height: 60px;
+  border-top: 1px solid grey;
+}
+.rank-container > div {
+  padding-top: 3px;
+  border-right: 1px solid grey;
+}
+
+.rank-container div:last-child {
+  border-right: none;
 }
 .rank-container .rank {
-  padding: 15px 10px 5px 10px;
-  /* border: 1px #80808085 solid; */
-  margin: 4px;
+  flex: 1;
+  text-align: center;
 }
 .vue-progress-path .progress {
   stroke: red;
-}
-.vue-progress-path.indeterminate svg {
-  /* width: 50px !important;
-    height: 50px !important; */
 }
 .rank-container .statusbar {
   flex: 1 1 auto;
@@ -773,9 +770,13 @@ a {
   align-items: center;
   position: relative;
 }
-
-.rank-container .statusbar .label {
-  padding-right: 5px;
+.rank-container .label {
+  line-height: 12px;
+  font-size: 12px;
+}
+.rank-container .value {
+  font-size: 40px;
+  line-height: 40px;
 }
 
 </style>

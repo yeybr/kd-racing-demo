@@ -1,5 +1,6 @@
 package com.solace.troubleflipper;
 
+import com.solace.troubleflipper.model.Character;
 import com.solace.troubleflipper.model.Game;
 import com.solace.troubleflipper.model.Player;
 import com.solace.troubleflipper.model.Team;
@@ -52,6 +53,8 @@ public class Tournament {
 
         for (Player player : players) {
             team.addPlayer(player);
+            // TODO need to move this logic to character selection message handling
+            team.chooseCharacter(Character.mario, player);
         }
 
         teams = new ArrayList<>();

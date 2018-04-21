@@ -1,5 +1,6 @@
 import { UsersMessage, UsersAckMessage, TournamentsMessage, TeamsMessage, publishMessageToTopic, parseReceivedMessage } from '@/messaging/messages.js';
 import { SwapMessage } from '@/messaging/messages.js';
+import { StarPowerMessage, PeachHealMessage } from './messages';
 export class Player {
   constructor(solaceApi, appProps, userInfo, msgCallback) {
     this.solaceApi = solaceApi;
@@ -208,6 +209,24 @@ export class Player {
     var swapMessage = new SwapMessage(piece1, piece2);
     try {
       publishMessageToTopic(this.gameTopic, swapMessage, this.session, this.solaceApi);
+    } catch (error) {
+      console.log("Publish failed. error = ", error);
+    }
+  }
+
+  starPower(puzzlePiece) {
+    var starPowerMessage = new StarPowerMessage(puzzlePiece);
+    try {
+      publishMessageToTopic(this.gameTopic + "/starPower", starPowerMessage, this.session, this.solaceApi);
+    } catch (error) {
+      console.log("Publish failed. error = ", error);
+    }
+  }
+
+  peachHeal(character) {
+    var peachHealMessage = new PeachHealMessage(character);
+    try {
+      publishMessageToTopic(this.gameTopic + "/peachHeal", peachHealMessage, this.session, this.solaceApi);
     } catch (error) {
       console.log("Publish failed. error = ", error);
     }

@@ -11,6 +11,8 @@ public class UpdatePuzzleMessage {
 
     private String teamId;
 
+    private Boolean gameWon;
+
     public List<PuzzlePiece> getPuzzle() {
         return puzzle;
     }
@@ -25,6 +27,14 @@ public class UpdatePuzzleMessage {
 
     public void setTeamId(String teamId) {
         this.teamId = teamId;
+    }
+
+    public Boolean getGameWon() {
+        return gameWon;
+    }
+
+    public void setGameWon(Boolean gameWon) {
+        this.gameWon = gameWon;
     }
 
     public String toString() {
