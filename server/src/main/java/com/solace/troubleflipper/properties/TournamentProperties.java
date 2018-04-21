@@ -17,6 +17,25 @@ public class TournamentProperties {
         this.playersPerTeam = playersPerTeam;
     }
 
+    @Value("${tournament.teamNamesPart1}")
+    private String[] teamNamesPart_1;
+
+    @Value("${tournament.teamNamesPart2}")
+    private String[] teamNamesPart_2;
+
+    public String getNewTeamName() {
+        String newName = "None";
+
+	System.out.println ("Number of names in part 1: " + teamNamesPart_1.length );
+	/* 
+	while ( ! newName.equals("None")) {
+           String fName =  
+	}
+	*/
+    newName = teamNamesPart_1;
+	return newName;
+    }
+
     public String[] getTeamNames() {
         return teamNames;
     }
