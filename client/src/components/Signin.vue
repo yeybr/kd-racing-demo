@@ -1,8 +1,7 @@
 <template>
-
     <!-- <ons-gesture-detector> -->
   <div id="signon" v-on:swipeleft="gochoose" v-on:swiperight="goscoreboard" v-on:swipebottom="gogamemaster">
-      <img class="mario" src="../assets/mario.png"/>
+    <img class="mario" src="../assets/mario.png"/>
     <!-- submit button -->
     <div class="form-group">
       <label for="usr">
@@ -12,25 +11,23 @@
              data-v-8e11165c="" x="80"><textPath data-v-8e11165c="" xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#curve">
               Enter Your Gamer tag
             </textPath></text></svg> -->
-        <span class="red">E</span><span class="green">n</span><span class="yellow">t</span><span class="blue">e</span><span class="red">r</span> 
-      <span class="green">Y</span><span class="yellow">o</span><span class="blue">u</span><span class="red">r</span> 
-      <span class="blue">G</span><span class="green">a</span><span class="yellow">m</span><span class="blue">e</span><span class="red">r</span> 
-      <span class="blue">t</span><span class="green">a</span><span class="yellow">g</span>
+        <span class="red">E</span><span class="green">n</span><span class="yellow">t</span><span class="blue">e</span><span class="red">r</span>
+        <span class="green">Y</span><span class="yellow">o</span><span class="blue">u</span><span class="red">r</span>
+        <span class="blue">G</span><span class="green">a</span><span class="yellow">m</span><span class="blue">e</span><span class="red">r</span>
+        <span class="blue">t</span><span class="green">a</span><span class="yellow">g</span>
        </label>
       <input type="text" class="form-control" id="usr" v-model="username">
     </div>
     <button type="button" class="go-btn btn" @click="signon()">Go!</button>
-    <audio  controls src="https://archive.org/download/SuperMarioBros.ThemeMusic/SuperMarioBros.mp3">
-    
-<p>If you are reading this, it is because your browser does not support the audio element.     </p>
-</audio>
+    <audio controls src="https://archive.org/download/SuperMarioBros.ThemeMusic/SuperMarioBros.mp3">
+      <p>If you are reading this, it is because your browser does not support the audio element.</p>
+    </audio>
   </div>
       <!-- </ons-gesture-detector> -->
-
 </template>
 
 <script>
-import CommonUtils from './common-utils';
+import CommonUtils from "./common-utils";
 export default {
   name: "signin",
   mixins: [CommonUtils],
@@ -38,7 +35,10 @@ export default {
   created() {
     // instance created and data bound
     // looking for existing player information from local storage and prepopulate username
-    let userInfo = this.retrieveFromStorage('localStorage', 'trouble_flipper_player');
+    let userInfo = this.retrieveFromStorage(
+      "localStorage",
+      "trouble_flipper_player"
+    );
     if (userInfo && userInfo.username) {
       this.username = userInfo.username;
     }
@@ -75,46 +75,42 @@ export default {
   // any actions
   methods: {
     gochoose: function(event) {
-      this.$router.push('game');
+      this.$router.push("game");
     },
     goscoreboard: function(event) {
       this.$router.push({
-          name: 'scoreboard',
-          query: {
-            username: this.username,
-            isMaster: this.usertype === 'master'
-          }
-        });
+        name: "scoreboard",
+        query: {
+          username: this.username,
+          isMaster: this.usertype === "master"
+        }
+      });
     },
     gogamemaster: function(event) {
       console.log("go as master login");
     },
     signon: function(event) {
       console.log(this.username + ", " + this.password + ", " + this.usertype);
-      if (this.usertype === 'player') {
+      if (this.usertype === "player") {
         this.$router.push({
-          name: 'game',
+          name: "game",
           query: {
             username: this.username
           }
         });
       } else {
         this.$router.push({
-          name: 'scoreboard',
+          name: "scoreboard",
           query: {
             username: this.username,
-            isMaster: this.usertype === 'master'
+            isMaster: this.usertype === "master"
           }
         });
       }
     },
     signout: function(event) {}
-
   }
 };
-
-
-
 </script>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
@@ -175,25 +171,28 @@ input {
   margin: 40px 0;
   color: white;
   width: 100px;
-  cursor: pointer;
+  min-height: 70px;
 }
-
 
 .red {
-      color: #d41345;
-    text-shadow: -.5vw -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
+  color: #d41345;
+  text-shadow: -0.5vw -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000,
+    1px 1px 0 #000;
 }
 .blue {
-    color: rgb(5, 139, 255);
-    text-shadow: -.5vw -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
+  color: rgb(5, 139, 255);
+  text-shadow: -0.5vw -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000,
+    1px 1px 0 #000;
 }
 
 .yellow {
-    color: rgb(255, 252, 0);
-    text-shadow: -.5vw -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
+  color: rgb(255, 252, 0);
+  text-shadow: -0.5vw -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000,
+    1px 1px 0 #000;
 }
 .green {
-    color: rgb(37, 173, 33);
-    text-shadow: -.5vw -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
+  color: rgb(37, 173, 33);
+  text-shadow: -0.5vw -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000,
+    1px 1px 0 #000;
 }
 </style>

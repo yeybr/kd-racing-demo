@@ -1,4 +1,4 @@
-export class GameMaster {
+export class Spectator {
   constructor(solaceApi, appProps, userInfo, msgCallback) {
     this.solaceApi = solaceApi;
     this.appProps = appProps;
@@ -83,7 +83,7 @@ export class GameMaster {
   }
 
   register() {
-    console.log('Connect game master ' + this.username + ', clientId ' + this.clientId);
+    console.log('Connect spectator ' + this.username + ', clientId ' + this.clientId);
    // TESTING CODE
    setTimeout(() => {
     this.msgCallback(this.simulateTeamResponse());
@@ -162,7 +162,7 @@ export class GameMaster {
 
   // called by Scoreboard.vue destroy method
   unregister() {
-    console.log('Let server know game master ' + this.username + ', clientId ' + this.clientId + ' becomes inactive');
+    console.log('Let server know spectator ' + this.username + ', clientId ' + this.clientId + ' becomes inactive');
   }
 
   disconnect() {

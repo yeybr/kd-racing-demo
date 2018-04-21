@@ -89,6 +89,20 @@ export class SwapMessage extends TroubleFlipperMessage {
   }
 }
 
+export class StarPowerMessage extends TroubleFlipperMessage {
+  constructor(puzzlePiece) {
+    super();
+    this.puzzlePiece = puzzlePiece;
+  }
+}
+
+export class PeachHealMessage extends TroubleFlipperMessage {
+  constructor(character) {
+    super();
+    this.character = character;
+  }
+}
+
 // Should be called on received messages. Returns message object.
 //
 // NOTES (Brandon):

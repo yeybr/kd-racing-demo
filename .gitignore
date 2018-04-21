@@ -9,3 +9,5 @@ client/temp/
 client/test/
 *.log
 tags
+server/src/main/resources/static/
+server/src/main/resources/application.properties

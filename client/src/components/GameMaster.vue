@@ -1,5 +1,5 @@
 <template>
-  <div class="score-panel">
+  <div class="game-master-panel">
     <div class="title">
       <h1>{{msg}}</h1>
       <!-- <div class="user-info">User: {{username}}</div> -->
@@ -22,32 +22,32 @@
 </template>
 
 <script>
-import { Spectator } from '@/messaging/spectator';
+import { GameMaster } from '@/messaging/game-master';
 import CommonUtils from './common-utils';
 export default {
-  name: 'scoreboard',
+  name: 'gamemaster',
   mixins: [CommonUtils],
   created() {
-    console.log('scoreboard created: data bound');
+    console.log('gamemaster created: data bound');
 
     // if (this.$route.query.username) {
       // this.username = this.$route.query.username;
-      this.username = 'spectator';
+      this.username = 'admin';
       // Retrive userInfo from local storage
-      let userInfo = this.retrieveFromStorage('localStorage', 'trouble_flipper_spectator');
+      let userInfo = this.retrieveFromStorage('localStorage', 'trouble_flipper_game_master');
       let clientId = null;
       if (userInfo) {
         clientId = userInfo.clientId;
         if (userInfo.username !== this.username) {
           userInfo.username = this.username;
-          this.saveIntoStorage('localStorage', 'trouble_flipper_spectator', userInfo);
+          this.saveIntoStorage('localStorage', 'trouble_flipper_game_master', userInfo);
         }
       }
       this.clientId = clientId;
-      this.spectatorMessenger = new Spectator(this.$solace, this.$parent.appProps,
+      this.masterMessenger = new GameMaster(this.$solace, this.$parent.appProps,
         {username: this.username, clientId: this.clientId},
         this.handleMsg.bind(this));
-      this.spectatorMessenger.connect();
+      this.masterMessenger.connect();
     // } else {
     //   this.$router.push({
     //     name: 'signin'
@@ -55,29 +55,29 @@ export default {
     // }
   },
   // mounted() {
-  //   console.log('scoreboard mounted: dom element inserted');
+  //   console.log('gamemaster mounted: dom element inserted');
   // },
   // beforeUpdate() {
   //   // add any customized code before DOM is re-render and patched based changes in data
-  //   console.log('scoreboard beforeUpdate: data is changed, about to rerender dom');
+  //   console.log('gamemaster beforeUpdate: data is changed, about to rerender dom');
   // },
   // updated() {
-  //   console.log('scoreboard updated: dom is rerendered');
+  //   console.log('gamemaster updated: dom is rerendered');
   // },
   destroyed() {
     // clean up any resource, such as close websocket connection, remove subscription
-    console.log('scoreboard destroyed: dom removed');
-    if (this.spectatorMessenger) {
-      this.spectatorMessenger.unregister();
-      this.spectatorMessenger.disconnect();
-      this.spectatorMessenger = null;
+    console.log('game master destroyed: dom removed');
+    if (this.masterMessenger) {
+      this.masterMessenger.unregister();
+      this.masterMessenger.disconnect();
+      this.masterMessenger = null;
     }
   },
 
   // Underlying model
   data() {
     return {
-      msg: 'Trouble Flipper Scoreboard',
+      msg: 'Trouble Flipper Game Master',
       state: 'connecting',
       clientId: "",
       username: "",
@@ -105,7 +105,7 @@ export default {
         this.state = msg.state;
         if (this.state === 'watching') {
           console.log('Save username ' + this.username + ', clientId ' + this.clientId + ' to localStorage');
-          this.saveIntoStorage('localStorage', 'trouble_flipper_spectator', { username: this.username, clientId: this.clientId });
+          this.saveIntoStorage('localStorage', 'trouble_flipper_game_master', { username: this.username, clientId: this.clientId });
         }
       }
     }
@@ -131,31 +131,31 @@ a {
   color: #1DACFC;
 }
 
-.score-panel {
+.game-master-panel {
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
   padding: 15px;
 }
-.score-panel .title {
+.game-master-panel .title {
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
 }
-.score-panel .title .user-info {
+.game-master-panel .title .user-info {
   font-weight: 500;
 }
-.score-panel .score-info.waiting {
+.game-master-panel .score-info.waiting {
   padding: 15px 0px;
   align-self: center;
 }
-.score-panel .score-board {
+.game-master-panel .score-board {
   display: flex;
   flex-direction: row;
   justify-content: flex-start;
 }
 
-.score-panel .score-board .game {
+.game-master-panel .score-board .game {
   margin: 15px;
   padding: 15px;
   display: flex;

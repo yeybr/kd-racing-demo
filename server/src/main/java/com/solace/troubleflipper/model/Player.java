@@ -2,7 +2,7 @@ package com.solace.troubleflipper.model;
 
 import java.util.UUID;
 
-public class Player {
+public abstract class Player {
     private String id;
     private String gamerTag;
     private String clientName;
@@ -64,4 +64,6 @@ public class Player {
     public void setCharacter(Character character) {
         this.character = character;
     }
+
+    public abstract void heal();
 }

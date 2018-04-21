@@ -6,7 +6,7 @@ public class Team {
 
     private String id;
     private String name;
-    private Map<Character, Player> characters = new HashMap<>();
+    private Map<Character, Player> characters = new EnumMap<>(Character.class);
     private List<Player> players = new ArrayList<>();
     private Game game;
 
@@ -30,7 +30,7 @@ public class Team {
         this.game=game;
     }
 
-    public Game getGame () {
+    public Game getGame() {
         return game;
     }
 
@@ -46,5 +46,9 @@ public class Team {
 
     public List<Player> getPlayers() {
         return players;
+    }
+
+    public Player getPlayer(Character character) {
+        return characters.get(character);
     }
 }

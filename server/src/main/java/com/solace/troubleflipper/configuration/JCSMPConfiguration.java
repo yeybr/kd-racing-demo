@@ -2,25 +2,37 @@ package com.solace.troubleflipper.configuration;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.solace.troubleflipper.messages.*;
-import com.solace.troubleflipper.model.Game;
-import com.solace.troubleflipper.model.Player;
-import com.solace.troubleflipper.model.PuzzlePiece;
+import com.solace.troubleflipper.model.*;
+import com.solace.troubleflipper.model.Character;
 import com.solace.troubleflipper.properties.SolaceCloudProperties;
 import com.solace.troubleflipper.properties.TournamentProperties;
 import com.solace.troubleflipper.Tournament;
 import com.solacesystems.jcsmp.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import java.io.IOException;
 import java.util.Optional;
+import java.util.Timer;
+import java.util.TimerTask;
 
 @Configuration
 public class JCSMPConfiguration {
 
+    private Logger log = LoggerFactory.getLogger("game");
+
     private XMLMessageProducer producer;
+    private ObjectMapper mapper = new ObjectMapper();
 
     @Bean
-    public JCSMPSession getJCSMPConnector(SolaceCloudProperties solaceCloudProperties) throws JCSMPException {
+    public Timer immunityTimer() {
+        Timer timer = new Timer("ImmunityTimer");
+        return timer;
+    }
+
+    @Bean
+    public JCSMPSession getJCSMPConnector(SolaceCloudProperties solaceCloudProperties, Timer immunityTimer) throws JCSMPException {
         JCSMPProperties props = new JCSMPProperties();
         props.setProperty(JCSMPProperties.VPN_NAME, solaceCloudProperties.getVpn());
         props.setProperty(JCSMPProperties.USERNAME, solaceCloudProperties.getUsername());
@@ -44,7 +56,6 @@ public class JCSMPConfiguration {
 
         // needed for dispatch
 
-        ObjectMapper mapper = new ObjectMapper();
         TournamentProperties tournamentProperties = new TournamentProperties();
         final Tournament tournament = new Tournament(tournamentProperties, session);
 
@@ -80,7 +91,8 @@ public class JCSMPConfiguration {
                                 System.out.println("Found existing player " + player.getClientName());
                             }
                             if (player == null) {
-                                player = new Player();
+                                // TODO we need to distinguish people in the queue vs players in a game
+                                player = new Mario();
                                 player.setGamerTag(addUserMessage.getUsername());
                                 player.setClientName(addUserMessage.getClientId());
                                 tournament.addPlayer(player);
@@ -114,14 +126,8 @@ public class JCSMPConfiguration {
                                 for (Game game : tournament.getGames()) {
                                     game.start();
                                     String teamId = game.getTeam().getId();
-                                    Topic topic = JCSMPFactory.onlyInstance().createTopic("team/" + teamId);
-                                    BytesMessage bytesMessage = JCSMPFactory.onlyInstance().createMessage(BytesMessage.class);
-                                    UpdatePuzzleMessage updatePuzzleMessage = new UpdatePuzzleMessage();
-                                    updatePuzzleMessage.setTeamId(teamId);
-                                    updatePuzzleMessage.setPuzzle(game.getPuzzleBoard());
-                                    bytesMessage.setData(mapper.writeValueAsString(updatePuzzleMessage).getBytes());
                                     try {
-                                        producer.send(bytesMessage, topic);
+                                        updatePuzzleForTeam(teamId, game);
                                     } catch (JCSMPException ex) {
                                         System.err.println("Encountered a JCSMPException, closing consumer channel... " + ex.getMessage());
                                     }
@@ -131,22 +137,58 @@ public class JCSMPConfiguration {
                     } else if ((msg.getDestination()).toString().startsWith("games")) {
                         String msgStr = getMessageStr(msg);
                         if (msgStr != null) {
-                            SwapPiecesMessage swapPiecesMessage = mapper.readValue(msgStr, SwapPiecesMessage.class);
                             String topicSplit[] = (msg.getDestination()).toString().split("/");
                             String teamId = topicSplit[1];
-                            System.out.printf(teamId);
                             Game game = tournament.getGame(teamId);
-                            game.swapPieces(swapPiecesMessage.getPiece1(), swapPiecesMessage.getPiece2());
-                            Topic topic = JCSMPFactory.onlyInstance().createTopic("team/" + teamId);
-                            BytesMessage bytesMessage = JCSMPFactory.onlyInstance().createMessage(BytesMessage.class);
-                            UpdatePuzzleMessage updatePuzzleMessage = new UpdatePuzzleMessage();
-                            updatePuzzleMessage.setTeamId(teamId);
-                            updatePuzzleMessage.setPuzzle(game.getPuzzleBoard());
-                            bytesMessage.setData(mapper.writeValueAsString(updatePuzzleMessage).getBytes());
-                            try {
-                                producer.send(bytesMessage, topic);
-                            } catch (JCSMPException ex) {
-                                System.err.println("Encountered a JCSMPException, closing consumer channel... " + ex.getMessage());
+                            if (game == null) {
+                                return;
+                            }
+                            if (topicSplit.length == 2) {
+                                SwapPiecesMessage swapPiecesMessage = mapper.readValue(msgStr, SwapPiecesMessage.class);
+                                System.out.printf(teamId);
+                                game.swapPieces(swapPiecesMessage.getPiece1(), swapPiecesMessage.getPiece2());
+                                try {
+                                    updatePuzzleForTeam(teamId, game);
+                                } catch (JCSMPException ex) {
+                                    System.err.println("Encountered a JCSMPException, closing consumer channel... " + ex.getMessage());
+                                }
+                            } else if ("starPower".equals(topicSplit[2])) {
+                                StarPowerMessage starPowerMessage = mapper.readValue(msgStr, StarPowerMessage.class);
+                                Mario mario = (Mario) game.getTeam().getPlayer(Character.mario);
+                                if (mario.getStarPowerUps() > 0) {
+                                    log.debug("Mario used star power");
+                                    mario.useStarPowerUp();
+                                    game.starPower(starPowerMessage.getPuzzlePiece());
+                                    try {
+                                        updatePuzzleForTeam(teamId, game);
+                                    } catch (JCSMPException ex) {
+                                        System.err.println("Encountered a JCSMPException, closing consumer channel... " + ex.getMessage());
+                                    }
+                                }
+                            } else if ("peachHeal".equals(topicSplit[2])) {
+                                PeachHealMessage peachHealMessage = mapper.readValue(msgStr, PeachHealMessage.class);
+                                // TODO wait until player selection logic before checking
+//                                Peach peach = (Peach) game.getTeam().getPlayer(Character.peach);
+//                                if (peach.isHealUsed()) {
+//                                    peach.useHeal();
+                                    Character character = peachHealMessage.getCharacter();
+                                    Player player = game.getTeam().getPlayer(character);
+                                    player.heal();
+//                                }
+                            } else if ("greenShell".equals(topicSplit[2])) {
+                            } else if ("troubleFlipper".equals(topicSplit[2])) {
+                            } else if ("immune".equals(topicSplit[2])) {
+                                Yoshi yoshi = (Yoshi) game.getTeam().getPlayer(Character.yoshi);
+                                if (yoshi.isImmuneUsed()) {
+                                    yoshi.useImmune();
+                                    game.setImmune(true);
+                                    immunityTimer.schedule(new TimerTask() {
+                                        @Override
+                                        public void run() {
+                                            game.setImmune(false);
+                                        }
+                                    }, 10000);
+                                }
                             }
                         }
                     }
@@ -173,6 +215,17 @@ public class JCSMPConfiguration {
         cons.start();
 
         return session;
+    }
+
+    private void updatePuzzleForTeam(String teamId, Game game) throws JCSMPException, IOException {
+        Topic topic = JCSMPFactory.onlyInstance().createTopic("team/" + teamId);
+        BytesMessage bytesMessage = JCSMPFactory.onlyInstance().createMessage(BytesMessage.class);
+        UpdatePuzzleMessage updatePuzzleMessage = new UpdatePuzzleMessage();
+        updatePuzzleMessage.setTeamId(teamId);
+        updatePuzzleMessage.setPuzzle(game.getPuzzleBoard());
+        updatePuzzleMessage.setGameWon(game.isGameWon());
+        bytesMessage.setData(mapper.writeValueAsString(updatePuzzleMessage).getBytes());
+        producer.send(bytesMessage, topic);
     }
 
     private String getMessageStr(BytesXMLMessage message) throws IOException {
