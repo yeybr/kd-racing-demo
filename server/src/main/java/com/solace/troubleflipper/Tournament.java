@@ -97,6 +97,7 @@ public class Tournament implements GameOverListener {
         teams.clear();
         activeGames.clear();
         completedGames.clear();
+        timer.purge();
         tournamentProperties.setPlayersPerTeam(players.size());
         String newName = tournamentProperties.getNewTeamName();
 
@@ -133,7 +134,7 @@ public class Tournament implements GameOverListener {
                     }
                 }
             }
-        }, 0 , 1000);
+        }, 0 , 5000);
 
         timer.schedule(new TimerTask() {
             @Override
@@ -158,7 +159,7 @@ public class Tournament implements GameOverListener {
                     }
                 }
             }
-        }, 0 , 1000);
+        }, 0 , 3000);
     }
 
     private void addTeam(String teamName, Collection<Player> players) {
@@ -183,6 +184,7 @@ public class Tournament implements GameOverListener {
         for (Player player : players) {
             try {
                 subscriber.subscribeForClient("score/" + player.getTeam().getId(), player.getClientName());
+                subscriber.subscribeForClient("score/" + player.getClientName(), player.getClientName());
             } catch (SubscriberException ex) {
                 log.error("Unable to register subscription for " + player.getClientName() + " on team " + player.getTeam().getId(), ex);
             }
