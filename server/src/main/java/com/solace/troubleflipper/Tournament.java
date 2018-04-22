@@ -43,10 +43,10 @@ public class Tournament {
     public void prepareTeams() {
         // TODO implement an algorithm to create teams, name them, and assign players to them
         tournamentProperties.setPlayersPerTeam(players.size());
-        tournamentProperties.setTeamNames(new String[]{"Team"});
+        String newName = tournamentProperties.getNewTeamName();
 
         Team team = new Team();
-        team.setName("Team");
+        team.setName(newName);
         Game game = new Game();
         game.setTeam(team);
         team.setGame(game);
