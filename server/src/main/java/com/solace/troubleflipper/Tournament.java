@@ -23,6 +23,7 @@ public class Tournament implements GameOverListener {
     private Map<String, Team> teams = new HashMap<>();
     private Map<String, Game> activeGames = new HashMap<>();
     private Map<String, Collection<Game>> completedGames = new HashMap<>();
+    private final LinkedList<Team> teamRankings = new LinkedList<>();
 
     private final JCSMPSession jcsmpSession;
     private final Subscriber subscriber;
@@ -111,6 +112,54 @@ public class Tournament implements GameOverListener {
             String newName = tournamentProperties.getNewTeamName();
             addTeam(newName, players);
         }
+
+        timer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                Collections.sort(players, (player1, player2) -> {
+                    int player1Score = player1.getRightMoves() - player1.getWrongMoves();
+                    int player2Score = player1.getRightMoves() - player1.getWrongMoves();
+                    return player1Score - player2Score;
+                });
+                for (int i = 0; i < players.size(); ++i) {
+                    Player player = players.get(i);
+                    PlayerRankMessage playerRankMessage = new PlayerRankMessage();
+                    playerRankMessage.setRank(i + 1);
+                    playerRankMessage.setId(player.getClientName());
+                    playerRankMessage.setTotalPlayers(players.size());
+                    try {
+                        publisher.publish("score/" + player.getClientName(), playerRankMessage);
+                    } catch (PublisherException ex) {
+                        log.error("Unable to update the scores for players", ex);
+                    }
+                }
+            }
+        }, 0 , 1000);
+
+        timer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                Collections.sort(teamRankings, (team1, team2) -> {
+                    int team1Winning = team1.getCompletedGames() - team2.getCompletedGames();
+                    if (team1Winning == 0) {
+                        team1Winning = team1.getGame().getCorrectPieces() - team2.getGame().getCorrectPieces();
+                    }
+                    return team1Winning;
+                });
+                for (int i = 0; i < teamRankings.size(); ++i) {
+                    Team team = teamRankings.get(i);
+                    TeamRankMessage teamRankMessage = new TeamRankMessage();
+                    teamRankMessage.setRank(i + 1);
+                    teamRankMessage.setTeamId(team.getId());
+                    teamRankMessage.setTotalTeams(teamRankings.size());
+                    try {
+                        publisher.publish("score/" + team.getId(), teamRankMessage);
+                    } catch (PublisherException ex) {
+                        log.error("Unable to update the scores", ex);
+                    }
+                }
+            }
+        }, 0 , 1000);
     }
 
     private void addTeam(String teamName, Collection<Player> players) {
@@ -128,8 +177,17 @@ public class Tournament implements GameOverListener {
         }
 
         teams.put(team.getId(), team);
+        teamRankings.add(team);
 
         activeGames.put(team.getId(), game);
+
+        for (Player player : players) {
+            try {
+                subscriber.subscribeForClient("score/" + player.getTeam().getId(), player.getClientName());
+            } catch (SubscriberException ex) {
+                log.error("Unable to register subscription for " + player.getClientName() + " on team " + player.getTeam().getId(), ex);
+            }
+        }
     }
 
     public Game getGame(String teamId) {
@@ -145,6 +203,7 @@ public class Tournament implements GameOverListener {
         Team team = teams.get(teamId);
         activeGames.remove(teamId);
         completedGames.get(teamId).add(game);
+        team.addCompletedGame();
         Game newGame = new Game(team, subscriber, publisher, timer, tournamentProperties);
         team.setGame(newGame);
         timer.schedule(new TimerTask() {
@@ -156,6 +215,6 @@ public class Tournament implements GameOverListener {
                 newGame.updatePuzzleForTeam();
             }
         }, 3000);
-
     }
+
 }

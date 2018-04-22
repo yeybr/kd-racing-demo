@@ -30,6 +30,7 @@ public class Game {
     private Publisher publisher;
     private Timer timer;
     private final TournamentProperties tournamentProperties;
+    private int correctPieces;
 
     private final Collection<GameOverListener> gameOverListeners = new ArrayList<>();
 
@@ -60,7 +61,7 @@ public class Game {
         return team;
     }
 
-    public void swapPieces(PuzzlePiece piece1, PuzzlePiece piece2) {
+    public void swapPieces(PuzzlePiece piece1, PuzzlePiece piece2, Player player) {
         synchronized (puzzleBoard) {
             try {
                 PuzzlePiece bPiece1 = findPuzzlePiece(piece1.getIndex());
@@ -69,6 +70,22 @@ public class Game {
                 bPiece2.setIndex(piece1.getIndex());
             } catch (NoPieceFoundException ex) {
                 log.error("Unable to swap pieces " + piece1.getIndex() + " and " + piece2.getIndex(), ex);
+            }
+        }
+        if (player != null) {
+            int piece1Position = puzzleBoard.indexOf(piece1);
+            int piece2Position = puzzleBoard.indexOf(piece2);
+            if (piece1Position == piece1.getIndex()) {
+                player.wrongMove();
+            }
+            if (piece2Position == piece2.getIndex()) {
+                player.wrongMove();
+            }
+            if (piece1Position == piece2.getIndex()) {
+                player.rightMove();
+            }
+            if (piece2Position == piece1.getIndex()) {
+                player.rightMove();
             }
         }
     }
@@ -120,19 +137,24 @@ public class Game {
     public boolean isGameWon() {
         synchronized (puzzleBoard) {
             boolean result = true;
+            correctPieces = 0;
             for (int i = 0; i < puzzleBoard.size(); ++i) {
                 if (puzzleBoard.get(i).getIndex() == i) {
-                    continue;
+                    correctPieces++;
                 }
                 result = false;
-                break;
             }
             return result;
         }
     }
 
+    public int getCorrectPieces() {
+        return correctPieces;
+    }
+
     private void swapPieces(SwapPiecesMessage swapPiecesMessage) {
-        swapPieces(swapPiecesMessage.getPiece1(), swapPiecesMessage.getPiece2());
+        Player player = team.getPlayer(swapPiecesMessage.getClientName());
+        swapPieces(swapPiecesMessage.getPiece1(), swapPiecesMessage.getPiece2(), player);
         updatePuzzleForTeam();
     }
 
@@ -173,7 +195,8 @@ public class Game {
 
     public void starPower(PuzzlePiece selectedPuzzlePiece) {
         int correctIndexForPuzzlePiece = selectedPuzzlePiece.getIndex();
-        swapPieces(selectedPuzzlePiece, puzzleBoard.get(correctIndexForPuzzlePiece));
+        Player mario = team.getPlayer(Character.mario);
+        swapPieces(selectedPuzzlePiece, puzzleBoard.get(correctIndexForPuzzlePiece), mario);
     }
 
     public void troubleFlipper() {
@@ -197,7 +220,7 @@ public class Game {
                 Collections.shuffle(correctPieces);
             }
             if (correctPieces.size() >= 2) {
-                swapPieces(correctPieces.get(0), correctPieces.get(1));
+                swapPieces(correctPieces.get(0), correctPieces.get(1), null);
             } else if (correctPieces.size() == 1) {
                 // TODO should probably swap a single piece with a random piece here
             }

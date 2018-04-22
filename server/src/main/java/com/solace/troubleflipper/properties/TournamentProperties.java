@@ -76,4 +76,8 @@ public class TournamentProperties {
     public int getPuzzleSize() {
         return puzzleSize;
     }
+
+    public void setPuzzleSize(int puzzleSize) {
+        this.puzzleSize = puzzleSize;
+    }
 }

@@ -7,8 +7,9 @@ public class Team {
     private String id;
     private String name;
     private Map<Character, Player> characters = new EnumMap<>(Character.class);
-    private List<Player> players = new ArrayList<>();
+    private Map<String, Player> players = new HashMap<>();
     private Game game;
+    private int completedGames = 0;
 
     public Team() {
         id = UUID.randomUUID().toString();
@@ -35,7 +36,7 @@ public class Team {
     }
 
     public void addPlayer(Player player) {
-        players.add(player);
+        players.put(player.getClientName(), player);
         player.setTeam(this);
     }
 
@@ -44,11 +45,19 @@ public class Team {
         player.setCharacter(character);
     }
 
-    public List<Player> getPlayers() {
-        return players;
+    public Player getPlayer(String clientName) {
+        return players.get(clientName);
     }
 
     public Player getPlayer(Character character) {
         return characters.get(character);
+    }
+
+    public void addCompletedGame() {
+        completedGames++;
+    }
+
+    public int getCompletedGames() {
+        return completedGames;
     }
 }
