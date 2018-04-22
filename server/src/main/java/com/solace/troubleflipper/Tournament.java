@@ -115,6 +115,29 @@ public class Tournament implements GameOverListener {
         timer.schedule(new TimerTask() {
             @Override
             public void run() {
+                Collections.sort(players, (player1, player2) -> {
+                    int player1Score = player1.getRightMoves() - player1.getWrongMoves();
+                    int player2Score = player1.getRightMoves() - player1.getWrongMoves();
+                    return player1Score - player2Score;
+                });
+                for (int i = 0; i < players.size(); ++i) {
+                    Player player = players.get(i);
+                    PlayerRankMessage playerRankMessage = new PlayerRankMessage();
+                    playerRankMessage.setRank(i + 1);
+                    playerRankMessage.setId(player.getClientName());
+                    playerRankMessage.setTotalPlayers(players.size());
+                    try {
+                        publisher.publish("score/" + player.getClientName(), playerRankMessage);
+                    } catch (PublisherException ex) {
+                        log.error("Unable to update the scores for players", ex);
+                    }
+                }
+            }
+        }, 0 , 1000);
+
+        timer.schedule(new TimerTask() {
+            @Override
+            public void run() {
                 Collections.sort(teamRankings, (team1, team2) -> {
                     int team1Winning = team1.getCompletedGames() - team2.getCompletedGames();
                     if (team1Winning == 0) {
@@ -122,6 +145,18 @@ public class Tournament implements GameOverListener {
                     }
                     return team1Winning;
                 });
+                for (int i = 0; i < teamRankings.size(); ++i) {
+                    Team team = teamRankings.get(i);
+                    TeamRankMessage teamRankMessage = new TeamRankMessage();
+                    teamRankMessage.setRank(i + 1);
+                    teamRankMessage.setTeamId(team.getId());
+                    teamRankMessage.setTotalTeams(teamRankings.size());
+                    try {
+                        publisher.publish("score/" + team.getId(), teamRankMessage);
+                    } catch (PublisherException ex) {
+                        log.error("Unable to update the scores", ex);
+                    }
+                }
             }
         }, 0 , 1000);
     }

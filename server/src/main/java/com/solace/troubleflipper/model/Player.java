@@ -41,6 +41,14 @@ public abstract class Player {
         this.team = team;
     }
 
+    public void rightMove() {
+        rightMoves++;
+    }
+
+    public void wrongMove() {
+        wrongMoves++;
+    }
+
     public int getRightMoves() {
         return rightMoves;
     }
