@@ -1,11 +1,13 @@
 package com.solace.troubleflipper;
 
+import com.solace.troubleflipper.configuration.SubscriptionHandler;
+import com.solace.troubleflipper.messages.*;
+import com.solace.troubleflipper.model.*;
 import com.solace.troubleflipper.model.Character;
-import com.solace.troubleflipper.model.Game;
-import com.solace.troubleflipper.model.Player;
-import com.solace.troubleflipper.model.Team;
 import com.solace.troubleflipper.properties.TournamentProperties;
-import com.solacesystems.jcsmp.JCSMPSession;
+import com.solacesystems.jcsmp.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -13,7 +15,9 @@ import java.io.IOException;
 import java.util.*;
 
 @Component
-public class Tournament {
+public class Tournament implements GameOverListener {
+
+    private Logger log = LoggerFactory.getLogger("tournament");
 
     private List<Player> players = new ArrayList<>();
     private boolean started = false;
@@ -22,17 +26,66 @@ public class Tournament {
     private Map<String, Collection<Game>> completedGames = new HashMap<>();
 
     private final JCSMPSession jcsmpSession;
+    private final Subscriber subscriber;
+    private final Publisher publisher;
 
     private final TournamentProperties tournamentProperties;
 
+    private Timer timer = new Timer("TournamentTimer");
+
     @Autowired
-    public Tournament(TournamentProperties tournamentProperties, JCSMPSession jcsmpSession) {
+    public Tournament(TournamentProperties tournamentProperties, JCSMPSession jcsmpSession,
+                      Subscriber subscriber, Publisher publisher) {
         this.tournamentProperties = tournamentProperties;
         this.jcsmpSession = jcsmpSession;
+        this.subscriber = subscriber;
+        this.publisher = publisher;
+        subscriber.registerHandler(AddUserMessage.class, "users", this::addUser);
+        subscriber.registerHandler(TournamentMessage.class, "tournaments", this::startTournament);
     }
 
-    public void addPlayer(Player player) {
-        players.add(player);
+    @SubscriptionHandler(topic = "users", messageType = AddUserMessage.class)
+    private void addUser(AddUserMessage addUserMessage) {
+        Optional<Player> firstMatch = getPlayers().stream().filter(item ->
+                addUserMessage.getClientId().equals(item.getClientName())).findFirst();
+        Player player;
+        if (firstMatch.isPresent()) {
+            player = firstMatch.get();
+            log.trace("Player " + player.getClientName() + " is already registered");
+        } else {
+            // TODO we need to distinguish people in the queue vs players in a game
+            player = new Mario();
+            player.setGamerTag(addUserMessage.getUsername());
+            player.setClientName(addUserMessage.getClientId());
+            players.add(player);
+        }
+        AddUserAckMessage addUserAckMessage = new AddUserAckMessage(addUserMessage, AddUserAckMessage.RESULT_SUCCESS);
+        try {
+            publisher.publish("user/" + player.getClientName(), addUserAckMessage);
+            log.info("Player " + player.getClientName() + " has been registered in the tournament");
+        } catch (PublisherException ex) {
+            log.error("Unable to acknowledge player " + player.getClientName(), ex);
+            players.remove(player);
+        }
+    }
+
+    @SubscriptionHandler(topic = "tournaments", messageType = TournamentMessage.class)
+    private void startTournament(TournamentMessage tournamentMessage) {
+        if ((tournamentMessage.getAction().equals("buildTeams")) && (getPlayers().size() > 0)) {
+            prepareTeams();
+            for (Player player : getPlayers()) {
+                try {
+                    subscriber.subscribeForClient("team/" + player.getTeam().getId(), player.getClientName());
+                } catch (SubscriberException ex) {
+                    log.error("Unable to register subscription for " + player.getClientName() + " on team " + player.getTeam().getId(), ex);
+                }
+            }
+            for (Game game : getGames()) {
+                game.addGameOverListener(this);
+                game.start();
+                game.updatePuzzleForTeam();
+            }
+        }
     }
 
     public Collection<Player> getPlayers() {
@@ -61,8 +114,7 @@ public class Tournament {
         Team team = new Team();
         team.setName(teamName);
         completedGames.put(team.getId(), new ArrayList<>());
-        Game game = new Game();
-        game.setTeam(team);
+        Game game = new Game(team, subscriber, publisher, timer);
         team.setGame(game);
         for (Player player : players) {
             team.addPlayer(player);
@@ -84,14 +136,22 @@ public class Tournament {
         return activeGames.values();
     }
 
-    public Game nextGame(String teamId) {
+    public void gameOver(Game game) {
+        String teamId = game.getTeam().getId();
         Team team = teams.get(teamId);
-        Game game = activeGames.remove(teamId);
+        activeGames.remove(teamId);
         completedGames.get(teamId).add(game);
-        Game newGame = new Game();
-        newGame.setTeam(teams.get(teamId));
+        Game newGame = new Game(team, subscriber, publisher, timer);
         team.setGame(newGame);
-        activeGames.put(teamId, newGame);
-        return newGame;
+        timer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                activeGames.put(teamId, newGame);
+                game.addGameOverListener(Tournament.this);
+                newGame.start();
+                newGame.updatePuzzleForTeam();
+            }
+        }, 3000);
+
     }
 }
