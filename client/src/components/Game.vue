@@ -61,6 +61,7 @@
         </transition-group>
         <div v-if="win" id="win">
           Winner!
+          <div class="countdown">Next game starting in {{countdown}}</div>
         </div>
       </div>
     </div>
@@ -208,7 +209,8 @@ export default {
         totalTeam: 0,
         teamRank: 0,
         timeAllowedForEachMove: 0
-      }
+      },
+      countdown: 3
     };
   },
 
@@ -245,6 +247,7 @@ export default {
         return;
       } else if (msg instanceof TeamsMessage) {
         let teamMsg = {};
+        teamMsg.gameWon = msg.gameWon;
         if (msg.puzzle) {
           teamMsg.puzzle = msg.puzzle;
         }
@@ -303,7 +306,7 @@ export default {
         this.updateArray(this.puzzle, pieces);
         this.selected = null;
         if (newState !== 'start') {
-          this.checkWinCondition();
+          this.checkWinCondition(msg.gameWon);
         }
       }
       if (msg.teamInfo) {
@@ -452,13 +455,18 @@ export default {
         this.playerMessenger.starPower(puzzlePiece);
       }
     },
-    checkWinCondition: function() {
-      this.win = this.puzzle.reduce((result, piece, i) => {
-        return result && piece.index == i;
-      }, true);
+    checkWinCondition: function(gameWon) {
+      this.win = gameWon;
       if (this.win) {
         console.log("WINNER!");
         this.stopCountDown();
+        var i = setInterval(() => {
+          this.countdown--;
+          if (this.countdown === 0) {
+            this.countdown = 3;
+            clearInterval(i);
+          }
+        }, 1000);
       } else {
         // reset timeRemaining
         this.timeRemaining = this.timeForEachMove;
@@ -655,7 +663,14 @@ a {
   display: flex;
   justify-content: center;
   align-items: center;
+  flex-direction: column;
 }
+
+#win .countdown {
+  font-size: 30px;
+  color: #ffee01;
+}
+
 .highlight {
   position: absolute;
   top: 0;

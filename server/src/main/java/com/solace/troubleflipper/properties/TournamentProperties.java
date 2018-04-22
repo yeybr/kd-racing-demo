@@ -1,5 +1,6 @@
 package com.solace.troubleflipper.properties;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
@@ -26,14 +27,14 @@ public class TournamentProperties {
     public String getNewTeamName() {
         String newName = "None";
 
-	System.out.println ("Number of names in part 1: " + teamNamesPart_1.length );
-	/* 
-	while ( ! newName.equals("None")) {
-           String fName =  
-	}
-	*/
-    newName = teamNamesPart_1;
-	return newName;
+        System.out.println ("Number of names in part 1: " + teamNamesPart_1.length );
+        /*
+        while ( ! newName.equals("None")) {
+               String fName =
+        }
+        */
+        newName = teamNamesPart_1[0];
+        return newName;
     }
 
     public String[] getTeamNames() {
