@@ -95,7 +95,7 @@ public class Tournament implements GameOverListener {
     public void prepareTeams() {
         // TODO implement an algorithm to create teams, name them, and assign players to them
         tournamentProperties.setPlayersPerTeam(players.size());
-        tournamentProperties.setTeamNames(new String[]{"Team"});
+        String newName = tournamentProperties.getNewTeamName();
 
         if (players.size() >= 4) {
             for (int i = 0; i < Math.round(players.size() / 2); ++i) {
@@ -103,15 +103,16 @@ public class Tournament implements GameOverListener {
                 List<Player> teamPlayers = new ArrayList<>();
                 teamPlayers.add(players.get(start));
                 teamPlayers.add(players.get(start + 1));
-                addTeam("Team " + (i + 1), teamPlayers);
+                addTeam(newName, teamPlayers);
             }
         } else {
-            addTeam("Team", players);
+            addTeam(newName, players);
         }
     }
 
     private void addTeam(String teamName, Collection<Player> players) {
         Team team = new Team();
+
         team.setName(teamName);
         completedGames.put(team.getId(), new ArrayList<>());
         Game game = new Game(team, subscriber, publisher, timer);
