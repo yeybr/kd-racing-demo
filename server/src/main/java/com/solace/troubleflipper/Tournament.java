@@ -99,7 +99,6 @@ public class Tournament implements GameOverListener {
         completedGames.clear();
         timer.purge();
         tournamentProperties.setPlayersPerTeam(players.size());
-        String newName = tournamentProperties.getNewTeamName();
 
         if (players.size() >= 4) {
             for (int i = 0; i < Math.round(players.size() / 2); ++i) {
@@ -107,9 +106,11 @@ public class Tournament implements GameOverListener {
                 List<Player> teamPlayers = new ArrayList<>();
                 teamPlayers.add(players.get(start));
                 teamPlayers.add(players.get(start + 1));
+                String newName = tournamentProperties.getNewTeamName();
                 addTeam(newName, teamPlayers);
             }
         } else {
+            String newName = tournamentProperties.getNewTeamName();
             addTeam(newName, players);
         }
 
