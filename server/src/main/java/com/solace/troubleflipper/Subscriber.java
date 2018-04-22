@@ -73,6 +73,11 @@ public class Subscriber {
         mappers.put(topic, null);
     }
 
+    public void deregisterHandler(String topic) {
+        handlers.remove(topic);
+        mappers.remove(topic);
+    }
+
     public void subscribeForClient(String topicName, String clientName) throws SubscriberException {
         Topic topic = JCSMPFactory.onlyInstance().createTopic(topicName);
         try {

@@ -11,7 +11,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.io.IOException;
 import java.util.*;
 
 @Component
@@ -94,6 +93,9 @@ public class Tournament implements GameOverListener {
 
     public void prepareTeams() {
         // TODO implement an algorithm to create teams, name them, and assign players to them
+        teams.clear();
+        activeGames.clear();
+        completedGames.clear();
         tournamentProperties.setPlayersPerTeam(players.size());
         String newName = tournamentProperties.getNewTeamName();
 
@@ -115,7 +117,7 @@ public class Tournament implements GameOverListener {
 
         team.setName(teamName);
         completedGames.put(team.getId(), new ArrayList<>());
-        Game game = new Game(team, subscriber, publisher, timer);
+        Game game = new Game(team, subscriber, publisher, timer, tournamentProperties);
         team.setGame(game);
         for (Player player : players) {
             team.addPlayer(player);
@@ -142,13 +144,13 @@ public class Tournament implements GameOverListener {
         Team team = teams.get(teamId);
         activeGames.remove(teamId);
         completedGames.get(teamId).add(game);
-        Game newGame = new Game(team, subscriber, publisher, timer);
+        Game newGame = new Game(team, subscriber, publisher, timer, tournamentProperties);
         team.setGame(newGame);
         timer.schedule(new TimerTask() {
             @Override
             public void run() {
                 activeGames.put(teamId, newGame);
-                game.addGameOverListener(Tournament.this);
+                newGame.addGameOverListener(Tournament.this);
                 newGame.start();
                 newGame.updatePuzzleForTeam();
             }

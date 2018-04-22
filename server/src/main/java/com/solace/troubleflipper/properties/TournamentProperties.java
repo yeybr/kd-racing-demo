@@ -1,16 +1,18 @@
 package com.solace.troubleflipper.properties;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
-import java.util.Random;
+
 import java.util.HashSet;
+import java.util.Random;
 import java.util.Set;
 
+@ConfigurationProperties("tournament")
 @Component
 public class TournamentProperties {
     private int playersPerTeam;
     private Set teamNamesUsed = new HashSet();
+    private int puzzleSize = 5;
 
     public int getPlayersPerTeam() {
         return playersPerTeam;
@@ -50,7 +52,7 @@ public class TournamentProperties {
             String tempName = fName + " " + lName;
 
             // checking for presence of an item in an array, this way, requires Java 8
-            if (! this.teamNamesUsed.contains(tempName)) {
+            if (!this.teamNamesUsed.contains(tempName)) {
                 newName = tempName;
                 boolean checkAdd = this.teamNamesUsed.add(newName);
                 if (! checkAdd) {
@@ -69,4 +71,9 @@ public class TournamentProperties {
     //public void setTeamNames(String[] teamNames) {
     //    this.teamNames = teamNames;
     //}
+
+
+    public int getPuzzleSize() {
+        return puzzleSize;
+    }
 }

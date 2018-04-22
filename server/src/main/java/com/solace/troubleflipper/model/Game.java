@@ -9,6 +9,7 @@ import com.solace.troubleflipper.messages.PeachHealMessage;
 import com.solace.troubleflipper.messages.StarPowerMessage;
 import com.solace.troubleflipper.messages.SwapPiecesMessage;
 import com.solace.troubleflipper.messages.UpdatePuzzleMessage;
+import com.solace.troubleflipper.properties.TournamentProperties;
 import com.solacesystems.jcsmp.JCSMPFactory;
 import com.solacesystems.jcsmp.TextMessage;
 import org.slf4j.Logger;
@@ -28,14 +29,16 @@ public class Game {
     private Subscriber subscriber;
     private Publisher publisher;
     private Timer timer;
+    private final TournamentProperties tournamentProperties;
 
     private final Collection<GameOverListener> gameOverListeners = new ArrayList<>();
 
-    public Game(Team team, Subscriber subscriber, Publisher publisher, Timer timer) {
+    public Game(Team team, Subscriber subscriber, Publisher publisher, Timer timer, TournamentProperties tournamentProperties) {
         this.team = team;
         this.subscriber = subscriber;
         this.publisher = publisher;
         this.timer = timer;
+        this.tournamentProperties = tournamentProperties;
         subscriber.registerHandler(SwapPiecesMessage.class, "games/" + team.getId(), this::swapPieces);
         subscriber.registerHandler(StarPowerMessage.class, "games/" + team.getId() + "/starPower", this::starPowerHandler);
         subscriber.registerHandler(PeachHealMessage.class, "games/" + team.getId() + "/peachHeal", this::peachHealHandler);
@@ -81,7 +84,8 @@ public class Game {
 
     public void start() {
         synchronized (puzzleBoard) {
-            for (int i = 0; i < 25; i++) {
+            int puzzleLength = tournamentProperties.getPuzzleSize() * tournamentProperties.getPuzzleSize();
+            for (int i = 0; i < puzzleLength ; i++) {
                 PuzzlePiece puzzlePiece = new PuzzlePiece();
                 puzzlePiece.setIndex(i);
                 puzzleBoard.add(puzzlePiece);
@@ -102,6 +106,13 @@ public class Game {
             log.error("Unable to update puzzle for team " + team.getId(), ex);
         }
         if (won) {
+            log.info("Team " + team.getId() + " won the game!");
+            subscriber.deregisterHandler("games/" + team.getId());
+            subscriber.deregisterHandler("games/" + team.getId() + "/starPower");
+            subscriber.deregisterHandler("games/" + team.getId() + "/peachHeal");
+            subscriber.deregisterHandler("games/" + team.getId() + "/yoshiGuard");
+            subscriber.deregisterHandler("games/" + team.getId() + "/troubleFlipper");
+            subscriber.deregisterHandler("games/" + team.getId() + "/greenShell");
             gameOverListeners.forEach(l -> l.gameOver(this));
         }
     }

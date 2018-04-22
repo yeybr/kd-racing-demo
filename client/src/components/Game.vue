@@ -285,7 +285,7 @@ export default {
         }
         let pieces = msg.puzzle;
         // assume is 5 x 5
-        let size = 5;
+        let size = Math.sqrt(msg.puzzle.length);
         var square = 412;
         if (window.innerWidth < square) {
           square = window.innerWidth;
