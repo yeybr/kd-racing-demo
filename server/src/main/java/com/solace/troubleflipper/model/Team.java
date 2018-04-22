@@ -9,6 +9,7 @@ public class Team {
     private Map<Character, Player> characters = new EnumMap<>(Character.class);
     private List<Player> players = new ArrayList<>();
     private Game game;
+    private int completedGames = 0;
 
     public Team() {
         id = UUID.randomUUID().toString();
@@ -50,5 +51,13 @@ public class Team {
 
     public Player getPlayer(Character character) {
         return characters.get(character);
+    }
+
+    public void addCompletedGame() {
+        completedGames++;
+    }
+
+    public int getCompletedGames() {
+        return completedGames;
     }
 }

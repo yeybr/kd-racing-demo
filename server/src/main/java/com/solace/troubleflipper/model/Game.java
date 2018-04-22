@@ -30,6 +30,7 @@ public class Game {
     private Publisher publisher;
     private Timer timer;
     private final TournamentProperties tournamentProperties;
+    private int correctPieces;
 
     private final Collection<GameOverListener> gameOverListeners = new ArrayList<>();
 
@@ -120,15 +121,19 @@ public class Game {
     public boolean isGameWon() {
         synchronized (puzzleBoard) {
             boolean result = true;
+            correctPieces = 0;
             for (int i = 0; i < puzzleBoard.size(); ++i) {
                 if (puzzleBoard.get(i).getIndex() == i) {
-                    continue;
+                    correctPieces++;
                 }
                 result = false;
-                break;
             }
             return result;
         }
+    }
+
+    public int getCorrectPieces() {
+        return correctPieces;
     }
 
     private void swapPieces(SwapPiecesMessage swapPiecesMessage) {
