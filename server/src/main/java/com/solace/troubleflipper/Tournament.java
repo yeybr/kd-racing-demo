@@ -10,17 +10,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 
 @Component
 public class Tournament {
 
-    private Collection<Player> players = new ArrayList<>();
+    private List<Player> players = new ArrayList<>();
     private boolean started = false;
-    private List<Team> teams;
-    private List<Game> games;
+    private Map<String, Team> teams = new HashMap<>();
+    private Map<String, Game> activeGames = new HashMap<>();
+    private Map<String, Collection<Game>> completedGames = new HashMap<>();
 
     private final JCSMPSession jcsmpSession;
 
@@ -45,38 +44,55 @@ public class Tournament {
         tournamentProperties.setPlayersPerTeam(players.size());
         String newName = tournamentProperties.getNewTeamName();
 
+        if (players.size() >= 4) {
+            for (int i = 0; i < Math.round(players.size() / 2); ++i) {
+                int start = i * 2;
+                List<Player> teamPlayers = new ArrayList<>();
+                teamPlayers.add(players.get(start));
+                teamPlayers.add(players.get(start + 1));
+                addTeam(newName, teamPlayers);
+            }
+        } else {
+            addTeam(newName, players);
+        }
+    }
+
+    private void addTeam(String teamName, Collection<Player> players) {
         Team team = new Team();
-        team.setName(newName);
+
+        team.setName(teamName);
+        completedGames.put(team.getId(), new ArrayList<>());
         Game game = new Game();
         game.setTeam(team);
         team.setGame(game);
-
         for (Player player : players) {
             team.addPlayer(player);
+            player.setTeam(team);
             // TODO need to move this logic to character selection message handling
             team.chooseCharacter(Character.mario, player);
         }
 
-        teams = new ArrayList<>();
-        teams.add(team);
+        teams.put(team.getId(), team);
 
-        games = new ArrayList<>();
-        games.add(game);
+        activeGames.put(team.getId(), game);
     }
 
-    public Game getGame(String teamId) throws IOException {
-        if (teams == null) {
-            return null;
-        }
-        for(Team team:teams) {
-            if(team.getId().equals(teamId)) {
-                return team.getGame();
-            }
-        }
-        return null;
+    public Game getGame(String teamId) {
+        return activeGames.get(teamId);
     }
 
-    public List<Game> getGames() {
-        return games;
+    public Collection<Game> getGames() {
+        return activeGames.values();
+    }
+
+    public Game nextGame(String teamId) {
+        Team team = teams.get(teamId);
+        Game game = activeGames.remove(teamId);
+        completedGames.get(teamId).add(game);
+        Game newGame = new Game();
+        newGame.setTeam(teams.get(teamId));
+        team.setGame(newGame);
+        activeGames.put(teamId, newGame);
+        return newGame;
     }
 }

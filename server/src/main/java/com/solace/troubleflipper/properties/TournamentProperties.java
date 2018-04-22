@@ -1,9 +1,9 @@
 package com.solace.troubleflipper.properties;
 
-//import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 import java.util.Random;
-//import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 

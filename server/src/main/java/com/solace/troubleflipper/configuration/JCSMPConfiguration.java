@@ -21,18 +21,13 @@ import java.util.TimerTask;
 public class JCSMPConfiguration {
 
     private Logger log = LoggerFactory.getLogger("game");
+    private Timer immunityTimer = new Timer("ImmunityTimer");
 
     private XMLMessageProducer producer;
     private ObjectMapper mapper = new ObjectMapper();
 
     @Bean
-    public Timer immunityTimer() {
-        Timer timer = new Timer("ImmunityTimer");
-        return timer;
-    }
-
-    @Bean
-    public JCSMPSession getJCSMPConnector(SolaceCloudProperties solaceCloudProperties, Timer immunityTimer) throws JCSMPException {
+    public JCSMPSession getJCSMPConnector(SolaceCloudProperties solaceCloudProperties) throws JCSMPException {
         JCSMPProperties props = new JCSMPProperties();
         props.setProperty(JCSMPProperties.VPN_NAME, solaceCloudProperties.getVpn());
         props.setProperty(JCSMPProperties.USERNAME, solaceCloudProperties.getUsername());
@@ -127,7 +122,7 @@ public class JCSMPConfiguration {
                                     game.start();
                                     String teamId = game.getTeam().getId();
                                     try {
-                                        updatePuzzleForTeam(teamId, game);
+                                        updatePuzzleForTeam(teamId, game, tournament);
                                     } catch (JCSMPException ex) {
                                         System.err.println("Encountered a JCSMPException, closing consumer channel... " + ex.getMessage());
                                     }
@@ -148,7 +143,7 @@ public class JCSMPConfiguration {
                                 System.out.printf(teamId);
                                 game.swapPieces(swapPiecesMessage.getPiece1(), swapPiecesMessage.getPiece2());
                                 try {
-                                    updatePuzzleForTeam(teamId, game);
+                                    updatePuzzleForTeam(teamId, game, tournament);
                                 } catch (JCSMPException ex) {
                                     System.err.println("Encountered a JCSMPException, closing consumer channel... " + ex.getMessage());
                                 }
@@ -160,7 +155,7 @@ public class JCSMPConfiguration {
                                     mario.useStarPowerUp();
                                     game.starPower(starPowerMessage.getPuzzlePiece());
                                     try {
-                                        updatePuzzleForTeam(teamId, game);
+                                        updatePuzzleForTeam(teamId, game, tournament);
                                     } catch (JCSMPException ex) {
                                         System.err.println("Encountered a JCSMPException, closing consumer channel... " + ex.getMessage());
                                     }
@@ -217,7 +212,7 @@ public class JCSMPConfiguration {
         return session;
     }
 
-    private void updatePuzzleForTeam(String teamId, Game game) throws JCSMPException, IOException {
+    private void updatePuzzleForTeam(String teamId, Game game, Tournament tournament) throws JCSMPException, IOException {
         Topic topic = JCSMPFactory.onlyInstance().createTopic("team/" + teamId);
         BytesMessage bytesMessage = JCSMPFactory.onlyInstance().createMessage(BytesMessage.class);
         UpdatePuzzleMessage updatePuzzleMessage = new UpdatePuzzleMessage();
@@ -226,6 +221,21 @@ public class JCSMPConfiguration {
         updatePuzzleMessage.setGameWon(game.isGameWon());
         bytesMessage.setData(mapper.writeValueAsString(updatePuzzleMessage).getBytes());
         producer.send(bytesMessage, topic);
+        if (game.isGameWon()) {
+            immunityTimer.schedule(new TimerTask() {
+                @Override
+                public void run() {
+                    Game newGame = tournament.nextGame(teamId);
+                    newGame.start();
+                    try {
+                        updatePuzzleForTeam(teamId, newGame, tournament);
+                    } catch (JCSMPException | IOException ex) {
+                        System.err.println("Encountered a JCSMPException, closing consumer channel... " + ex.getMessage());
+                    }
+                }
+            }, 3000);
+
+        }
     }
 
     private String getMessageStr(BytesXMLMessage message) throws IOException {
