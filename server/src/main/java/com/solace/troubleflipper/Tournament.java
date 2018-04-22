@@ -24,6 +24,7 @@ public class Tournament implements GameOverListener {
     private Map<String, Game> activeGames = new HashMap<>();
     private Map<String, Collection<Game>> completedGames = new HashMap<>();
     private final LinkedList<Team> teamRankings = new LinkedList<>();
+    private final LinkedList<Player> playerRankings = new LinkedList<>();
 
     private final JCSMPSession jcsmpSession;
     private final Subscriber subscriber;
@@ -74,6 +75,7 @@ public class Tournament implements GameOverListener {
         if ((tournamentMessage.getAction().equals("buildTeams")) && (getPlayers().size() > 0)) {
             prepareTeams();
             for (Player player : getPlayers()) {
+                playerRankings.add(player);
                 try {
                     subscriber.subscribeForClient("team/" + player.getTeam().getId(), player.getClientName());
                 } catch (SubscriberException ex) {
@@ -97,7 +99,11 @@ public class Tournament implements GameOverListener {
         teams.clear();
         activeGames.clear();
         completedGames.clear();
+        teamRankings.clear();
+        playerRankings.clear();
+        timer.cancel();
         timer.purge();
+        timer = new Timer("TournamentTimer");
         tournamentProperties.setPlayersPerTeam(players.size());
 
         if (players.size() >= 4) {
@@ -117,17 +123,17 @@ public class Tournament implements GameOverListener {
         timer.schedule(new TimerTask() {
             @Override
             public void run() {
-                Collections.sort(players, (player1, player2) -> {
+                Collections.sort(playerRankings, (player1, player2) -> {
                     int player1Score = player1.getRightMoves() - player1.getWrongMoves();
                     int player2Score = player1.getRightMoves() - player1.getWrongMoves();
                     return player1Score - player2Score;
                 });
-                for (int i = 0; i < players.size(); ++i) {
-                    Player player = players.get(i);
+                for (int i = 0; i < playerRankings.size(); ++i) {
+                    Player player = playerRankings.get(i);
                     PlayerRankMessage playerRankMessage = new PlayerRankMessage();
                     playerRankMessage.setRank(i + 1);
                     playerRankMessage.setId(player.getClientName());
-                    playerRankMessage.setTotalPlayers(players.size());
+                    playerRankMessage.setTotalPlayers(playerRankings.size());
                     try {
                         publisher.publish("score/" + player.getClientName(), playerRankMessage);
                     } catch (PublisherException ex) {

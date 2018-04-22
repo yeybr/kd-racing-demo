@@ -141,8 +141,9 @@ public class Game {
             for (int i = 0; i < puzzleBoard.size(); ++i) {
                 if (puzzleBoard.get(i).getIndex() == i) {
                     correctPieces++;
+                } else {
+                    result = false;
                 }
-                result = false;
             }
             return result;
         }
