@@ -292,7 +292,7 @@ export default {
         }
         this.puzzleStyle = `width: ${square}px; height: ${square}px;`;
 
-        var splits = Math.floor(99 / size);
+        var splits = 100/size;
         var movePercent = splits / 100;
         var unit = square * movePercent;
         this.holderStyle.width = unit + "px";
