@@ -125,7 +125,7 @@ public class Tournament implements GameOverListener {
             public void run() {
                 Collections.sort(playerRankings, (player1, player2) -> {
                     int player1Score = player1.getRightMoves() - player1.getWrongMoves();
-                    int player2Score = player1.getRightMoves() - player1.getWrongMoves();
+                    int player2Score = player2.getRightMoves() - player2.getWrongMoves();
                     return player1Score - player2Score;
                 });
                 for (int i = 0; i < playerRankings.size(); ++i) {
@@ -147,9 +147,9 @@ public class Tournament implements GameOverListener {
             @Override
             public void run() {
                 Collections.sort(teamRankings, (team1, team2) -> {
-                    int team1Winning = team1.getCompletedGames() - team2.getCompletedGames();
+                    int team1Winning = team2.getCompletedGames() - team1.getCompletedGames();
                     if (team1Winning == 0) {
-                        team1Winning = team1.getGame().getCorrectPieces() - team2.getGame().getCorrectPieces();
+                        team1Winning = team2.getGame().getCorrectPieces() - team1.getGame().getCorrectPieces();
                     }
                     return team1Winning;
                 });
