@@ -16,4 +16,9 @@ public class Mario extends Player {
     public void heal() {
         this.starPowerUps = 3;
     }
+
+    @Override
+    public Character getCharacter() {
+        return Character.mario;
+    }
 }

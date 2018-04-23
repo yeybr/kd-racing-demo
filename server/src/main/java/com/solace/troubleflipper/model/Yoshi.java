@@ -16,4 +16,9 @@ public class Yoshi extends Player {
     public void heal() {
         immuneUsed = false;
     }
+
+    @Override
+    public Character getCharacter() {
+        return Character.yoshi;
+    }
 }

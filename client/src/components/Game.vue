@@ -39,7 +39,7 @@
         </div>
         <div class="heromug yoshi"  data_id="yoshi" @click="pickAvatar">
           <div class="heroselect"></div>
-          <div class="nametag" hero-name="bowser">Yoshi</div>
+          <div class="nametag" hero-name="yoshi">Yoshi</div>
         </div>
         <div class="heromug peach" data_id="peach" @click="pickAvatar">
           <div class="heroselect"></div>
@@ -208,6 +208,8 @@ export default {
         teamName: "",
         players: [],
         puzzleName: "",
+        totalTeam: 0,
+        teamRank: 0,
         timeAllowedForEachMove: 0
       },
       teamRank: {
@@ -249,7 +251,6 @@ export default {
         newState = 'waiting';
         this.handleStateChange(newState);
         return;
-     
       } else if (msg instanceof TeamsMessage) {
         let teamMsg = {};
         teamMsg.gameWon = msg.gameWon;
@@ -259,7 +260,7 @@ export default {
         let teamInfo = {
           teamName: 'Team 1',
           puzzleName: 'puzzle3',
-          timeAllowedForEachMove: 10,
+          timeAllowedForEachMove: 10
         };
         teamMsg.teamInfo = teamInfo;
         if (msg.teamId) {
@@ -272,7 +273,6 @@ export default {
         } else {
           teamInfo.players = this.teamInfo.players;
         }
-        
         this.handleTeamsMessage(teamMsg);
       } else if (msg.connected == false) {
         newState = 'connecting';
@@ -283,12 +283,10 @@ export default {
            this.teamRank.rank = msg.rank;
            this.teamRank.totalTeam = msg.totalTeams;
          }
-
       } else if (msg instanceof PlayerRankMessage) {
           this.rank = msg.rank;
           this.totalPlayers = msg.totalPlayers;
-          
-      } 
+      }
     },
     handleTeamsMessage: function(msg) {
       console.log('teamMsg', msg);
@@ -446,7 +444,7 @@ export default {
       console.log("random swap");
       var piece1 = this.puzzle[this.getRandomInt(9)];
       var piece2 = this.puzzle[this.getRandomInt(9)];
-      this.swap(piece1, piece2);
+      // this.swap(piece1, piece2);
     },
     select: function(e) {
       let isAlreadySelected = this.puzzle.find(p => {
@@ -473,11 +471,17 @@ export default {
     },
     power: function() {
       if (this.character === "peach") {
-        console.log("Peach Heal power activated!");
+        // TODO popup a modal to pick a teammate
         this.playerMessenger.peachHeal("mario");
       } else if (this.character === "mario" && this.selected) {
         let puzzlePiece = {index: this.selected.index};
         this.playerMessenger.starPower(puzzlePiece);
+      } else if (this.character === "bowser") {
+        this.playerMessenger.troubleFlipper();
+      } else if (this.character === "yoshi") {
+        this.playerMessenger.yoshiGuard();
+      } else if (this.character === "goomba") {
+        this.playerMessenger.greenShell();
       }
     },
     checkWinCondition: function(gameWon) {
