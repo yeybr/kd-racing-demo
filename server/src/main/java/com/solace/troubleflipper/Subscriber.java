@@ -59,7 +59,11 @@ public class Subscriber {
             }
         } else {
             Runnable runnable = (Runnable) handlers.get(topic);
-            runnable.run();
+            if (runnable == null) {
+                log.error("Null handler for topic " + topic);
+            } else {
+                runnable.run();
+            }
         }
     }
 

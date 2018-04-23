@@ -1,7 +1,5 @@
 package com.solace.troubleflipper.model;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.solace.troubleflipper.GameOverListener;
 import com.solace.troubleflipper.Publisher;
 import com.solace.troubleflipper.Subscriber;
@@ -9,9 +7,8 @@ import com.solace.troubleflipper.messages.PeachHealMessage;
 import com.solace.troubleflipper.messages.StarPowerMessage;
 import com.solace.troubleflipper.messages.SwapPiecesMessage;
 import com.solace.troubleflipper.messages.UpdatePuzzleMessage;
+import com.solace.troubleflipper.properties.BadGuyActionHandler;
 import com.solace.troubleflipper.properties.TournamentProperties;
-import com.solacesystems.jcsmp.JCSMPFactory;
-import com.solacesystems.jcsmp.TextMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -24,28 +21,32 @@ public class Game {
     private final List<PuzzlePiece> puzzleBoard = new ArrayList<>();
     private String puzzleName;
     private Team team;
-    private boolean immune = false;
 
     private Subscriber subscriber;
     private Publisher publisher;
     private Timer timer;
     private final TournamentProperties tournamentProperties;
+    private final BadGuyActionHandler badGuyActionHandler;
+    private boolean gameOver = false;
+
     private int correctPieces;
 
     private final Collection<GameOverListener> gameOverListeners = new ArrayList<>();
 
-    public Game(Team team, Subscriber subscriber, Publisher publisher, Timer timer, TournamentProperties tournamentProperties) {
+    public Game(Team team, Subscriber subscriber, Publisher publisher, Timer timer,
+                TournamentProperties tournamentProperties, BadGuyActionHandler badGuyActionHandler) {
         this.team = team;
         this.subscriber = subscriber;
         this.publisher = publisher;
         this.timer = timer;
         this.tournamentProperties = tournamentProperties;
+        this.badGuyActionHandler = badGuyActionHandler;
         subscriber.registerHandler(SwapPiecesMessage.class, "games/" + team.getId(), this::swapPieces);
         subscriber.registerHandler(StarPowerMessage.class, "games/" + team.getId() + "/starPower", this::starPowerHandler);
         subscriber.registerHandler(PeachHealMessage.class, "games/" + team.getId() + "/peachHeal", this::peachHealHandler);
         subscriber.registerHandler("games/" + team.getId() + "/yoshiGuard", this::yoshiGuardHandler);
-        subscriber.registerHandler("games/" + team.getId() + "/troubleFlipper", this::troubleFlipper);
-        subscriber.registerHandler("games/" + team.getId() + "/greenShell", this::greenShell);
+        subscriber.registerHandler("games/" + team.getId() + "/troubleFlipper", this::troubleFlipperHandler);
+        subscriber.registerHandler("games/" + team.getId() + "/greenShell", this::greenShellHandler);
     }
 
     public void addGameOverListener(GameOverListener gameOverListener) {
@@ -53,15 +54,11 @@ public class Game {
     }
 
 
-    public List<PuzzlePiece> getPuzzleBoard() {
-        return puzzleBoard;
-    }
-
     public Team getTeam() {
         return team;
     }
 
-    public void swapPieces(PuzzlePiece piece1, PuzzlePiece piece2, Player player) {
+    private void swapPieces(PuzzlePiece piece1, PuzzlePiece piece2, Player player) {
         synchronized (puzzleBoard) {
             try {
                 PuzzlePiece bPiece1 = findPuzzlePiece(piece1.getIndex());
@@ -90,7 +87,7 @@ public class Game {
         }
     }
 
-    public PuzzlePiece findPuzzlePiece(int index) throws NoPieceFoundException {
+    private PuzzlePiece findPuzzlePiece(int index) throws NoPieceFoundException {
         for (PuzzlePiece puzzlePiece : puzzleBoard) {
             if (puzzlePiece.getIndex() == index) {
                 return puzzlePiece;
@@ -115,7 +112,7 @@ public class Game {
         boolean won = isGameWon();
         UpdatePuzzleMessage updatePuzzleMessage = new UpdatePuzzleMessage();
         updatePuzzleMessage.setTeamId(team.getId());
-        updatePuzzleMessage.setPuzzle(getPuzzleBoard());
+        updatePuzzleMessage.setPuzzle(puzzleBoard);
         updatePuzzleMessage.setGameWon(won);
         try {
             publisher.publish("team/" + team.getId(), updatePuzzleMessage);
@@ -134,7 +131,7 @@ public class Game {
         }
     }
 
-    public boolean isGameWon() {
+    private boolean isGameWon() {
         synchronized (puzzleBoard) {
             boolean result = true;
             correctPieces = 0;
@@ -144,6 +141,9 @@ public class Game {
                 } else {
                     result = false;
                 }
+            }
+            if (result) {
+                gameOver = true;
             }
             return result;
         }
@@ -182,34 +182,55 @@ public class Game {
 
     private void yoshiGuardHandler() {
         Yoshi yoshi = (Yoshi) getTeam().getPlayer(Character.yoshi);
-        if (yoshi.isImmuneUsed()) {
+        if (!yoshi.isImmuneUsed()) {
             yoshi.useImmune();
-            setImmune(true);
+            team.setImmune(true);
+            log.info("Team " + team.getName() + " is protected by Yoshi Guard for the next 10 seconds");
             timer.schedule(new TimerTask() {
                 @Override
                 public void run() {
-                    setImmune(false);
+                    team.setImmune(false);
+                    log.info("Team " + team.getName() + " is no longer protected by Yoshi Guard");
                 }
             }, 10000);
         }
     }
 
-    public void starPower(PuzzlePiece selectedPuzzlePiece) {
+    private void troubleFlipperHandler() {
+        Bowser bowser = (Bowser) getTeam().getPlayer(Character.bowser);
+        if (bowser.isTroubleFlipperUsed()) {
+            bowser.useTroubleFlipper();
+            badGuyActionHandler.troubleFlipper(bowser);
+        }
+    }
+
+    private void greenShellHandler() {
+        Goomba goomba = (Goomba) getTeam().getPlayer(Character.goomba);
+        if (goomba.getGreenShells() > 0) {
+            goomba.useGreenShell();
+            badGuyActionHandler.greenShell(goomba);
+        }
+    }
+
+    private void starPower(PuzzlePiece selectedPuzzlePiece) {
         int correctIndexForPuzzlePiece = selectedPuzzlePiece.getIndex();
         Player mario = team.getPlayer(Character.mario);
         swapPieces(selectedPuzzlePiece, puzzleBoard.get(correctIndexForPuzzlePiece), mario);
     }
 
     public void troubleFlipper() {
-        if (!immune) {
+        if (!gameOver && !team.isImmune()) {
             synchronized (puzzleBoard) {
                 Collections.shuffle(puzzleBoard);
             }
+            updatePuzzleForTeam();
+        } else if (team.isImmune()) {
+            log.info("Team " + team.getName() + " has yoshi guarded a trouble flipper attack!!!");
         }
     }
 
     public void greenShell() {
-        if (!immune) {
+        if (!gameOver && !team.isImmune()) {
             List<PuzzlePiece> correctPieces = new ArrayList<>();
             synchronized (puzzleBoard) {
                 for (int i = 0; i < puzzleBoard.size(); ++i) {
@@ -225,20 +246,10 @@ public class Game {
             } else if (correctPieces.size() == 1) {
                 // TODO should probably swap a single piece with a random piece here
             }
+            updatePuzzleForTeam();
+        } else if (team.isImmune()) {
+            log.info("Team " + team.getName() + " has yoshi guarded a green shell attack!");
         }
     }
 
-    public TextMessage getTextMessage (ObjectMapper mapper) throws JsonProcessingException {
-        TextMessage textMessage = JCSMPFactory.onlyInstance().createMessage(TextMessage.class);
-        UpdatePuzzleMessage updatePuzzleMessage = new UpdatePuzzleMessage();
-        updatePuzzleMessage.setTeamId(team.getId());
-        updatePuzzleMessage.setPuzzle(puzzleBoard);
-        updatePuzzleMessage.setGameWon(false);
-        textMessage.setText(mapper.writeValueAsString(updatePuzzleMessage));
-        return textMessage;
-    }
-
-    public void setImmune(boolean immune) {
-        this.immune = immune;
-    }
 }

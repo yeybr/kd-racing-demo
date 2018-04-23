@@ -170,32 +170,27 @@ export class Player {
         {
           clientId: this.clientId,
           username: this.username,
-          avatar: avatar,
-          rank: 2
+          avatar: avatar
         },
         {
           clientId: '1',
           username: 'Kevin',
-          avatar: 'peach',
-          rank: 1
+          avatar: 'peach'
         },
         {
           clientId: '2',
           username: 'Rob',
-          avatar: 'yoshi',
-          rank: 3
+          avatar: 'yoshi'
         },
         {
           clientId: '5',
           username: 'Roland',
-          avatar: 'toad',
-          rank: 4
+          avatar: 'bowser'
         },
         {
           clientId: '6',
           username: 'Bob',
-          avatar: 'goomba',
-          rank: 5
+          avatar: 'goomba'
         },
       ]
     });
@@ -227,6 +222,30 @@ export class Player {
     var peachHealMessage = new PeachHealMessage(character);
     try {
       publishMessageToTopic(this.gameTopic + "/peachHeal", peachHealMessage, this.session, this.solaceApi);
+    } catch (error) {
+      console.log("Publish failed. error = ", error);
+    }
+  }
+
+  troubleFlipper() {
+    try {
+      publishMessageToTopic(this.gameTopic + "/troubleFlipper", {}, this.session, this.solaceApi);
+    } catch (error) {
+      console.log("Publish failed. error = ", error);
+    }
+  }
+
+  yoshiGuard() {
+    try {
+      publishMessageToTopic(this.gameTopic + "/yoshiGuard", {}, this.session, this.solaceApi);
+    } catch (error) {
+      console.log("Publish failed. error = ", error);
+    }
+  }
+
+  greenShell() {
+    try {
+      publishMessageToTopic(this.gameTopic + "/greenShell", {}, this.session, this.solaceApi);
     } catch (error) {
       console.log("Publish failed. error = ", error);
     }

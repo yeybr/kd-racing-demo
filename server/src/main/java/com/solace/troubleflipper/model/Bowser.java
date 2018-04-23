@@ -16,4 +16,9 @@ public class Bowser extends Player {
     public void heal() {
         troubleFlipperUsed = false;
     }
+
+    @Override
+    public Character getCharacter() {
+        return Character.bowser;
+    }
 }

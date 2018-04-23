@@ -39,7 +39,7 @@
         </div>
         <div class="heromug yoshi"  data_id="yoshi" @click="pickAvatar">
           <div class="heroselect"></div>
-          <div class="nametag" hero-name="bowser">Yoshi</div>
+          <div class="nametag" hero-name="yoshi">Yoshi</div>
         </div>
         <div class="heromug peach" data_id="peach" @click="pickAvatar">
           <div class="heroselect"></div>
@@ -333,7 +333,7 @@ export default {
             this.character = me.avatar;
             this.avatarLink = `url("static/${me.avatar}-mario.jpg")`;
             this.styleAvatar["background-image"] = this.avatarLink;
-            this.rank = me.rank;
+            this.rank = 1;
           }
         }
         this.updateData(this.teamInfo, msg.teamInfo);
@@ -448,11 +448,17 @@ export default {
     },
     power: function() {
       if (this.character === "peach") {
-        console.log("Peach Heal power activated!");
+        // TODO popup a modal to pick a teammate
         this.playerMessenger.peachHeal("mario");
       } else if (this.character === "mario" && this.selected) {
         let puzzlePiece = {index: this.selected.index};
         this.playerMessenger.starPower(puzzlePiece);
+      } else if (this.character === "bowser") {
+        this.playerMessenger.troubleFlipper();
+      } else if (this.character === "yoshi") {
+        this.playerMessenger.yoshiGuard();
+      } else if (this.character === "goomba") {
+        this.playerMessenger.greenShell();
       }
     },
     checkWinCondition: function(gameWon) {
