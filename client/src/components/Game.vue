@@ -93,7 +93,7 @@
       <div class="rank">
         <div class="label">Overall Rank</div>
         <div class="value">
-          {{rank}}
+          {{rank}}/{{totalPlayers}}
         </div>
       </div>
     </div>
@@ -101,7 +101,7 @@
 </template>
 
 <script>
-import { UsersAckMessage, TeamsMessage, parseReceivedMessage } from '@/messaging/messages.js';
+import { UsersAckMessage, TeamsMessage, parseReceivedMessage, PlayerRankMessage, TeamRankMessage } from '@/messaging/messages.js';
 import { Player } from "@/messaging/player";
 import CommonUtils from "./common-utils";
 export default {
@@ -183,6 +183,7 @@ export default {
       username: this.username,
       avatarLink: avatarLink,
       rank: 0,
+      totalPlayers: 0,
       puzzlePicture: 'static/puzzle1.png',
       holderStyle: {
         width: "0px",
@@ -245,6 +246,7 @@ export default {
         newState = 'waiting';
         this.handleStateChange(newState);
         return;
+     
       } else if (msg instanceof TeamsMessage) {
         let teamMsg = {};
         teamMsg.gameWon = msg.gameWon;
@@ -268,12 +270,23 @@ export default {
         } else {
           teamInfo.players = this.teamInfo.players;
         }
+        
         this.handleTeamsMessage(teamMsg);
       } else if (msg.connected == false) {
         newState = 'connecting';
         this.handleStateChange(newState);
         return;
-      }
+       }  else if (msg instanceof TeamRankMessage) {
+         if (this.teamInfo) {
+           this.teamInfo.teamRank = msg.rank;
+           this.teamInfo.totalTeam = msg.totalTeams;
+         }
+
+      } else if (msg instanceof PlayerRankMessage) {
+          this.rank = msg.rank;
+          this.totalPlayers = msg.totalPlayers;
+          
+      } 
     },
     handleTeamsMessage: function(msg) {
       console.log('teamMsg', msg);
