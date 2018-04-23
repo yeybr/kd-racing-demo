@@ -82,10 +82,11 @@ export class TeamsMessage extends TroubleFlipperMessage {
 }
 
 export class SwapMessage extends TroubleFlipperMessage {
-  constructor(piece1, piece2) {
+  constructor(piece1, piece2, clientName) {
     super();
     this.piece1 = piece1;
     this.piece2 = piece2;
+    this.clientName = clientName;
   }
 }
 
@@ -100,6 +101,24 @@ export class PeachHealMessage extends TroubleFlipperMessage {
   constructor(character) {
     super();
     this.character = character;
+  }
+}
+//score/id 
+export class PlayerRankMessage extends TroubleFlipperMessage {
+  constructor(id, rank, totalPlayers) {
+    super();
+    // this.id = id;
+    // this.rank = rank;
+    // this.total = totalPlayers;
+  }
+}
+//score/teamId 
+export class TeamRankMessage extends TroubleFlipperMessage {
+  constructor(teamId, rank, totalTeams) {
+    super();
+    // this.id = teamId;
+    // this.rank = rank;
+    // this.total = totalTeams;
   }
 }
 
@@ -118,6 +137,13 @@ export function parseReceivedMessage(topic, msg) {
     return Object.assign(new UsersAckMessage, msgObj);
   } else if (topic.startsWith('team/')) {
     return Object.assign(new TeamsMessage, msgObj);
+  } else if (topic.startsWith('score/')) {
+    if (msgObj.teamId) {
+      return Object.assign(new TeamRankMessage, msgObj);
+    } else {
+      return Object.assign(new PlayerRankMessage, msgObj);
+    }
+   
   } else {
     console.log('Unexpected topic', topic);
     return null;

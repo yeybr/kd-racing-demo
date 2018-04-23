@@ -7,7 +7,7 @@
       <div class="header-info">
         <div class="user-info">
           <div class="name-tag">{{username}} </div>
-          <div class="profile" :style="styleAvatar" @click="power">
+          <div class="profile" :style="styleAvatar" >
           </div>
         </div>
         <div class="others-info">
@@ -61,7 +61,6 @@
         </transition-group>
         <div v-if="win" id="win">
           Winner!
-          <div class="countdown">Next game starting in {{countdown}}</div>
         </div>
       </div>
     </div>
@@ -70,38 +69,53 @@
     </div> -->
     <!-- shape="M50,3l12,36h38l-30,22l11,36l-31-21l-31,21l11-36l-30-22h38z"		 -->
     <div v-if="state === 'playing'" class="rank-container backgroundwhite">
-      <div class="rank">
-        <div class="label">Team Rank</div>
-        <div class="value">
-          {{teamInfo.teamRank}}/{{teamInfo.totalTeam}}
-        </div>
-      </div>
+      <div class="rank">Team Rank: {{teamInfo.teamRank}}/{{teamInfo.totalTeam}}</div>
       <div class="statusbar">
+        <span v-if="timeForEachMove > 0" class="label">
+        Time Remaining
+        </span>
         <template v-if="timeForEachMove > 0">
-          <loading-progress
-            :progress="progress"
-            :indeterminate="indeterminate"
-            :counter-clockwise="counterClockwise"
-            shape="circle"
-            size="20"
-            height="40"
-            width="40"
-            fill-duration="1"
-          />
+        <loading-progress
+          :progress="progress"
+          :indeterminate="indeterminate"
+          :counter-clockwise="counterClockwise"
+          shape="circle"
+          size="20"
+          height="40"
+          width="40"
+           rotate
+  fillDuration=".1"
+  rotationDuration=".2"
+
+        />
+        <!-- <loading-progress
+          :progress="progress"
+          :indeterminate="indeterminate"
+          shape="M 0.000 4.000
+          L 5.878 8.090
+          L 3.804 1.236
+          L 9.511 -3.090
+          L 2.351 -3.236
+          L 0.000 -10.000
+          L -2.351 -3.236
+          L -9.511 -3.090
+          L -3.804 1.236
+          L -5.878 8.090
+          L 0.000 4.000"
+          size="0"
+          height="40"
+          width="40"
+          fill-duration="1"
+        /> -->
         </template>
       </div>
-      <div class="rank">
-        <div class="label">Overall Rank</div>
-        <div class="value">
-          {{rank}}/{{totalPlayers}}
-        </div>
-      </div>
+      <div class="rank">Individual Rank: {{rank}}/5</div>
     </div>
   </div>
 </template>
 
 <script>
-import { UsersAckMessage, TeamsMessage, parseReceivedMessage, PlayerRankMessage, TeamRankMessage } from '@/messaging/messages.js';
+import { UsersAckMessage, TeamsMessage, parseReceivedMessage } from '@/messaging/messages.js';
 import { Player } from "@/messaging/player";
 import CommonUtils from "./common-utils";
 export default {
@@ -175,7 +189,7 @@ export default {
     return {
       // UI only
       title: "Trouble Flipper",
-      state: "connecting",
+      state: "playing",
       win: false,
       timeRemaining: 0, // timing remaining for current move before shuffle
       timeForEachMove: 0,
@@ -183,7 +197,6 @@ export default {
       username: this.username,
       avatarLink: avatarLink,
       rank: 0,
-      totalPlayers: 0,
       puzzlePicture: 'static/puzzle1.png',
       holderStyle: {
         width: "0px",
@@ -210,8 +223,7 @@ export default {
         totalTeam: 0,
         teamRank: 0,
         timeAllowedForEachMove: 0
-      },
-      countdown: 3
+      }
     };
   },
 
@@ -246,10 +258,8 @@ export default {
         newState = 'waiting';
         this.handleStateChange(newState);
         return;
-     
       } else if (msg instanceof TeamsMessage) {
         let teamMsg = {};
-        teamMsg.gameWon = msg.gameWon;
         if (msg.puzzle) {
           teamMsg.puzzle = msg.puzzle;
         }
@@ -270,23 +280,12 @@ export default {
         } else {
           teamInfo.players = this.teamInfo.players;
         }
-        
         this.handleTeamsMessage(teamMsg);
       } else if (msg.connected == false) {
         newState = 'connecting';
         this.handleStateChange(newState);
         return;
-       }  else if (msg instanceof TeamRankMessage) {
-         if (this.teamInfo) {
-           this.teamInfo.teamRank = msg.rank;
-           this.teamInfo.totalTeam = msg.totalTeams;
-         }
-
-      } else if (msg instanceof PlayerRankMessage) {
-          this.rank = msg.rank;
-          this.totalPlayers = msg.totalPlayers;
-          
-      } 
+      }
     },
     handleTeamsMessage: function(msg) {
       console.log('teamMsg', msg);
@@ -298,14 +297,14 @@ export default {
         }
         let pieces = msg.puzzle;
         // assume is 5 x 5
-        let size = Math.sqrt(msg.puzzle.length);
+        let size = 5;
         var square = 412;
         if (window.innerWidth < square) {
           square = window.innerWidth;
         }
         this.puzzleStyle = `width: ${square}px; height: ${square}px;`;
 
-        var splits = 100/size;
+        var splits = Math.floor(99 / size);
         var movePercent = splits / 100;
         var unit = square * movePercent;
         this.holderStyle.width = unit + "px";
@@ -319,7 +318,7 @@ export default {
         this.updateArray(this.puzzle, pieces);
         this.selected = null;
         if (newState !== 'start') {
-          this.checkWinCondition(msg.gameWon);
+          this.checkWinCondition();
         }
       }
       if (msg.teamInfo) {
@@ -343,7 +342,6 @@ export default {
             }
           });
           if (me) {
-            this.character = me.avatar;
             this.avatarLink = `url("static/${me.avatar}-mario.jpg")`;
             this.styleAvatar["background-image"] = this.avatarLink;
             this.rank = me.rank;
@@ -459,27 +457,13 @@ export default {
       });
       this.playerMessenger.swap(piece1, piece2, pieces);
     },
-    power: function() {
-      if (this.character === "peach") {
-        console.log("Peach Heal power activated!");
-        this.playerMessenger.peachHeal("mario");
-      } else if (this.character === "mario" && this.selected) {
-        let puzzlePiece = {index: this.selected.index};
-        this.playerMessenger.starPower(puzzlePiece);
-      }
-    },
-    checkWinCondition: function(gameWon) {
-      this.win = gameWon;
+    checkWinCondition: function() {
+      this.win = this.puzzle.reduce((result, piece, i) => {
+        return result && piece.index == i;
+      }, true);
       if (this.win) {
         console.log("WINNER!");
         this.stopCountDown();
-        var i = setInterval(() => {
-          this.countdown--;
-          if (this.countdown === 0) {
-            this.countdown = 3;
-            clearInterval(i);
-          }
-        }, 1000);
       } else {
         // reset timeRemaining
         this.timeRemaining = this.timeForEachMove;
@@ -634,6 +618,10 @@ a {
   display: flex;
   align-items: center;
   justify-content: center;
+  min-height: 412px;
+}
+#puzzle {
+  border: solid 1px grey;
 }
 .hidden-image {
   position: fixed;
@@ -676,14 +664,7 @@ a {
   display: flex;
   justify-content: center;
   align-items: center;
-  flex-direction: column;
 }
-
-#win .countdown {
-  font-size: 30px;
-  color: #ffee01;
-}
-
 .highlight {
   position: absolute;
   top: 0;
@@ -700,7 +681,7 @@ a {
   text-align: center;
   background: #bfa5a538;
   padding: 5px;
-  font-size: 4vh;
+  font-size: 9vw;
 }
 .heros {
   display: flex;
@@ -771,24 +752,21 @@ a {
   display: flex;
   flex-direction: row;
   justify-content: space-around;
-  align-items: stretch;
-  min-height: 60px;
-  border-top: 1px solid grey;
-}
-.rank-container > div {
-  padding-top: 3px;
-  border-right: 1px solid grey;
-}
-
-.rank-container div:last-child {
-  border-right: none;
+  align-items: flex-end;
+  margin-bottom: 5px;
+  min-height: 50px;
 }
 .rank-container .rank {
-  flex: 1;
-  text-align: center;
+  padding: 15px 10px 5px 10px;
+  /* border: 1px #80808085 solid; */
+  margin: 4px;
 }
 .vue-progress-path .progress {
   stroke: red;
+}
+.vue-progress-path.indeterminate svg {
+  /* width: 50px !important;
+    height: 50px !important; */
 }
 .rank-container .statusbar {
   flex: 1 1 auto;
@@ -798,13 +776,9 @@ a {
   align-items: center;
   position: relative;
 }
-.rank-container .label {
-  line-height: 12px;
-  font-size: 12px;
-}
-.rank-container .value {
-  font-size: 40px;
-  line-height: 40px;
+
+.rank-container .statusbar .label {
+  padding-right: 5px;
 }
 
 </style>
