@@ -73,7 +73,7 @@
       <div class="rank">
         <div class="label">Team Rank</div>
         <div class="value">
-          {{teamInfo.teamRank}}/{{teamInfo.totalTeam}}
+          {{teamRank.rank}}/{{teamRank.totalTeam}}
         </div>
       </div>
       <div class="statusbar">
@@ -207,9 +207,11 @@ export default {
         teamName: "",
         players: [],
         puzzleName: "",
-        totalTeam: 0,
-        teamRank: 0,
         timeAllowedForEachMove: 0
+      },
+      teamRank: {
+        rank: 0,
+        totalTeam: 0
       },
       countdown: 3
     };
@@ -257,7 +259,6 @@ export default {
           teamName: 'Team 1',
           puzzleName: 'puzzle3',
           timeAllowedForEachMove: 10,
-          totalTeam: 5,
         };
         teamMsg.teamInfo = teamInfo;
         if (msg.teamId) {
@@ -277,9 +278,9 @@ export default {
         this.handleStateChange(newState);
         return;
        }  else if (msg instanceof TeamRankMessage) {
-         if (this.teamInfo) {
-           this.teamInfo.teamRank = msg.rank;
-           this.teamInfo.totalTeam = msg.totalTeams;
+         if (this.teamRank) {
+           this.teamRank.rank = msg.rank;
+           this.teamRank.totalTeam = msg.totalTeams;
          }
 
       } else if (msg instanceof PlayerRankMessage) {
@@ -346,7 +347,7 @@ export default {
             this.character = me.avatar;
             this.avatarLink = `url("static/${me.avatar}-mario.jpg")`;
             this.styleAvatar["background-image"] = this.avatarLink;
-            this.rank = me.rank;
+            // this.rank = me.rank;
           }
         }
         this.updateData(this.teamInfo, msg.teamInfo);

@@ -208,7 +208,7 @@ export class Player {
     console.log('publish swap message to ' + this.gameTopic, piece1, piece2);
 
     // The response from server is not the whole puzzle, but echo back the request
-    var swapMessage = new SwapMessage(piece1, piece2, this.clientName); 
+    var swapMessage = new SwapMessage(piece1, piece2, this.clientId); 
     try {
       publishMessageToTopic(this.gameTopic, swapMessage, this.session, this.solaceApi);
     } catch (error) {
