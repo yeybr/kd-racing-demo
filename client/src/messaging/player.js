@@ -35,7 +35,6 @@ export class Player {
           this.clientId = this.session.getSessionProperties().clientName;
           console.log('Successfully connected with clientId ' + this.clientId);
           this.subscribeToTopic('user/' + this.clientId);
-          this.subscribeToTopic('score/' + this.clientId);
         });
         this.session.on(solace.SessionEventCode.CONNECT_FAILED_ERROR, (sessionEvent) => {
           console.log('Connection failed to the message router: ' + sessionEvent.infoStr +
@@ -100,8 +99,6 @@ export class Player {
           // set team topic
           this.teamTopic = topic;
           this.gameTopic = 'games/' + messageInstance.teamId;
-          console.log('sub');
-          this.subscribeToTopic('score/' + messageInstance.teamId);
         }
         if (messageInstance !== null) {
           this.msgCallback(messageInstance);
@@ -204,7 +201,7 @@ export class Player {
     console.log('publish swap message to ' + this.gameTopic, piece1, piece2);
 
     // The response from server is not the whole puzzle, but echo back the request
-    var swapMessage = new SwapMessage(piece1, piece2, this.clientName); 
+    var swapMessage = new SwapMessage(piece1, piece2, this.clientId); 
     try {
       publishMessageToTopic(this.gameTopic, swapMessage, this.session, this.solaceApi);
     } catch (error) {

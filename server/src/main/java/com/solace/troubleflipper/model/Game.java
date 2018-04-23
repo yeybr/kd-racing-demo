@@ -59,16 +59,6 @@ public class Game {
     }
 
     private void swapPieces(PuzzlePiece piece1, PuzzlePiece piece2, Player player) {
-        synchronized (puzzleBoard) {
-            try {
-                PuzzlePiece bPiece1 = findPuzzlePiece(piece1.getIndex());
-                PuzzlePiece bPiece2 = findPuzzlePiece(piece2.getIndex());
-                bPiece1.setIndex(piece2.getIndex());
-                bPiece2.setIndex(piece1.getIndex());
-            } catch (NoPieceFoundException ex) {
-                log.error("Unable to swap pieces " + piece1.getIndex() + " and " + piece2.getIndex(), ex);
-            }
-        }
         if (player != null) {
             int piece1Position = puzzleBoard.indexOf(piece1);
             int piece2Position = puzzleBoard.indexOf(piece2);
@@ -83,6 +73,16 @@ public class Game {
             }
             if (piece2Position == piece1.getIndex()) {
                 player.rightMove();
+            }
+        }
+        synchronized (puzzleBoard) {
+            try {
+                PuzzlePiece bPiece1 = findPuzzlePiece(piece1.getIndex());
+                PuzzlePiece bPiece2 = findPuzzlePiece(piece2.getIndex());
+                bPiece1.setIndex(piece2.getIndex());
+                bPiece2.setIndex(piece1.getIndex());
+            } catch (NoPieceFoundException ex) {
+                log.error("Unable to swap pieces " + piece1.getIndex() + " and " + piece2.getIndex(), ex);
             }
         }
     }
