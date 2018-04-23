@@ -358,10 +358,6 @@ export default {
         }
       }
       this.handleStateChange(newState);
-      // //retore selected 
-      //   if (prevSelected) {
-      //     this.puzzle=[prevSelected.index].selected=true;
-      //   }
     },
     handleStateChange: function(newState) {
       if (!newState) {
