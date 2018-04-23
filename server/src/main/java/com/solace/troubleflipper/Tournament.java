@@ -135,7 +135,7 @@ public class Tournament implements GameOverListener {
                     playerRankMessage.setId(player.getClientName());
                     playerRankMessage.setTotalPlayers(playerRankings.size());
                     try {
-                        publisher.publish("score/player/" + player.getClientName(), playerRankMessage);
+                        publisher.publish("score/" + player.getClientName(), playerRankMessage);
                     } catch (PublisherException ex) {
                         log.error("Unable to update the scores for players", ex);
                     }
@@ -160,7 +160,7 @@ public class Tournament implements GameOverListener {
                     teamRankMessage.setTeamId(team.getId());
                     teamRankMessage.setTotalTeams(teamRankings.size());
                     try {
-                        publisher.publish("score/team/" + team.getId(), teamRankMessage);
+                        publisher.publish("score/" + team.getId(), teamRankMessage);
                     } catch (PublisherException ex) {
                         log.error("Unable to update the scores", ex);
                     }
