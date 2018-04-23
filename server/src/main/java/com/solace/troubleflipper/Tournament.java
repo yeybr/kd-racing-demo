@@ -57,8 +57,9 @@ public class Tournament implements GameOverListener, BadGuyActionHandler {
             player.setClientName(addUserMessage.getClientId());
             players.add(player);
         }
-        AddUserAckMessage addUserAckMessage = new AddUserAckMessage(addUserMessage, AddUserAckMessage.RESULT_SUCCESS);
+
         try {
+            AddUserAckMessage addUserAckMessage = new AddUserAckMessage(addUserMessage, AddUserAckMessage.RESULT_SUCCESS);
             publisher.publish("user/" + player.getClientName(), addUserAckMessage);
             log.info("Player " + player.getClientName() + " has been registered in the tournament");
         } catch (PublisherException ex) {
@@ -71,14 +72,6 @@ public class Tournament implements GameOverListener, BadGuyActionHandler {
     private void startTournament(TournamentMessage tournamentMessage) {
         if ((tournamentMessage.getAction().equals("buildTeams")) && (players.size() > 0)) {
             prepareTeams();
-            for (Player player : players) {
-                playerRankings.add(player);
-                try {
-                    subscriber.subscribeForClient("team/" + player.getTeam().getId(), player.getClientName());
-                } catch (SubscriberException ex) {
-                    log.error("Unable to register subscription for " + player.getClientName() + " on team " + player.getTeam().getId(), ex);
-                }
-            }
             for (Game game : activeGames.values()) {
                 game.addGameOverListener(this);
                 game.start();
