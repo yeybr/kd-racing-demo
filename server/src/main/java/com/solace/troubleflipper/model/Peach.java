@@ -16,4 +16,9 @@ public class Peach extends Player {
     public void heal() {
         // Do nothing, can't heal Peach
     }
+
+    @Override
+    public Character getCharacter() {
+        return Character.peach;
+    }
 }

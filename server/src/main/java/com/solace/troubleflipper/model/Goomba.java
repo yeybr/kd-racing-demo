@@ -16,4 +16,9 @@ public class Goomba extends Player {
     public void heal() {
         this.greenShells = 5;
     }
+
+    @Override
+    public Character getCharacter() {
+        return Character.goomba;
+    }
 }

@@ -9,7 +9,6 @@ public abstract class Player {
     private Team team;
     private int rightMoves;
     private int wrongMoves;
-    private Character character;
 
     public Player() {
         id = UUID.randomUUID().toString();
@@ -65,13 +64,7 @@ public abstract class Player {
         this.wrongMoves = wrongMoves;
     }
 
-    public Character getCharacter() {
-        return character;
-    }
-
-    public void setCharacter(Character character) {
-        this.character = character;
-    }
+    public abstract Character getCharacter();
 
     public abstract void heal();
 }
