@@ -192,6 +192,7 @@ export default {
       puzzleStyle: '',
       backgroundwhite: false,
       selected: null,
+      mySwapFrom: -1,
       styleAvatar: {
         "background-image": avatarLink,
         "background-size": "contain",
@@ -313,10 +314,13 @@ export default {
         for (var i = 0; i < size * size; ++i) {
           pieces[i].style = `width: ${square}px; margin-left: -${unit *
               (pieces[i].index % size)}px; margin-top: -${unit * Math.floor(pieces[i].index / size)}px;`;
-          pieces[i].selected = false;
+         pieces[i].selected = false;
         }
         this.updateArray(this.puzzle, pieces);
         this.selected = null;
+        if (this.mySwapFrom > -1) {
+          this.puzzle[this.mySwapFrom].selected = true;
+        }
         if (newState !== 'start') {
           this.checkWinCondition(msg.gameWon);
         }
@@ -447,6 +451,9 @@ export default {
       this.selected.selected = true;
       if (isAlreadySelected) {
         this.swap(isAlreadySelected, this.selected);
+        this.mySwapFrom = -1;
+      } else {
+        this.mySwapFrom = index;
       }
     },
     swap: function(a, b) {
