@@ -100,7 +100,6 @@ export class Player {
           // set team topic
           this.teamTopic = topic;
           this.gameTopic = 'games/' + messageInstance.teamId;
-          console.log('sub');
           this.subscribeToTopic('score/' + messageInstance.teamId);
         }
         if (messageInstance !== null) {
