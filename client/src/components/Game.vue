@@ -73,7 +73,7 @@
       <div class="rank">
         <div class="label">Team Rank</div>
         <div class="value">
-          {{teamInfo.teamRank}}/{{teamInfo.totalTeam}}
+          {{teamRank.rank}}/{{teamRank.totalTeam}}
         </div>
       </div>
       <div class="statusbar">
@@ -211,6 +211,10 @@ export default {
         teamRank: 0,
         timeAllowedForEachMove: 0
       },
+      teamRank: {
+        rank: 0,
+        totalTeam: 0
+      },
       countdown: 3
     };
   },
@@ -246,7 +250,6 @@ export default {
         newState = 'waiting';
         this.handleStateChange(newState);
         return;
-     
       } else if (msg instanceof TeamsMessage) {
         let teamMsg = {};
         teamMsg.gameWon = msg.gameWon;
@@ -256,8 +259,7 @@ export default {
         let teamInfo = {
           teamName: 'Team 1',
           puzzleName: 'puzzle3',
-          timeAllowedForEachMove: 10,
-          totalTeam: 5,
+          timeAllowedForEachMove: 10
         };
         teamMsg.teamInfo = teamInfo;
         if (msg.teamId) {
@@ -270,23 +272,20 @@ export default {
         } else {
           teamInfo.players = this.teamInfo.players;
         }
-        
         this.handleTeamsMessage(teamMsg);
       } else if (msg.connected == false) {
         newState = 'connecting';
         this.handleStateChange(newState);
         return;
        }  else if (msg instanceof TeamRankMessage) {
-         if (this.teamInfo) {
-           this.teamInfo.teamRank = msg.rank;
-           this.teamInfo.totalTeam = msg.totalTeams;
+         if (this.teamRank) {
+           this.teamRank.rank = msg.rank;
+           this.teamRank.totalTeam = msg.totalTeams;
          }
-
       } else if (msg instanceof PlayerRankMessage) {
           this.rank = msg.rank;
           this.totalPlayers = msg.totalPlayers;
-          
-      } 
+      }
     },
     handleTeamsMessage: function(msg) {
       console.log('teamMsg', msg);
@@ -346,7 +345,7 @@ export default {
             this.character = me.avatar;
             this.avatarLink = `url("static/${me.avatar}-mario.jpg")`;
             this.styleAvatar["background-image"] = this.avatarLink;
-            this.rank = 1;
+            // this.rank = me.rank;
           }
         }
         this.updateData(this.teamInfo, msg.teamInfo);
@@ -437,7 +436,7 @@ export default {
       console.log("random swap");
       var piece1 = this.puzzle[this.getRandomInt(9)];
       var piece2 = this.puzzle[this.getRandomInt(9)];
-      this.swap(piece1, piece2);
+      // this.swap(piece1, piece2);
     },
     select: function(e) {
       let isAlreadySelected = this.puzzle.find(p => {

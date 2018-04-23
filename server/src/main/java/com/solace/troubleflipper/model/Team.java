@@ -38,8 +38,12 @@ public class Team {
 
     public void addPlayer(Player player) {
         players.put(player.getClientName(), player);
-        characters.put(player.getCharacter(), player);
         player.setTeam(this);
+    }
+
+    public void chooseCharacter(Character character, Player player) {
+        characters.put(character, player);
+        player.setCharacter(character);
     }
 
     public Player getPlayer(String clientName) {
