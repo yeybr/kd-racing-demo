@@ -53,7 +53,10 @@
     </div>
     <div v-if="state === 'playing'" id="puzzle-area" class="backgroundwhite">
       <div id="puzzle" :style="puzzleStyle">
-        <transition-group name="puzzleswap" >
+        <transition-group  v-bind:name="transitionName"
+        v-on:before-enter="beforeEnter"
+        v-on:enter="enter"
+        v-on:leave="leave">
           <div  v-for="(piece, i) in puzzle" @click="select" :index="piece.index" :key="piece.index" class="spot" :class="{selected: piece.selected}" :style="[holderStyle]">
             <img :src="puzzlePicture" :index="i" v-bind:style="piece.style"/>
             <div class="highlight"></div>
@@ -216,7 +219,8 @@ export default {
         rank: 0,
         totalTeam: 0
       },
-      countdown: 3
+      countdown: 3,
+      transitionName: "puzzleswap",
     };
   },
 
@@ -238,6 +242,21 @@ export default {
 
   // any actions
   methods: {
+    beforeEnter: function (el) {
+      el.style.opacity = 0;
+      el.style.height = 0;
+    },
+    enter: function (el, done) {
+      console.log("abcde");
+    },
+    leave: function (el, done) {
+      console.log("abcde");
+    },
+    moveListStyle: function(el) {
+      console.log("moving el" + el);
+        el.style.opacity = 0.5;
+        el.style.border = "1px blue solid";
+    },
     getRandomInt: function(max) {
       return Math.floor(Math.random() * Math.floor(max));
     },
@@ -666,6 +685,13 @@ a {
 }
 .spot.selected {
   border: solid 1px red;
+  background: #6d6d67;
+  opacity: .7;
+  background: red;
+  border: 3px solid blue;
+ /* transform:  rotateY(360deg); */
+ /* transform: translateY(30px); */
+
 }
 /* .spot.swapped {
     transform:  rotateY(360deg);
@@ -819,4 +845,25 @@ a {
   line-height: 40px;
 }
 
+.puzzleswap-enter-active, .puzzleswap-leave-active {
+  transition: opacity .5s;
+}
+.puzzleswap-enter, .puzzleswapleave-to /* .fade-leave-active below version 2.1.8 */ {
+  opacity: 0;
+}
+.puzzleswap-move {
+  transition: transform 1s;
+  border: 2px  solid red; 
+  /* opacity: .6;
+  border: 2px  solid red; */
+  
+}
+
+.puzzleswapblue-move {
+  transition: transform 1s;
+  border: 2px  solid blue; 
+  /* opacity: .6;
+  border: 2px  solid red; */
+  
+}
 </style>
