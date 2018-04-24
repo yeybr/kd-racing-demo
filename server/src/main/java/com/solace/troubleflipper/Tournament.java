@@ -111,7 +111,7 @@ public class Tournament implements GameOverListener, BadGuyActionHandler {
                 game.updateCharactersForTeam(false);
             }
         } else if (tournamentMessage.getAction().equals("stopGame")) {
-            
+
         }
     }
 

@@ -1,5 +1,6 @@
 package com.solace.troubleflipper.messages;
 
+import com.solace.troubleflipper.model.Player;
 import com.solace.troubleflipper.model.PuzzlePiece;
 
 import java.util.List;
@@ -14,6 +15,16 @@ public class UpdatePuzzleMessage {
     private String puzzleName;
 
     private Boolean gameWon;
+
+    private List<Player> players;
+
+    public List<Player> getPlayers() {
+        return players;
+    }
+
+    public void setPlayers(List<Player> players) {
+        this.players = players;
+    }
 
     public List<PuzzlePiece> getPuzzle() {
         return puzzle;
