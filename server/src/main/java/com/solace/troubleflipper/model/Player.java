@@ -12,13 +12,8 @@ public class Player extends User {
     private Team team;
     private int rightMoves;
     private int wrongMoves;
-    @JsonIgnore
     private Character character;
-    private CharacterType characterType;
-    @JsonIgnore
     private Map<CharacterType, Character> bonusCharacters = new EnumMap<>(CharacterType.class);
-
-    private List<CharacterType> bonusCharacterTypes = new ArrayList<>();
 
     public Player() {
         super();
@@ -68,28 +63,13 @@ public class Player extends User {
         return bonusCharacters;
     }
 
-    public CharacterType getCharacterType() {
-        return characterType;
-    }
-
-    public void setCharacterType(CharacterType characterType) {
-        this.characterType = characterType;
-    }
-
-    public List<CharacterType> getBonusCharacterTypes() {
-        return bonusCharacterTypes;
-    }
-
     public void reset() {
         super.reset();
         team = null;
         rightMoves = 0;
         wrongMoves = 0;
         character = null;
-        characterType =  null;
         bonusCharacters.clear();
-        bonusCharacterTypes.clear();
     }
 
-//    public abstract void heal();
 }

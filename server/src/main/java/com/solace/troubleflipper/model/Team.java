@@ -46,7 +46,6 @@ public class Team {
     public void chooseCharacter(CharacterType characterType, Player player) {
         Character character = createCharacter(characterType);
         player.setCharacter(character);
-        player.setCharacterType(characterType);
         characters.put(characterType, player);
     }
 
@@ -54,7 +53,6 @@ public class Team {
         if (!characters.containsKey(characterType) && !player.getBonusCharacters().containsKey(characterType)) {
             Character character = createCharacter(characterType);
             player.getBonusCharacters().put(characterType, character);
-            player.getBonusCharacterTypes().add(characterType);
             characters.put(characterType, player);
         }
     }

@@ -101,11 +101,17 @@ public class Tournament implements GameOverListener, BadGuyActionHandler {
     @SubscriptionHandler(topic = "tournaments", messageType = TournamentMessage.class)
     private void startTournament(TournamentMessage tournamentMessage) {
         if ((tournamentMessage.getAction().equals("buildTeams")) && (players.size() > 0)) {
+            if (activeGames.size() > 0) {
+                log.info("Tournament is already in progress");
+                return;
+            }
             prepareTeams();
             for (Game game : activeGames.values()) {
                 game.addGameOverListener(this);
                 game.updateCharactersForTeam(false);
             }
+        } else if (tournamentMessage.getAction().equals("stopGame")) {
+            
         }
     }
 
