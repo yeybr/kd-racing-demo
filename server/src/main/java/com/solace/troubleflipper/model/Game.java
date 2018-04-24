@@ -123,6 +123,7 @@ public class Game {
         boolean won = isGameWon();
         UpdatePuzzleMessage updatePuzzleMessage = new UpdatePuzzleMessage();
         updatePuzzleMessage.setTeamId(team.getId());
+        updatePuzzleMessage.setTeamName(team.getName());
         updatePuzzleMessage.setPuzzleName(puzzleName);
         updatePuzzleMessage.setPuzzle(puzzleBoard);
         updatePuzzleMessage.setGameWon(won);
