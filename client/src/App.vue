@@ -16,14 +16,10 @@ export default {
   data() {
     return {
       appProps: {
-        // vpn: "msgvpn-91b69335zj",
-        // username: "solace-cloud-client",
-        // password: "1a57th4am83cb5ali4rtlu4p55",
-        // url: "ws://mr-91b69335zj.messaging.solace.cloud:80"
-        vpn: "msgvpn-91b6953yjt",
+        vpn: "msgvpn-91b69335zj",
         username: "solace-cloud-client",
-        password: "14bpqqsjtqh57iljfmsj3evhps",
-        url: "ws://mr-91b69336gh.messaging.solace.cloud:20867"
+        password: "1a57th4am83cb5ali4rtlu4p55",
+        url: "ws://mr-91b69335zj.messaging.solace.cloud:80"
       }
     };
   }
