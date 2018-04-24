@@ -6,7 +6,7 @@ public class SwapPiecesMessage {
 
     private PuzzlePiece piece1;
     private PuzzlePiece piece2;
-    private String clientName;
+    private String clientId;
 
     public PuzzlePiece getPiece1() {
         return piece1;
@@ -24,11 +24,11 @@ public class SwapPiecesMessage {
         this.piece2 = piece2;
     }
 
-    public String getClientName() {
-        return clientName;
+    public String getClientId() {
+        return clientId;
     }
 
-    public void setClientName(String clientName) {
-        this.clientName = clientName;
+    public void setClientId(String clientId) {
+        this.clientId = clientId;
     }
 }

@@ -58,6 +58,7 @@ public class Subscriber {
                 }
             }
         } else {
+            log.info("Start new thread for " + topic);
             Runnable runnable = (Runnable) handlers.get(topic);
             if (runnable == null) {
                 log.error("Null handler for topic " + topic);

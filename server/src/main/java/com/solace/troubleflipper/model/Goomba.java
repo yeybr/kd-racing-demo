@@ -1,8 +1,12 @@
 package com.solace.troubleflipper.model;
 
-public class Goomba extends Player {
+public class Goomba extends Character {
 
     private int greenShells = 5;
+
+    Goomba() {
+        super(CharacterType.goomba);
+    }
 
     public void useGreenShell() {
         this.greenShells--;
@@ -17,8 +21,4 @@ public class Goomba extends Player {
         this.greenShells = 5;
     }
 
-    @Override
-    public Character getCharacter() {
-        return Character.goomba;
-    }
 }

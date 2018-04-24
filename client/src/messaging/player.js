@@ -1,5 +1,5 @@
 import { UsersMessage, UsersAckMessage, TournamentsMessage, TeamsMessage, publishMessageToTopic, parseReceivedMessage, RankMessage } from '@/messaging/messages.js';
-import { SwapMessage } from '@/messaging/messages.js';
+import { SwapMessage,  PickCharacterMessage } from '@/messaging/messages.js';
 import { StarPowerMessage, PeachHealMessage } from './messages';
 export class Player {
   constructor(solaceApi, appProps, userInfo, msgCallback) {
@@ -57,7 +57,7 @@ export class Player {
           }
         });
         this.session.on(solace.SessionEventCode.MESSAGE, (message) => {
-          console.log('Received message: "' + message.getBinaryAttachment() + '", details:\n' + message.dump());
+          // console.log('Received message: "' + message.getBinaryAttachment() + '", details:\n' + message.dump());
           var topic = message.getDestination().getName();
           this.handleMessage(topic, message.getBinaryAttachment());
         });
@@ -88,7 +88,7 @@ export class Player {
   }
 
   handleMessage(topic, message) {
-      if (typeof message !== 'string') {  
+      if (typeof message !== 'string') {
         console.log('Error: unexpected message type');
         return;
       }
@@ -102,7 +102,6 @@ export class Player {
         }
         if (messageInstance !== null) {
           this.msgCallback(messageInstance);
-        
         }
       } catch (e) {
         console.log('Error:', e);
@@ -114,20 +113,7 @@ export class Player {
     /*
     publish request to players, clientId is optional. If clientId is present, the server should resume
     the user's game if it is active
-    {
-      clientId: 1,
-      username: test
-    }
-    reply:
-      {
-        clientId: 1,
-        username: test
-      }
-    subscribe to
-    players/<clientId>
-    players/<teamid>
     */
-
     var usersMessage = new UsersMessage(this.username, this.clientId);
     try {
       publishMessageToTopic('users', usersMessage, this.session, this.solaceApi);
@@ -152,56 +138,22 @@ export class Player {
     }
   }
 
-  pickAvatar(avatar) {
-    console.log('Send message to request the selected avatar ' + avatar);
+  pickCharacter(character) {
+    console.log('Send message to request the selected character ' + character);
 
-    // REMOVE TESTING CODE
-    setTimeout(() => {
-      this.msgCallback(this.simulatePickAvatarResponse(avatar));
-    }, 0);
+    var pickCharacterMessage = new PickCharacterMessage(character, this.clientId);
+    try {
+      publishMessageToTopic(this.gameTopic + '/pickCharacter', pickCharacterMessage, this.session, this.solaceApi);
+    } catch (error) {
+      console.log("Publish failed. error = ", error);
+    }
   }
 
-  // when integrating with the server, make sure the attributes that are not
-  // available in the server message are provided with hardcoded value.
-  simulatePickAvatarResponse(avatar) {
-    let msg = Object.assign(new TeamsMessage, {
-      // players with avatar
-      players: [
-        {
-          clientId: this.clientId,
-          username: this.username,
-          avatar: avatar
-        },
-        {
-          clientId: '1',
-          username: 'Kevin',
-          avatar: 'peach'
-        },
-        {
-          clientId: '2',
-          username: 'Rob',
-          avatar: 'yoshi'
-        },
-        {
-          clientId: '5',
-          username: 'Roland',
-          avatar: 'bowser'
-        },
-        {
-          clientId: '6',
-          username: 'Bob',
-          avatar: 'goomba'
-        },
-      ]
-    });
-    return msg;
-  }
-
-  swap(piece1, piece2, puzzle) {
+  swap(piece1, piece2) {
     console.log('publish swap message to ' + this.gameTopic, piece1, piece2);
 
     // The response from server is not the whole puzzle, but echo back the request
-    var swapMessage = new SwapMessage(piece1, piece2, this.clientId); 
+    var swapMessage = new SwapMessage(piece1, piece2, this.clientId);
     try {
       publishMessageToTopic(this.gameTopic, swapMessage, this.session, this.solaceApi);
     } catch (error) {

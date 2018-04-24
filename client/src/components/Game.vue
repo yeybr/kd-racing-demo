@@ -12,7 +12,7 @@
         </div>
         <div class="others-info">
           <div v-for="(player, i) in otherPlayers"  :index="i" :key="player.clientId" class="others-info-profile" :style="[player.styleAvatar]">
-            {{player.username}}
+            {{player.gamerTag}}
           </div>
         </div>
       </div>
@@ -29,23 +29,23 @@
     <div v-if="state === 'start'" id="choose">
       <div class="titlebar">Choose your character</div>
       <div class="heros">
-        <div class="heromug bowser" data_id="bowser" @click="pickAvatar">
+        <div class="heromug bowser" :class="{disabled: bowserUsed }" data_id="bowser" @click="pickCharacter">
           <div class="heroselect" ></div>
           <div class="nametag" hero-name="bowser">Bowser</div>
         </div>
-        <div class="heromug goomba" data_id="goomba" @click="pickAvatar">
+        <div class="heromug goomba" :class="{disabled: goombaUsed}" data_id="goomba" @click="pickCharacter">
           <div class="heroselect"></div>
           <div class="nametag">Goomba</div>
         </div>
-        <div class="heromug yoshi"  data_id="yoshi" @click="pickAvatar">
+        <div class="heromug yoshi" :class="{disabled: yoshiUsed}" data_id="yoshi" @click="pickCharacter">
           <div class="heroselect"></div>
           <div class="nametag" hero-name="yoshi">Yoshi</div>
         </div>
-        <div class="heromug peach" data_id="peach" @click="pickAvatar">
+        <div class="heromug peach" :class="{disabled: peachUsed}" data_id="peach" @click="pickCharacter">
           <div class="heroselect"></div>
           <div class="nametag">Peach</div>
         </div>
-        <div class="heromug mario" data_id="mario" @click="pickAvatar">
+        <div class="heromug mario" :class="{disabled: marioUsed}" data_id="mario" @click="pickCharacter">
           <div class="heroselect"></div>
           <div class="nametag">Mario</div>
         </div>
@@ -68,10 +68,6 @@
         </div>
       </div>
     </div>
-    <!-- <div v-if="state === 'playing'" class="status">
-      <span class="stats">Time Remaining: {{timeRemaining}}</span>
-    </div> -->
-    <!-- shape="M50,3l12,36h38l-30,22l11,36l-31-21l-31,21l11-36l-30-22h38z"		 -->
     <div v-if="state === 'playing'" class="rank-container backgroundwhite">
       <div class="rank">
         <div class="label">Team Rank</div>
@@ -206,11 +202,11 @@ export default {
       },
       // From server
       puzzle: [],
+      puzzleName: "",
       teamInfo: {
         teamId: "",
         teamName: "",
         players: [],
-        puzzleName: "",
         totalTeam: 0,
         teamRank: 0,
         timeAllowedForEachMove: 0
@@ -234,9 +230,24 @@ export default {
     otherPlayers: function() {
       if (Array.isArray(this.teamInfo.players) && this.teamInfo.players.length > 0) {
         return this.teamInfo.players.filter((player) => {
-          return player.clientId !== this.clientId;
+          return player.clientName !== this.clientId;
         })
       }
+    },
+    marioUsed: function() {
+      return !(Array.isArray(this.teamInfo.availableCharacters) && this.teamInfo.availableCharacters.indexOf('mario') >= 0);
+    },
+    bowserUsed: function() {
+      return !(Array.isArray(this.teamInfo.availableCharacters) && this.teamInfo.availableCharacters.indexOf('bowser') >= 0);
+    },
+    peachUsed: function() {
+      return !(Array.isArray(this.teamInfo.availableCharacters) && this.teamInfo.availableCharacters.indexOf('peach') >= 0);
+    },
+    yoshiUsed: function() {
+      return !(Array.isArray(this.teamInfo.availableCharacters) && this.teamInfo.availableCharacters.indexOf('yoshi') >= 0);
+    },
+    goombaUsed: function() {
+      return !(Array.isArray(this.teamInfo.availableCharacters) && this.teamInfo.availableCharacters.indexOf('goomba') >= 0);
     }
   },
 
@@ -261,7 +272,7 @@ export default {
       return Math.floor(Math.random() * Math.floor(max));
     },
     handleMsg: function(msg) {
-      console.log("Got message", msg);
+      // console.log("Got message", msg);
       let newState = null;
       if (msg instanceof UsersAckMessage) {
         // user connect reply
@@ -276,10 +287,11 @@ export default {
         if (msg.puzzle) {
           teamMsg.puzzle = msg.puzzle;
         }
+        if (msg.puzzleName) {
+          teamMsg.puzzleName = msg.puzzleName;
+        }
         let teamInfo = {
-          teamName: 'Team 1',
-          puzzleName: 'puzzle3',
-          timeAllowedForEachMove: 10
+          timeAllowedForEachMove: 0
         };
         teamMsg.teamInfo = teamInfo;
         if (msg.teamId) {
@@ -287,17 +299,23 @@ export default {
         } else {
           teamInfo.teamId = this.teamInfo.teamId;
         }
+        if (msg.teamName) {
+          teamInfo.teamName = msg.teamName;
+        } else {
+          teamInfo.teamName = this.teamInfo.teamName;
+        }
         if (msg.players) {
           teamInfo.players = msg.players;
         } else {
           teamInfo.players = this.teamInfo.players;
         }
+        teamInfo.availableCharacters = msg.availableCharacters || [];
         this.handleTeamsMessage(teamMsg);
       } else if (msg.connected == false) {
         newState = 'connecting';
         this.handleStateChange(newState);
         return;
-       }  else if (msg instanceof TeamRankMessage) {
+      }  else if (msg instanceof TeamRankMessage) {
          if (this.teamRank) {
            this.teamRank.rank = msg.rank;
            this.teamRank.totalTeam = msg.totalTeams;
@@ -310,11 +328,14 @@ export default {
     handleTeamsMessage: function(msg) {
       console.log('teamMsg', msg);
       let newState = null;
+      if (msg.puzzleName) {
+        this.puzzleName = msg.puzzleName;
+      }
       if (msg.puzzle && msg.puzzle.length > 0) {
-        if (this.puzzle.length === 0) {
-          // must be first team message, transition to select avatar
-          newState = 'start';
-        }
+        // if (this.puzzle.length === 0) {
+        //   // must be first team message, transition to select avatar
+        //   newState = 'start';
+        // }
         let pieces = msg.puzzle;
         // assume is 5 x 5
         let size = Math.sqrt(msg.puzzle.length);
@@ -349,32 +370,38 @@ export default {
           let newPlayers = msg.teamInfo.players;
           let me = null;
           newPlayers.forEach((player) => {
-            if (player.avatar) {
-              newState = 'playing';
+            if (player.character) {
               let style = {
-                "background-image": `url("static/${player.avatar}-mario.jpg")`,
+                "background-image": `url("static/${player.character.type}-mario.jpg")`,
                 "background-size": "contain",
                 "background-repeat": "no-repeat",
                 "background-position": "center"
               };
               player.styleAvatar = style;
-              player.avatarLink = `url("static/${player.avatar}-mario.jpg")`;
+              player.avatarLink = `url("static/${player.character.type}-mario.jpg")`;
             }
-            if (player.clientId === this.clientId) {
+            if (player.clientName === this.clientId) {
               me = player;
             }
           });
           if (me) {
-            this.character = me.avatar;
-            this.avatarLink = `url("static/${me.avatar}-mario.jpg")`;
-            this.styleAvatar["background-image"] = this.avatarLink;
-            // this.rank = me.rank;
+            this.character = me.character;
+            if (me.character) {
+              this.avatarLink = `url("static/${me.character.type}-mario.jpg")`;
+              this.styleAvatar["background-image"] = this.avatarLink;
+            }
           }
         }
         this.updateData(this.teamInfo, msg.teamInfo);
-        if (this.teamInfo.puzzleName) {
-          this.puzzlePicture = `static/${this.teamInfo.puzzleName}.png`;
+        if (this.puzzleName) {
+          this.puzzlePicture = `static/${this.puzzleName}.png`;
         }
+      }
+      if (!this.character) {
+        // must be first team message, transition to select avatar
+        newState = 'start';
+      } else {
+        newState = 'playing';
       }
       this.handleStateChange(newState);
     },
@@ -417,12 +444,13 @@ export default {
         this.playerMessenger.startGame();
       }
     },
-    pickAvatar: function(event) {
-      console.log("Play with " + event.currentTarget.getAttribute("data_id"));
-      if (this.playerMessenger) {
-        this.playerMessenger.pickAvatar(
-          event.currentTarget.getAttribute("data_id")
-        );
+    pickCharacter: function(event) {
+      let character = event.currentTarget.getAttribute("data_id")
+      if (this.teamInfo.availableCharacters && this.teamInfo.availableCharacters.indexOf(character) >= 0) {
+        console.log("Play with " + character);
+        if (this.playerMessenger) {
+          this.playerMessenger.pickCharacter(character);
+        }
       }
     },
     startCountDown: function() {
@@ -459,7 +487,7 @@ export default {
       console.log("random swap");
       var piece1 = this.puzzle[this.getRandomInt(9)];
       var piece2 = this.puzzle[this.getRandomInt(9)];
-      // this.swap(piece1, piece2);
+      this.swap(piece1, piece2);
     },
     select: function(e) {
       let isAlreadySelected = this.puzzle.find(p => {
@@ -476,7 +504,7 @@ export default {
       }
     },
     swap: function(a, b) {
-      console.log(a.index, b.index);
+      // console.log(a.index, b.index);
       let piece1 = {index: a.index};
       let piece2 = {index: b.index};
       let pieces = this.puzzle.map((piece) => {
@@ -485,17 +513,18 @@ export default {
       this.playerMessenger.swap(piece1, piece2, pieces);
     },
     power: function() {
-      if (this.character === "peach") {
+      let type = this.character.type;
+      if (type === "peach") {
         // TODO popup a modal to pick a teammate
         this.playerMessenger.peachHeal("mario");
-      } else if (this.character === "mario" && this.selected) {
+      } else if (type === "mario" && this.selected) {
         let puzzlePiece = {index: this.selected.index};
         this.playerMessenger.starPower(puzzlePiece);
-      } else if (this.character === "bowser") {
+      } else if (type === "bowser") {
         this.playerMessenger.troubleFlipper();
-      } else if (this.character === "yoshi") {
+      } else if (type === "yoshi") {
         this.playerMessenger.yoshiGuard();
-      } else if (this.character === "goomba") {
+      } else if (type === "goomba") {
         this.playerMessenger.greenShell();
       }
     },
@@ -764,12 +793,22 @@ a {
   min-height: 28vh;
   min-width: 30vw;
   border-radius: 4vw;
+  cursor: pointer;
 }
-.heromug > .heroselect:hover {
+
+.heromug.disabled {
+  opacity: 0.5;
+}
+
+.heromug.disabled .heroselect {
+  cursor: default;
+}
+
+.heromug:not(.disabled) > .heroselect:hover {
   background-color: #ff00003b;
 }
 
-.heromug:hover {
+.heromug:not(.disabled):hover {
   box-shadow: 0 5px 55px rgba(0, 0, 0, 0.3);
 }
 
@@ -780,6 +819,7 @@ a {
 .heromug.yoshi {
   background-image: url(../assets/yoshi-mario.jpg);
 }
+
 .heromug.peach {
   background-image: url(../assets/peach-mario.jpg);
 }

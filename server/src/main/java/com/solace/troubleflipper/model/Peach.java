@@ -1,8 +1,12 @@
 package com.solace.troubleflipper.model;
 
-public class Peach extends Player {
+public class Peach extends Character {
 
     private boolean healUsed = false;
+
+    Peach() {
+        super(CharacterType.peach);
+    }
 
     public boolean isHealUsed() {
         return healUsed;
@@ -17,8 +21,4 @@ public class Peach extends Player {
         // Do nothing, can't heal Peach
     }
 
-    @Override
-    public Character getCharacter() {
-        return Character.peach;
-    }
 }

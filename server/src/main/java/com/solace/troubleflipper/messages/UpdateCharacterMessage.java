@@ -1,32 +1,19 @@
 package com.solace.troubleflipper.messages;
 
+import com.solace.troubleflipper.model.CharacterType;
 import com.solace.troubleflipper.model.Player;
-import com.solace.troubleflipper.model.PuzzlePiece;
-
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class UpdatePuzzleMessage {
-
-    private List<PuzzlePiece> puzzle;
+public class UpdateCharacterMessage {
 
     private String teamId;
 
     private String teamName;
 
-    private String puzzleName;
-
-    private Boolean gameWon;
+    private List<CharacterType> availableCharacters;
 
     private List<Player> players;
-
-    public List<PuzzlePiece> getPuzzle() {
-        return puzzle;
-    }
-
-    public void setPuzzle(List<PuzzlePiece> puzzle) {
-        this.puzzle = puzzle;
-    }
 
     public String getTeamId() {
         return teamId;
@@ -44,20 +31,12 @@ public class UpdatePuzzleMessage {
         this.teamName = teamName;
     }
 
-    public String getPuzzleName() {
-        return puzzleName;
+    public List<CharacterType> getAvailableCharacters() {
+        return availableCharacters;
     }
 
-    public void setPuzzleName(String puzzleName) {
-        this.puzzleName = puzzleName;
-    }
-
-    public Boolean getGameWon() {
-        return gameWon;
-    }
-
-    public void setGameWon(Boolean gameWon) {
-        this.gameWon = gameWon;
+    public void setAvailableCharacters(List<CharacterType> availableCharacters) {
+        this.availableCharacters = availableCharacters;
     }
 
     public List<Player> getPlayers() {
@@ -70,9 +49,15 @@ public class UpdatePuzzleMessage {
 
     public String toString() {
         StringBuilder sb = new StringBuilder();
-        sb.append("Puzzle: [");
-        if (puzzle != null) {
-            sb.append(puzzle.stream().map(PuzzlePiece::getIndex).map(Object::toString).collect(Collectors.joining(",")));
+        sb.append("Team Name: ").append(teamName).append(", ");
+        sb.append("Available Characters: [");
+        if (availableCharacters != null) {
+            sb.append(availableCharacters.stream().map(Object::toString).collect(Collectors.joining(",")));
+        }
+        sb.append("], ");
+        sb.append("Players: [");
+        if (players != null) {
+            sb.append(players.stream().map(Player::getClientName).collect(Collectors.joining(",")));
         }
         sb.append("]");
         return sb.toString();

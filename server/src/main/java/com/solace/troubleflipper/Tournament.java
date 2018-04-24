@@ -19,6 +19,8 @@ public class Tournament implements GameOverListener, BadGuyActionHandler {
     private Logger log = LoggerFactory.getLogger("tournament");
 
     private List<Player> players = new ArrayList<>();
+    private volatile boolean started = false;
+    private int waitCounter = 10;
     private Map<String, Team> teams = new HashMap<>();
     private Map<String, Game> activeGames = new HashMap<>();
     private Map<String, Collection<Game>> completedGames = new HashMap<>();
@@ -31,6 +33,7 @@ public class Tournament implements GameOverListener, BadGuyActionHandler {
     private final TournamentProperties tournamentProperties;
 
     private Timer timer = new Timer("TournamentTimer");
+    private Random randomGen = new Random();
 
     @Autowired
     public Tournament(TournamentProperties tournamentProperties,
@@ -44,66 +47,161 @@ public class Tournament implements GameOverListener, BadGuyActionHandler {
 
     @SubscriptionHandler(topic = "users", messageType = AddUserMessage.class)
     private void addUser(AddUserMessage addUserMessage) {
-        Optional<Player> firstMatch = players.stream().filter(item ->
-                addUserMessage.getClientId().equals(item.getClientName())).findFirst();
-        Player player;
-        if (firstMatch.isPresent()) {
-            player = firstMatch.get();
-            log.trace("Player " + player.getClientName() + " is already registered");
-        } else {
-            // TODO we need to distinguish people in the queue vs players in a game
-            player = new Mario();
-            player.setGamerTag(addUserMessage.getUsername());
-            player.setClientName(addUserMessage.getClientId());
-            players.add(player);
-        }
-
-        try {
+        synchronized (players) {
+            Optional<Player> firstMatch = players.stream().filter(item ->
+                    addUserMessage.getClientId().equals(item.getClientName())).findFirst();
+            Player player;
+            boolean present = false;
+            if (firstMatch.isPresent()) {
+                present = true;
+                player = firstMatch.get();
+                player.setGamerTag(addUserMessage.getUsername());
+                log.trace("Player " + player.getClientName() + " is already registered");
+            } else {
+                player = new Player();
+                player.setGamerTag(addUserMessage.getUsername());
+                player.setClientName(addUserMessage.getClientId());
+                players.add(player);
+            }
             AddUserAckMessage addUserAckMessage = new AddUserAckMessage(addUserMessage, AddUserAckMessage.RESULT_SUCCESS);
-            publisher.publish("user/" + player.getClientName(), addUserAckMessage);
-            log.info("Player " + player.getClientName() + " has been registered in the tournament");
-        } catch (PublisherException ex) {
-            log.error("Unable to acknowledge player " + player.getClientName(), ex);
-            players.remove(player);
+            try {
+                publisher.publish("user/" + player.getClientName(), addUserAckMessage);
+                log.info("Player " + player.getClientName() + " has been registered in the tournament");
+                if (present) {
+                    // check if there is active game and send out team information
+                    Optional<Game> firstMatchGame = activeGames.values().stream().filter(item ->
+                            item.getTeam().getPlayer(player.getClientName()) != null).findFirst();
+                    if (firstMatchGame.isPresent()) {
+                        Game activeGame = firstMatchGame.get();
+                        log.info("Player is part of a game");
+                        try {
+                            subscriber.subscribeForClient("team/" + player.getTeam().getId(), player.getClientName());
+                            subscriber.subscribeForClient("score/" + player.getTeam().getId(), player.getClientName());
+                            subscriber.subscribeForClient("score/" + player.getClientName(), player.getClientName());
+                            if (player.getCharacter() == null || !started) {
+                                activeGame.updateCharactersForTeam(false);
+                            } else {
+                                activeGame.updatePuzzleForTeam();
+                            }
+                        } catch (SubscriberException ex) {
+                            log.error("Unable to register subscription for " + player.getClientName() + " on team " + player.getTeam().getId(), ex);
+                        }
+
+                    }
+                }
+            } catch (PublisherException ex) {
+                log.error("Unable to acknowledge player " + player.getClientName(), ex);
+                players.remove(player);
+                // TODO also update game related information for this player
+            }
         }
     }
 
     @SubscriptionHandler(topic = "tournaments", messageType = TournamentMessage.class)
     private void startTournament(TournamentMessage tournamentMessage) {
         if ((tournamentMessage.getAction().equals("buildTeams")) && (players.size() > 0)) {
+            if (activeGames.size() > 0) {
+                log.info("Tournament is already in progress");
+                return;
+            }
             prepareTeams();
             for (Game game : activeGames.values()) {
                 game.addGameOverListener(this);
-                game.start();
-                game.updatePuzzleForTeam();
+                game.updateCharactersForTeam(false);
             }
+        } else if (tournamentMessage.getAction().equals("stopGame")) {
+
         }
     }
 
+    private String getPuzzleName() {
+        int index = randomGen.nextInt(4) + 1;
+        log.info("puzzle index " + index);
+        return "puzzle" + index;
+    }
+
     private void prepareTeams() {
-        // TODO implement an algorithm to create teams, name them, and assign players to them
+        waitCounter = 10;
         teams.clear();
         activeGames.clear();
         completedGames.clear();
         teamRankings.clear();
         playerRankings.clear();
+        tournamentProperties.resetTeamNamesUsed();
+
         timer.cancel();
         timer.purge();
         timer = new Timer("TournamentTimer");
-        tournamentProperties.setPlayersPerTeam(players.size());
-
-        if (players.size() >= 4) {
-            for (int i = 0; i < Math.round(players.size() / 2); ++i) {
-                int start = i * 2;
-                List<Player> teamPlayers = new ArrayList<>();
-                teamPlayers.add(players.get(start));
-                teamPlayers.add(players.get(start + 1));
-                String newName = tournamentProperties.getNewTeamName();
-                addTeam(newName, teamPlayers);
+        synchronized (players) {
+            if (players.size() == 0) {
+                return;
             }
-        } else {
-            String newName = tournamentProperties.getNewTeamName();
-            addTeam(newName, players);
+            int numberOfPlayers = players.size();
+            int playersPerTeam = tournamentProperties.getPlayersPerTeam();
+            int numberOfTeams = (int)Math.ceil(players.size() / playersPerTeam);
+            log.debug("numberOfTeams " + numberOfTeams);
+            List<Player> teamPlayers = null;
+            String teamName = null;
+            Player player;
+            for (int i = 0; i < numberOfPlayers; i++) {
+                if (teamPlayers == null) {
+                    teamPlayers = new ArrayList<>();
+                }
+                player =  players.get(i);
+                player.reset();
+                teamPlayers.add(player);
+                if (teamPlayers.size() == playersPerTeam || i == numberOfPlayers - 1) {
+                    teamName = tournamentProperties.getNewTeamName();
+                    addTeam(teamName, teamPlayers);
+                    teamPlayers = null;
+                }
+            }
+        }
+
+        timer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                log.info("check character selection readiness");
+                waitCounter--;
+                if (waitCounter > 0) {
+                    int totalGames = activeGames.size();
+                    int readyGames = 0;
+                    for (Game game : activeGames.values()) {
+                        if (game.isCharacterReadyForTeam()) {
+                            readyGames++;
+                        }
+                    }
+                    if (readyGames == totalGames) {
+                        this.cancel();
+                        log.info("All games have selected characters");
+                        startGames();
+                    }
+                } else {
+                    this.cancel();
+                    try {
+                        log.info("force assign characters");
+                        for (Game game : activeGames.values()) {
+                            // send special pickCharacter message to avoid synchronization on team object
+                            PickCharacterMessage pickCharacterMessage = new PickCharacterMessage();
+                            pickCharacterMessage.setClientId("");
+                            pickCharacterMessage.setCharacterType(CharacterType.mario);
+                            publisher.publish("games/" + game.getTeam().getId() + "/pickCharacter", pickCharacterMessage);
+                        }
+                        startGames();
+                    } catch (PublisherException ex) {
+                        log.error("Unable to publish pick character message for game", ex);
+                    }
+                }
+            }
+        }, 0, 2000);
+
+    }
+
+    public void startGames() {
+        started = true;
+        for (Game game : activeGames.values()) {
+            game.start();
+            game.updatePuzzleForTeam();
         }
 
         timer.schedule(new TimerTask() {
@@ -127,7 +225,7 @@ public class Tournament implements GameOverListener, BadGuyActionHandler {
                     }
                 }
             }
-        }, 0 , 5000);
+        }, 0, 5000);
 
         timer.schedule(new TimerTask() {
             @Override
@@ -160,15 +258,18 @@ public class Tournament implements GameOverListener, BadGuyActionHandler {
     private void addTeam(String teamName, Collection<Player> players) {
         Team team = new Team();
 
-        team.setName(teamName);
+        if (teamName == null) {
+            team.setName(team.getId());
+        } else {
+            team.setName(teamName);
+        }
         completedGames.put(team.getId(), new ArrayList<>());
         Game game = new Game(team, subscriber, publisher, timer, tournamentProperties, this);
+        game.setPuzzleName(getPuzzleName());
         team.setGame(game);
         for (Player player : players) {
             team.addPlayer(player);
             player.setTeam(team);
-            // TODO need to move this logic to character selection message handling
-            team.chooseCharacter(Character.mario, player);
         }
 
         teams.put(team.getId(), team);
@@ -193,8 +294,11 @@ public class Tournament implements GameOverListener, BadGuyActionHandler {
         Team team = teams.get(teamId);
         activeGames.remove(teamId);
         completedGames.get(teamId).add(game);
+        // remove game over listeners
+//        game.clearGameOverListeners();
         team.addCompletedGame();
         Game newGame = new Game(team, subscriber, publisher, timer, tournamentProperties, this);
+        newGame.setPuzzleName(getPuzzleName());
         team.setGame(newGame);
         timer.schedule(new TimerTask() {
             @Override
@@ -208,11 +312,11 @@ public class Tournament implements GameOverListener, BadGuyActionHandler {
     }
 
     @Override
-    public void troubleFlipper(Bowser bowser) {
+    public void troubleFlipper(Player bowserPlayer) {
         synchronized (teamRankings) {
-            int rank = teamRankings.indexOf(bowser.getTeam());
+            int rank = teamRankings.indexOf(bowserPlayer.getTeam());
             if (rank == 0) {
-                log.info("Bowser from team " + bowser.getTeam().getName() + " used trouble flipper, but they are in first place");
+                log.info("Bowser from team " + bowserPlayer.getTeam().getName() + " used trouble flipper, but they are in first place");
             } else {
                 int indexOfTeamToAttack = rank - 1;
                 Team teamToAttack = teamRankings.get(indexOfTeamToAttack);
@@ -222,11 +326,11 @@ public class Tournament implements GameOverListener, BadGuyActionHandler {
     }
 
     @Override
-    public void greenShell(Goomba goomba) {
+    public void greenShell(Player goombaPlayer) {
         synchronized (teamRankings) {
-            int rank = teamRankings.indexOf(goomba.getTeam());
+            int rank = teamRankings.indexOf(goombaPlayer.getTeam());
             if (rank == 0) {
-                log.info("Goomba from team " + goomba.getTeam().getName() + " used a green shell, but they are in first place");
+                log.info("Goomba from team " + goombaPlayer.getTeam().getName() + " used a green shell, but they are in first place");
             } else {
                 int indexOfTeamToAttack = rank - 1;
                 Team teamToAttack = teamRankings.get(indexOfTeamToAttack);
