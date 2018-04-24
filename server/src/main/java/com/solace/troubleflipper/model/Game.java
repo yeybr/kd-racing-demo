@@ -3,10 +3,7 @@ package com.solace.troubleflipper.model;
 import com.solace.troubleflipper.GameOverListener;
 import com.solace.troubleflipper.Publisher;
 import com.solace.troubleflipper.Subscriber;
-import com.solace.troubleflipper.messages.PeachHealMessage;
-import com.solace.troubleflipper.messages.StarPowerMessage;
-import com.solace.troubleflipper.messages.SwapPiecesMessage;
-import com.solace.troubleflipper.messages.UpdatePuzzleMessage;
+import com.solace.troubleflipper.messages.*;
 import com.solace.troubleflipper.properties.BadGuyActionHandler;
 import com.solace.troubleflipper.properties.TournamentProperties;
 import org.slf4j.Logger;
@@ -42,6 +39,7 @@ public class Game {
         this.tournamentProperties = tournamentProperties;
         this.badGuyActionHandler = badGuyActionHandler;
         subscriber.registerHandler(SwapPiecesMessage.class, "games/" + team.getId(), this::swapPieces);
+        subscriber.registerHandler(PickCharacterMessage.class, "games/" + team.getId() + "/pickCharacter", this::pickCharacterHandler);
         subscriber.registerHandler(StarPowerMessage.class, "games/" + team.getId() + "/starPower", this::starPowerHandler);
         subscriber.registerHandler(PeachHealMessage.class, "games/" + team.getId() + "/peachHeal", this::peachHealHandler);
         subscriber.registerHandler("games/" + team.getId() + "/yoshiGuard", this::yoshiGuardHandler);
@@ -53,13 +51,26 @@ public class Game {
         this.gameOverListeners.add(gameOverListener);
     }
 
+    public void clearGameOverListeners() {
+        this.gameOverListeners.clear();
+    }
+
 
     public Team getTeam() {
         return team;
     }
 
+    public String getPuzzleName() {
+        return puzzleName;
+    }
+
+    public void setPuzzleName(String puzzleName) {
+        this.puzzleName = puzzleName;
+    }
+
     private void swapPieces(PuzzlePiece piece1, PuzzlePiece piece2, Player player) {
         if (player != null) {
+            log.debug("Update player stats");
             int piece1Position = puzzleBoard.indexOf(piece1);
             int piece2Position = puzzleBoard.indexOf(piece2);
             if (piece1Position == piece1.getIndex()) {
@@ -112,6 +123,7 @@ public class Game {
         boolean won = isGameWon();
         UpdatePuzzleMessage updatePuzzleMessage = new UpdatePuzzleMessage();
         updatePuzzleMessage.setTeamId(team.getId());
+        updatePuzzleMessage.setPuzzleName(puzzleName);
         updatePuzzleMessage.setPuzzle(puzzleBoard);
         updatePuzzleMessage.setGameWon(won);
         try {
@@ -122,6 +134,7 @@ public class Game {
         if (won) {
             log.info("Team " + team.getId() + " won the game!");
             subscriber.deregisterHandler("games/" + team.getId());
+            subscriber.deregisterHandler("games/" + team.getId() + "/pickCharacter");
             subscriber.deregisterHandler("games/" + team.getId() + "/starPower");
             subscriber.deregisterHandler("games/" + team.getId() + "/peachHeal");
             subscriber.deregisterHandler("games/" + team.getId() + "/yoshiGuard");
@@ -154,68 +167,217 @@ public class Game {
     }
 
     private void swapPieces(SwapPiecesMessage swapPiecesMessage) {
-        Player player = team.getPlayer(swapPiecesMessage.getClientName());
+        Player player = team.getPlayer(swapPiecesMessage.getClientId());
         swapPieces(swapPiecesMessage.getPiece1(), swapPiecesMessage.getPiece2(), player);
         updatePuzzleForTeam();
     }
 
+    private void pickCharacterHandler(PickCharacterMessage pickCharacterMessage) {
+        String clientName = pickCharacterMessage.getClientId();
+        CharacterType characterType = pickCharacterMessage.getCharacterType();
+
+        if (clientName.equals("")) {
+            // specialnextInt message to assign characters randomly
+            updateCharactersForTeam(true);
+        } else {
+            Player player = team.getPlayer(characterType);
+            if (player == null) {
+                player = team.getPlayer(clientName);
+                if (player != null && player.getCharacter() == null) {
+                    team.chooseCharacter(characterType, player);
+                }
+            }
+            updateCharactersForTeam(false);
+        }
+    }
+
+    public boolean isCharacterReadyForTeam() {
+        List<CharacterType> availableTypes = new ArrayList<>();
+        for (CharacterType characterType : CharacterType.values()) {
+            if (team.getPlayer(characterType) == null) {
+                availableTypes.add(characterType);
+            }
+        }
+        if (team.getPlayers().size() == 1) {
+            availableTypes.remove(CharacterType.peach);
+        }
+        return availableTypes.isEmpty();
+    }
+
+    public void updateCharactersForTeam(boolean forceAssign) {
+        List<CharacterType> availableTypes = new ArrayList<>();
+        for (CharacterType characterType : CharacterType.values()) {
+            if (team.getPlayer(characterType) == null) {
+                availableTypes.add(characterType);
+            }
+        }
+        UpdateCharacterMessage updateCharacterMessage = new UpdateCharacterMessage();
+        updateCharacterMessage.setTeamId(team.getId());
+        updateCharacterMessage.setTeamName(team.getName());
+        List<Player> players = team.getPlayers();
+        if (players.size() == 1) {
+            // remove peach from available types because one player team cannot heal himself
+            availableTypes.remove(CharacterType.peach);
+        }
+        if (forceAssign && availableTypes.size() > 0) {
+            log.debug("Force assign characters");
+            players.forEach(player -> {
+                if (player.getCharacter() == null && availableTypes.size() > 0) {
+                    team.chooseCharacter(availableTypes.remove(0), player);
+                }
+            });
+        }
+        // check if all players have characters and whether need to add bonus characters
+        if ((players.size() == 1 && availableTypes.size() == (tournamentProperties.getPlayersPerTeam() - 2)) ||
+                (players.size() > 1 && players.size() < tournamentProperties.getPlayersPerTeam() &&
+                availableTypes.size() == (tournamentProperties.getPlayersPerTeam() - players.size()))) {
+            log.debug("Adding bonus characters");
+            Random randomGen = new Random();
+            for (Iterator<CharacterType> it = availableTypes.iterator(); it.hasNext();) {
+                CharacterType characterType = it.next();
+                if (players.size() == 1) {
+                    Player player = players.get(0);
+                    team.addBonusCharacter(characterType, player);
+                } else {
+                    int playerIndex = randomGen.nextInt(players.size());
+                    team.addBonusCharacter(characterType, players.get(playerIndex));
+                }
+                it.remove();
+            }
+        }
+        if (!forceAssign) {
+            updateCharacterMessage.setAvailableCharacters(availableTypes);
+        }
+        updateCharacterMessage.setPlayers(team.getPlayers());
+
+        try {
+            publisher.publish("team/" + team.getId(), updateCharacterMessage);
+        } catch (PublisherException ex) {
+            log.error("Unable to update character for team " + team.getId(), ex);
+        }
+    }
+
     private void starPowerHandler(StarPowerMessage starPowerMessage) {
-        Mario mario = (Mario) getTeam().getPlayer(Character.mario);
-        if (mario.getStarPowerUps() > 0) {
-            log.debug("Mario used star power");
-            mario.useStarPowerUp();
-            starPower(starPowerMessage.getPuzzlePiece());
-            updatePuzzleForTeam();
+        Player player = getTeam().getPlayer(CharacterType.mario);
+        if (player != null) {
+            Mario mario;
+            if (player.getCharacter() instanceof Mario) {
+                mario = (Mario) player.getCharacter();
+            } else {
+                mario = (Mario) player.getBonusCharacters().get(CharacterType.mario);
+            }
+            if (mario.getStarPowerUps() > 0) {
+                log.debug("Mario used star power");
+                mario.useStarPowerUp();
+                starPower(starPowerMessage.getPuzzlePiece());
+                updatePuzzleForTeam();
+            }
+        } else {
+            log.info("Cannot find mario player");
         }
     }
 
     private void peachHealHandler(PeachHealMessage peachHealMessage) {
         // TODO wait until player selection logic before checking
-//                                Peach peach = (Peach) game.getTeam().getPlayer(Character.peach);
-//                                if (peach.isHealUsed()) {
-//                                    peach.useHeal();
-        Character character = peachHealMessage.getCharacter();
-        Player player = getTeam().getPlayer(character);
-        player.heal();
+        Player peachPlayer = getTeam().getPlayer(CharacterType.peach);
+        if (peachPlayer != null) {
+            CharacterType characterType = peachHealMessage.getCharacterType();
+            Player player = getTeam().getPlayer(characterType);
+            if (player != null) {
+                Peach peach;
+                if (peachPlayer.getCharacter() instanceof Peach) {
+                    peach = (Peach) peachPlayer.getCharacter();
+                } else {
+                    peach = (Peach) peachPlayer.getBonusCharacters().get(CharacterType.peach);
+                }
+                if (!peach.isHealUsed()) {
+                    peach.useHeal();
+                }
+                if (player.getCharacter().getType() == characterType) {
+                    player.getCharacter().heal();
+                } else {
+                    player.getBonusCharacters().get(characterType).heal();
+                }
+            } else {
+                log.info("Cannot find player to heal");
+            }
+        } else {
+            log.info("Cannot find peach player");
+        }
+
 //    }
     }
 
     private void yoshiGuardHandler() {
-        Yoshi yoshi = (Yoshi) getTeam().getPlayer(Character.yoshi);
-        if (!yoshi.isImmuneUsed()) {
-            yoshi.useImmune();
-            team.setImmune(true);
-            log.info("Team " + team.getName() + " is protected by Yoshi Guard for the next 10 seconds");
-            timer.schedule(new TimerTask() {
-                @Override
-                public void run() {
-                    team.setImmune(false);
-                    log.info("Team " + team.getName() + " is no longer protected by Yoshi Guard");
-                }
-            }, 10000);
+        Player player = getTeam().getPlayer(CharacterType.yoshi);
+        if (player != null) {
+            Yoshi yoshi;
+            if (player.getCharacter() instanceof Yoshi) {
+                yoshi = (Yoshi) player.getCharacter();
+            } else {
+                yoshi = (Yoshi) player.getBonusCharacters().get(CharacterType.yoshi);
+            }
+            if (!yoshi.isImmuneUsed()) {
+                yoshi.useImmune();
+                team.setImmune(true);
+                log.info("Team " + team.getName() + " is protected by Yoshi Guard for the next 10 seconds");
+                timer.schedule(new TimerTask() {
+                    @Override
+                    public void run() {
+                        team.setImmune(false);
+                        log.info("Team " + team.getName() + " is no longer protected by Yoshi Guard");
+                    }
+                }, 10000);
+            }
+        } else {
+            log.info("Cannot find yoshi player");
         }
     }
 
     private void troubleFlipperHandler() {
-        Bowser bowser = (Bowser) getTeam().getPlayer(Character.bowser);
-        if (bowser.isTroubleFlipperUsed()) {
-            bowser.useTroubleFlipper();
-            badGuyActionHandler.troubleFlipper(bowser);
+        Player player = getTeam().getPlayer(CharacterType.bowser);
+        if (player != null) {
+            Bowser bowser;
+            if (player.getCharacter() instanceof Bowser) {
+                bowser = (Bowser) player.getCharacter();
+            } else {
+                bowser = (Bowser) player.getBonusCharacters().get(CharacterType.bowser);
+            }
+            if (bowser.isTroubleFlipperUsed()) {
+                bowser.useTroubleFlipper();
+                badGuyActionHandler.troubleFlipper(player);
+            }
+        } else {
+            log.info("Cannot find bowser player");
         }
     }
 
     private void greenShellHandler() {
-        Goomba goomba = (Goomba) getTeam().getPlayer(Character.goomba);
-        if (goomba.getGreenShells() > 0) {
-            goomba.useGreenShell();
-            badGuyActionHandler.greenShell(goomba);
+        Player player = getTeam().getPlayer(CharacterType.goomba);
+        if (player != null) {
+            Goomba goomba;
+            if (player.getCharacter() instanceof Goomba) {
+                goomba = (Goomba) player.getCharacter();
+            } else {
+                goomba = (Goomba) player.getBonusCharacters().get(CharacterType.goomba);
+            }
+            if (goomba.getGreenShells() > 0) {
+                goomba.useGreenShell();
+                badGuyActionHandler.greenShell(player);
+            }
+        } else {
+            log.info("Cannot find goomba player");
         }
     }
 
     private void starPower(PuzzlePiece selectedPuzzlePiece) {
         int correctIndexForPuzzlePiece = selectedPuzzlePiece.getIndex();
-        Player mario = team.getPlayer(Character.mario);
-        swapPieces(selectedPuzzlePiece, puzzleBoard.get(correctIndexForPuzzlePiece), mario);
+        Player mario = team.getPlayer(CharacterType.mario);
+        if (mario != null) {
+            swapPieces(selectedPuzzlePiece, puzzleBoard.get(correctIndexForPuzzlePiece), mario);
+        } else {
+            log.info("Cannot find mario player");
+        }
     }
 
     public void troubleFlipper() {

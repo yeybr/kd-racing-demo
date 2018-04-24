@@ -1,8 +1,12 @@
 package com.solace.troubleflipper.model;
 
-public class Yoshi extends Player {
+public class Yoshi extends Character {
 
     private boolean immuneUsed = false;
+
+    Yoshi() {
+        super(CharacterType.yoshi);
+    }
 
     public boolean isImmuneUsed() {
         return immuneUsed;
@@ -17,8 +21,4 @@ public class Yoshi extends Player {
         immuneUsed = false;
     }
 
-    @Override
-    public Character getCharacter() {
-        return Character.yoshi;
-    }
 }

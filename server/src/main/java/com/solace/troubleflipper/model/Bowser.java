@@ -1,8 +1,12 @@
 package com.solace.troubleflipper.model;
 
-public class Bowser extends Player {
+public class Bowser extends Character {
 
     private boolean troubleFlipperUsed = false;
+
+    Bowser() {
+        super(CharacterType.bowser);
+    }
 
     public boolean isTroubleFlipperUsed() {
         return troubleFlipperUsed;
@@ -17,8 +21,4 @@ public class Bowser extends Player {
         troubleFlipperUsed = false;
     }
 
-    @Override
-    public Character getCharacter() {
-        return Character.bowser;
-    }
 }

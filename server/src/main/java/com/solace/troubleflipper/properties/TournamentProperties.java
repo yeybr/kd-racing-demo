@@ -11,7 +11,7 @@ import java.util.Set;
 @Component
 public class TournamentProperties {
     private int playersPerTeam;
-    private Set teamNamesUsed = new HashSet();
+    private Set<String> teamNamesUsed = new HashSet<>();
     private int puzzleSize = 5;
 
     public int getPlayersPerTeam() {
@@ -35,14 +35,19 @@ public class TournamentProperties {
         "Boom Booms", "Kongs", "Birdos", "Lumas", "Diddys", "Magikoopas"
         };
 
+    public void resetTeamNamesUsed() {
+        this.teamNamesUsed.clear();
+    }
+
     public String getNewTeamName() {
         Random randomGen = new Random();
         int    fNameCount = teamNamesPart_1.length;
         int    lNameCount = teamNamesPart_2.length;
+        int totalNames = fNameCount * lNameCount;
 
-        String newName = "None";
+        String newName = null;
         
-        while ( newName.equals("None")) {
+        while (newName == null && this.teamNamesUsed.size() <= totalNames) {
             int fNameIndex = randomGen.nextInt(fNameCount);
             String fName = teamNamesPart_1[fNameIndex];
 
@@ -52,13 +57,13 @@ public class TournamentProperties {
             String tempName = fName + " " + lName;
 
             // checking for presence of an item in an array, this way, requires Java 8
-            if (!this.teamNamesUsed.contains(tempName)) {
-                newName = tempName;
-                boolean checkAdd = this.teamNamesUsed.add(newName);
-                if (! checkAdd) {
-                    return tempName + ", failed to add to list";
+//            if (!this.teamNamesUsed.contains(tempName)) {
+                boolean checkAdd = this.teamNamesUsed.add(tempName);
+                if (checkAdd) {
+                    newName = tempName;
+                    return newName;
                 }
-            }
+//            }
         }
 
         return newName;

@@ -11,6 +11,8 @@ public class UpdatePuzzleMessage {
 
     private String teamId;
 
+    private String puzzleName;
+
     private Boolean gameWon;
 
     public List<PuzzlePiece> getPuzzle() {
@@ -27,6 +29,14 @@ public class UpdatePuzzleMessage {
 
     public void setTeamId(String teamId) {
         this.teamId = teamId;
+    }
+
+    public String getPuzzleName() {
+        return puzzleName;
+    }
+
+    public void setPuzzleName(String puzzleName) {
+        this.puzzleName = puzzleName;
     }
 
     public Boolean getGameWon() {

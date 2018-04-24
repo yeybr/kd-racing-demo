@@ -1,8 +1,12 @@
 package com.solace.troubleflipper.model;
 
-public class Mario extends Player {
+public class Mario extends Character {
 
     private int starPowerUps = 3;
+
+    Mario() {
+        super(CharacterType.mario);
+    }
 
     public void useStarPowerUp() {
         this.starPowerUps--;
@@ -17,8 +21,4 @@ public class Mario extends Player {
         this.starPowerUps = 3;
     }
 
-    @Override
-    public Character getCharacter() {
-        return Character.mario;
-    }
 }

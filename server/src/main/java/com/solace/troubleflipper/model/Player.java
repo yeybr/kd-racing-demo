@@ -1,37 +1,28 @@
 package com.solace.troubleflipper.model;
 
-import java.util.UUID;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
-public abstract class Player {
-    private String id;
-    private String gamerTag;
-    private String clientName;
+import java.util.ArrayList;
+import java.util.EnumMap;
+import java.util.List;
+import java.util.Map;
+
+public class Player extends User {
+    @JsonIgnore
     private Team team;
     private int rightMoves;
     private int wrongMoves;
+    @JsonIgnore
     private Character character;
+    private CharacterType characterType;
+    @JsonIgnore
+    private Map<CharacterType, Character> bonusCharacters = new EnumMap<>(CharacterType.class);
+
+    private List<CharacterType> bonusCharacterTypes = new ArrayList<>();
 
     public Player() {
-        id = UUID.randomUUID().toString();
+        super();
     }
-
-    public String getId() {
-        return id;
-    }
-
-    public String getGamerTag() {
-        return gamerTag;
-    }
-
-    public void setGamerTag(String gamerTag) {
-        this.gamerTag = gamerTag;
-    }
-
-    public String getClientName() {
-        return clientName;
-    }
-
-    public void setClientName(String clientName) { this.clientName = clientName; }
 
     public Team getTeam() {
         return team;
@@ -73,5 +64,32 @@ public abstract class Player {
         this.character = character;
     }
 
-    public abstract void heal();
+    public Map<CharacterType, Character> getBonusCharacters() {
+        return bonusCharacters;
+    }
+
+    public CharacterType getCharacterType() {
+        return characterType;
+    }
+
+    public void setCharacterType(CharacterType characterType) {
+        this.characterType = characterType;
+    }
+
+    public List<CharacterType> getBonusCharacterTypes() {
+        return bonusCharacterTypes;
+    }
+
+    public void reset() {
+        super.reset();
+        team = null;
+        rightMoves = 0;
+        wrongMoves = 0;
+        character = null;
+        characterType =  null;
+        bonusCharacters.clear();
+        bonusCharacterTypes.clear();
+    }
+
+//    public abstract void heal();
 }
