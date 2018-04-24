@@ -351,25 +351,26 @@ export default {
           let newPlayers = msg.teamInfo.players;
           let me = null;
           newPlayers.forEach((player) => {
-            if (player.characterType) {
+            if (player.character) {
               let style = {
-                "background-image": `url("static/${player.characterType}-mario.jpg")`,
+                "background-image": `url("static/${player.character.type}-mario.jpg")`,
                 "background-size": "contain",
                 "background-repeat": "no-repeat",
                 "background-position": "center"
               };
               player.styleAvatar = style;
-              player.avatarLink = `url("static/${player.characterType}-mario.jpg")`;
+              player.avatarLink = `url("static/${player.character.type}-mario.jpg")`;
             }
             if (player.clientName === this.clientId) {
               me = player;
             }
           });
           if (me) {
-            this.character = me.characterType;
-            this.avatarLink = `url("static/${me.characterType}-mario.jpg")`;
-            this.styleAvatar["background-image"] = this.avatarLink;
-            // this.rank = me.rank;
+            this.character = me.character;
+            if (me.character) {
+              this.avatarLink = `url("static/${me.character.type}-mario.jpg")`;
+              this.styleAvatar["background-image"] = this.avatarLink;
+            }
           }
         }
         this.updateData(this.teamInfo, msg.teamInfo);
@@ -493,17 +494,18 @@ export default {
       this.playerMessenger.swap(piece1, piece2, pieces);
     },
     power: function() {
-      if (this.character === "peach") {
+      let type = this.character.type;
+      if (type === "peach") {
         // TODO popup a modal to pick a teammate
         this.playerMessenger.peachHeal("mario");
-      } else if (this.character === "mario" && this.selected) {
+      } else if (type === "mario" && this.selected) {
         let puzzlePiece = {index: this.selected.index};
         this.playerMessenger.starPower(puzzlePiece);
-      } else if (this.character === "bowser") {
+      } else if (type === "bowser") {
         this.playerMessenger.troubleFlipper();
-      } else if (this.character === "yoshi") {
+      } else if (type === "yoshi") {
         this.playerMessenger.yoshiGuard();
-      } else if (this.character === "goomba") {
+      } else if (type === "goomba") {
         this.playerMessenger.greenShell();
       }
     },
@@ -778,23 +780,48 @@ a {
   background-image: url(../assets/bowser-mario.jpg);
 }
 
+.heromug.bowser.disabled {
+  opacity: 0.5;
+}
+
 .heromug.yoshi {
   background-image: url(../assets/yoshi-mario.jpg);
 }
+
+.heromug.yoshi.disabled {
+  opacity: 0.5;
+}
+
 .heromug.peach {
   background-image: url(../assets/peach-mario.jpg);
+}
+
+.heromug.peach.disabled {
+  opacity: 0.5;
 }
 
 .heromug.toad {
   background-image: url(../assets/toad-mario.jpg);
 }
 
+.heromug.toad.disabled {
+  opacity: 0.5;
+}
+
 .heromug.goomba {
   background-image: url(../assets/goomba-mario.jpg);
 }
 
+.heromug.goomba.disabled {
+  opacity: 0.5;
+}
+
 .heromug.mario {
   background-image: url(../assets/mario-mario.jpg);
+}
+
+.heromug.mario.disabled {
+  opacity: 0.5;
 }
 
 .heromug > .nametag {

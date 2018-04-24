@@ -140,6 +140,7 @@ export class TeamRankMessage extends TroubleFlipperMessage {
 //   in the future
 //
 export function parseReceivedMessage(topic, msg) {
+  // console.log('Received msg from ' + topic, msg);
   let msgObj = JSON.parse(msg);
   if (topic.startsWith('user/')) {
     return Object.assign(new UsersAckMessage, msgObj);
