@@ -259,7 +259,7 @@ public class Game {
     }
 
     private void starPowerHandler(StarPowerMessage starPowerMessage) {
-        log.info("Got startPower");
+        log.info("Got starPower");
         Player player = getTeam().getPlayer(CharacterType.mario);
         if (player != null) {
             Mario mario;

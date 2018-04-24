@@ -29,23 +29,23 @@
     <div v-if="state === 'start'" id="choose">
       <div class="titlebar">Choose your character</div>
       <div class="heros">
-        <div class="heromug bowser" :class="{bowserUsed: 'disabled'}" data_id="bowser" @click="pickCharacter">
+        <div class="heromug bowser" :class="{disabled: bowserUsed }" data_id="bowser" @click="pickCharacter">
           <div class="heroselect" ></div>
           <div class="nametag" hero-name="bowser">Bowser</div>
         </div>
-        <div class="heromug goomba" :class="{goombaUsed: 'disabled'}" data_id="goomba" @click="pickCharacter">
+        <div class="heromug goomba" :class="{disabled: goombaUsed}" data_id="goomba" @click="pickCharacter">
           <div class="heroselect"></div>
           <div class="nametag">Goomba</div>
         </div>
-        <div class="heromug yoshi" :class="{yoshiUsed: 'disabled'}" data_id="yoshi" @click="pickCharacter">
+        <div class="heromug yoshi" :class="{disabled: yoshiUsed}" data_id="yoshi" @click="pickCharacter">
           <div class="heroselect"></div>
           <div class="nametag" hero-name="yoshi">Yoshi</div>
         </div>
-        <div class="heromug peach" :class="{peachUsed: 'disabled'}" data_id="peach" @click="pickCharacter">
+        <div class="heromug peach" :class="{disabled: peachUsed}" data_id="peach" @click="pickCharacter">
           <div class="heroselect"></div>
           <div class="nametag">Peach</div>
         </div>
-        <div class="heromug mario" :class="{marioUsed: 'disabled'}" data_id="mario" @click="pickCharacter">
+        <div class="heromug mario" :class="{disabled: marioUsed}" data_id="mario" @click="pickCharacter">
           <div class="heroselect"></div>
           <div class="nametag">Mario</div>
         </div>
@@ -767,12 +767,22 @@ a {
   min-height: 28vh;
   min-width: 30vw;
   border-radius: 4vw;
+  cursor: pointer;
 }
-.heromug > .heroselect:hover {
+
+.heromug.disabled {
+  opacity: 0.5;
+}
+
+.heromug.disabled .heroselect {
+  cursor: default;
+}
+
+.heromug:not(.disabled) > .heroselect:hover {
   background-color: #ff00003b;
 }
 
-.heromug:hover {
+.heromug:not(.disabled):hover {
   box-shadow: 0 5px 55px rgba(0, 0, 0, 0.3);
 }
 
@@ -780,48 +790,24 @@ a {
   background-image: url(../assets/bowser-mario.jpg);
 }
 
-.heromug.bowser.disabled {
-  opacity: 0.5;
-}
-
 .heromug.yoshi {
   background-image: url(../assets/yoshi-mario.jpg);
-}
-
-.heromug.yoshi.disabled {
-  opacity: 0.5;
 }
 
 .heromug.peach {
   background-image: url(../assets/peach-mario.jpg);
 }
 
-.heromug.peach.disabled {
-  opacity: 0.5;
-}
-
 .heromug.toad {
   background-image: url(../assets/toad-mario.jpg);
-}
-
-.heromug.toad.disabled {
-  opacity: 0.5;
 }
 
 .heromug.goomba {
   background-image: url(../assets/goomba-mario.jpg);
 }
 
-.heromug.goomba.disabled {
-  opacity: 0.5;
-}
-
 .heromug.mario {
   background-image: url(../assets/mario-mario.jpg);
-}
-
-.heromug.mario.disabled {
-  opacity: 0.5;
 }
 
 .heromug > .nametag {
