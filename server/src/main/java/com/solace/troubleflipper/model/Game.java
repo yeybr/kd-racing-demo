@@ -81,6 +81,10 @@ public class Game {
                 PuzzlePiece bPiece2 = findPuzzlePiece(piece2.getIndex());
                 bPiece1.setIndex(piece2.getIndex());
                 bPiece2.setIndex(piece1.getIndex());
+                bPiece1.setLastSetByPlayer(player.getClientName());
+                bPiece2.setLastSetByPlayer(player.getClientName());
+                bPiece2.setLastSetByCharacter(player.getCharacter());
+                bPiece1.setLastSetByCharacter(player.getCharacter());
             } catch (NoPieceFoundException ex) {
                 log.error("Unable to swap pieces " + piece1.getIndex() + " and " + piece2.getIndex(), ex);
             }
