@@ -485,7 +485,7 @@ export default {
       }
     },
     swap: function(a, b) {
-      console.log(a.index, b.index);
+      // console.log(a.index, b.index);
       let piece1 = {index: a.index};
       let piece2 = {index: b.index};
       let pieces = this.puzzle.map((piece) => {
