@@ -5,14 +5,22 @@
         <div class="titlebar">{{teamInfo.teamName}}</div>
       </div>
       <div class="header-info">
-        <div class="user-info">
-          <div class="name-tag">{{username}} </div>
-          <div class="profile" :style="styleAvatar" @click="power">
+        <div class="user-info" :class="characterType">
+          <div class="headshot" @click="power()">
+            <img :src="avatarLink">
+          </div>
+          <div class="name">{{username}}</div>
+          <div class="powers">
+            <div v-for="n in powerMoves" :key="n" class="power"></div>
           </div>
         </div>
-        <div class="others-info">
-          <div v-for="(player, i) in otherPlayers"  :index="i" :key="player.clientId" class="others-info-profile" :style="[player.styleAvatar]">
-            {{player.gamerTag}}
+        <div v-for="(player) in otherPlayers" v-if="player.character" :key="player.clientId" class="user-info" :class="player.character.type">
+          <div class="headshot">
+            <img :src="player.avatarLink">
+          </div>
+          <div class="name">{{player.gamerTag}}</div>
+          <div class="powers">
+            <div v-for="n in player.powerMoves" :key="n" class="power"></div>
           </div>
         </div>
       </div>
@@ -200,6 +208,10 @@ export default {
         height: "15vh",
         width: "25vw"
       },
+      character: null,
+      characterType: "",
+      powerMoves: 0,
+      players: [],
       // From server
       puzzle: [],
       puzzleName: "",
@@ -371,14 +383,18 @@ export default {
           let me = null;
           newPlayers.forEach((player) => {
             if (player.character) {
-              let style = {
-                "background-image": `url("static/${player.character.type}-mario.jpg")`,
-                "background-size": "contain",
-                "background-repeat": "no-repeat",
-                "background-position": "center"
-              };
-              player.styleAvatar = style;
-              player.avatarLink = `url("static/${player.character.type}-mario.jpg")`;
+              player.avatarLink = `static/${player.character.type}-mario.jpg`;
+              if (player.character.type === 'mario') {
+                player.powerMoves = player.character.starPowerUps;
+              } else if (player.character.type === 'peach') {
+                player.powerMoves = player.character.healUsed ? 0 : 1;
+              } else if (player.character.type === 'yoshi') {
+                player.powerMoves = player.character.immuneUsed ? 0 : 1;
+              } else if (player.character.type === 'goomba') {
+                player.powerMoves = player.character.greenShells;
+              } else if (player.character.type === 'bowser') {
+                player.powerMoves = player.character.troubleFlipperUsed ? 0 : 1;
+              }
             }
             if (player.clientName === this.clientId) {
               me = player;
@@ -387,8 +403,10 @@ export default {
           if (me) {
             this.character = me.character;
             if (me.character) {
-              this.avatarLink = `url("static/${me.character.type}-mario.jpg")`;
+              this.characterType = this.character.type;
+              this.avatarLink = `static/${me.character.type}-mario.jpg`;
               this.styleAvatar["background-image"] = this.avatarLink;
+              this.powerMoves = me.powerMoves;
             }
           }
         }
@@ -519,6 +537,7 @@ export default {
         this.playerMessenger.peachHeal("mario");
       } else if (type === "mario" && this.selected) {
         let puzzlePiece = {index: this.selected.index};
+        this.mySwapFrom = -1;
         this.playerMessenger.starPower(puzzlePiece);
       } else if (type === "bowser") {
         this.playerMessenger.troubleFlipper();
@@ -609,8 +628,7 @@ a {
 .header-info {
   display: flex;
   flex-direction: row;
-  justify-content: space-between;
-  padding: 10px 10px;
+  flex-wrap: nowrap;
 }
 .header-info .game-info {
   display: flex;
@@ -626,29 +644,88 @@ a {
   display: inline-block;
 }
 .user-info {
-  font-size: 3vw;
+  font-size: 4vw;
   position: relative;
-  padding: 0px 10px;
-}
-.name-tag {
-  text-align: center;
-  background: grey;
-  color: white;
-  width: 100%;
+  padding: 1vw;
 }
 
-.others-info {
-  display: flex;
-  width: 60vw;
-  align-content: center;
-  align-items: center;
-  flex-wrap: wrap;
+.user-info .name {
+  text-align: center;
 }
-.others-info-profile {
-  /* width: 20vw;
-    height: 12vh; */
-  width: 25vw;
-  height: 8vh;
+
+.headshot {
+  width: 18vw;
+  height: 18vw;
+  overflow: hidden;
+  border-radius: 18vw;
+  position: relative;
+  box-shadow: 0px 0px 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.headshot img {
+  position: absolute;
+}
+
+.powers {
+  display: flex;
+  flex-direction: row;
+}
+
+.power {
+  width: 5px;
+  height: 5px;
+  background: green;
+  margin: 0 1px;
+}
+
+.peach .headshot img {
+  width: 50vw;
+  left: -19vw;
+  top: -1vw;
+}
+
+.peach {
+  color: pink;
+}
+
+.mario .headshot img {
+  width: 20vw;
+  left: -1vw;
+  top: -3vw;
+}
+
+.mario {
+  color: #006fea;
+}
+
+.yoshi .headshot img {
+  width: 24vw;
+  left: -3vw;
+  top: 2vw;
+}
+
+.yoshi {
+  color: rgb(19, 207, 19);
+}
+
+.bowser .headshot img {
+  left: -1vw;
+  width: 35vw;
+  top: -2vw;
+}
+
+.bowser {
+  color: rgb(252, 206, 0);
+}
+
+.goomba .headshot img {
+  width: 20vw;
+  top: 2vw;
+  left: 2vw;
+}
+
+.goomba {
+  color: rgb(194, 86, 23);
 }
 
 /* game stats/status section */

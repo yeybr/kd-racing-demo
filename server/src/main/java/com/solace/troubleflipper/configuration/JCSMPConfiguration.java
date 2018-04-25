@@ -3,21 +3,16 @@ package com.solace.troubleflipper.configuration;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.solace.troubleflipper.Publisher;
 import com.solace.troubleflipper.Subscriber;
-import com.solace.troubleflipper.messages.*;
-import com.solace.troubleflipper.model.*;
-import com.solace.troubleflipper.model.Character;
 import com.solace.troubleflipper.properties.SolaceCloudProperties;
 import com.solace.troubleflipper.properties.TournamentProperties;
-import com.solace.troubleflipper.Tournament;
 import com.solacesystems.jcsmp.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+
 import java.io.IOException;
-import java.util.Optional;
 import java.util.Timer;
-import java.util.TimerTask;
 
 @Configuration
 public class JCSMPConfiguration {
