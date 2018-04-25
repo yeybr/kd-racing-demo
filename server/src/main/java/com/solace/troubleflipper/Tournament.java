@@ -111,7 +111,7 @@ public class Tournament implements GameOverListener, BadGuyActionHandler {
                 game.updateCharactersForTeam(false);
             }
         } else if (tournamentMessage.getAction().equals("stopGame")) {
-            
+
         }
     }
 
@@ -321,7 +321,7 @@ public class Tournament implements GameOverListener, BadGuyActionHandler {
             } else {
                 int indexOfTeamToAttack = rank - 1;
                 Team teamToAttack = teamRankings.get(indexOfTeamToAttack);
-                teamToAttack.getGame().troubleFlipper();
+                teamToAttack.getGame().troubleFlipper(bowserPlayer);
             }
         }
     }

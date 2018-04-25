@@ -11,7 +11,10 @@
           </div>
         </div>
         <div class="others-info">
-          <div v-for="(player, i) in otherPlayers"  :index="i" :key="player.clientId" class="others-info-profile" :style="[player.styleAvatar]">
+          <div v-for="(player) in otherPlayers" :key="player.clientId" class="others-info-profile">
+            <div class="headshot">
+              <img :src="player.avatarLink" :class="player.avatar">
+            </div>
             {{player.gamerTag}}
           </div>
         </div>
@@ -359,7 +362,7 @@ export default {
                 "background-position": "center"
               };
               player.styleAvatar = style;
-              player.avatarLink = `url("static/${player.character.type}-mario.jpg")`;
+              player.avatarLink = `static/${player.character.type}-mario.jpg`;
             }
             if (player.clientName === this.clientId) {
               me = player;
@@ -589,7 +592,7 @@ a {
 }
 .header-info {
   display: flex;
-  flex-direction: row;
+  flex-direction: column;
   justify-content: space-between;
   padding: 10px 10px;
 }
@@ -620,7 +623,7 @@ a {
 
 .others-info {
   display: flex;
-  width: 60vw;
+  flex-direction: row;
   align-content: center;
   align-items: center;
   flex-wrap: wrap;
@@ -628,8 +631,29 @@ a {
 .others-info-profile {
   /* width: 20vw;
     height: 12vh; */
-  width: 25vw;
-  height: 8vh;
+
+}
+
+.headshot {
+  width: 20vw;
+  height: 20vw;
+  overflow: hidden;
+  border-radius: 20vw;
+  position: relative;
+}
+
+.headshot img {
+  position: absolute;
+}
+
+.peach {
+  width: 50vw;
+  left: -65px;
+}
+
+.yoshi {
+  width: 20vw;
+  left: -65px;
 }
 
 /* game stats/status section */

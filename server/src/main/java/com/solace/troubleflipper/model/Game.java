@@ -343,7 +343,7 @@ public class Game {
             } else {
                 bowser = (Bowser) player.getBonusCharacters().get(CharacterType.bowser);
             }
-            if (bowser.isTroubleFlipperUsed()) {
+            if (!bowser.isTroubleFlipperUsed()) {
                 bowser.useTroubleFlipper();
                 badGuyActionHandler.troubleFlipper(player);
             }
@@ -380,14 +380,15 @@ public class Game {
         }
     }
 
-    public void troubleFlipper() {
+    public void troubleFlipper(Bowser bowser) {
         if (!gameOver && !team.isImmune()) {
+            log.info(bowser.getGamerTag() + " from team " + bowser.getTeam().getName()+  " used trouble flipper on " + team.getName());
             synchronized (puzzleBoard) {
                 Collections.shuffle(puzzleBoard);
             }
             updatePuzzleForTeam();
         } else if (team.isImmune()) {
-            log.info("Team " + team.getName() + " has yoshi guarded a trouble flipper attack!!!");
+            log.info("Team " + team.getName() + " has yoshi guarded a trouble flipper attack from " + bowser.getGamerTag() + " on team " + bowser.getTeam().getName());
         }
     }
 
