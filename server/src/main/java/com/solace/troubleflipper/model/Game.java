@@ -296,11 +296,12 @@ public class Game {
                 }
                 if (!peach.isHealUsed()) {
                     peach.useHeal();
-                }
-                if (player.getCharacter().getType() == characterType) {
-                    player.getCharacter().heal();
-                } else {
-                    player.getBonusCharacters().get(characterType).heal();
+                    if (player.getCharacter().getType() == characterType) {
+                        player.getCharacter().heal();
+                    } else if (player.getBonusCharacters().get(characterType) != null){
+                        player.getBonusCharacters().get(characterType).heal();
+                    }
+                    updatePuzzleForTeam();
                 }
             } else {
                 log.info("Cannot find player to heal");
@@ -332,6 +333,7 @@ public class Game {
                         log.info("Team " + team.getName() + " is no longer protected by Yoshi Guard");
                     }
                 }, 10000);
+                updatePuzzleForTeam();
             }
         } else {
             log.info("Cannot find yoshi player");
@@ -385,7 +387,7 @@ public class Game {
         }
     }
 
-    public void troubleFlipper(Bowser bowser) {
+    public void troubleFlipper(Player bowser) {
         if (!gameOver && !team.isImmune()) {
             log.info(bowser.getGamerTag() + " from team " + bowser.getTeam().getName()+  " used trouble flipper on " + team.getName());
             synchronized (puzzleBoard) {

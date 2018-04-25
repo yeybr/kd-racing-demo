@@ -18,7 +18,7 @@ public class Tournament implements GameOverListener, BadGuyActionHandler {
 
     private Logger log = LoggerFactory.getLogger("tournament");
 
-    private List<Player> players = new ArrayList<>();
+    private final List<Player> players = new ArrayList<>();
     private volatile boolean started = false;
     private int waitCounter = 10;
     private Map<String, Team> teams = new HashMap<>();
@@ -66,7 +66,7 @@ public class Tournament implements GameOverListener, BadGuyActionHandler {
             AddUserAckMessage addUserAckMessage = new AddUserAckMessage(addUserMessage, AddUserAckMessage.RESULT_SUCCESS);
             try {
                 publisher.publish("user/" + player.getClientName(), addUserAckMessage);
-                log.info("Player " + player.getClientName() + " has been registered in the tournament");
+                log.info("Player " + player.getGamerTag() + " with id " + player.getClientName() + " has been registered in the tournament");
                 if (present) {
                     // check if there is active game and send out team information
                     Optional<Game> firstMatchGame = activeGames.values().stream().filter(item ->
@@ -321,6 +321,10 @@ public class Tournament implements GameOverListener, BadGuyActionHandler {
                 int indexOfTeamToAttack = rank - 1;
                 Team teamToAttack = teamRankings.get(indexOfTeamToAttack);
                 teamToAttack.getGame().troubleFlipper(bowserPlayer);
+                Game attackerGame = bowserPlayer.getTeam().getGame();
+                if (attackerGame != null) {
+                    attackerGame.updatePuzzleForTeam();
+                }
             }
         }
     }
@@ -335,6 +339,10 @@ public class Tournament implements GameOverListener, BadGuyActionHandler {
                 int indexOfTeamToAttack = rank - 1;
                 Team teamToAttack = teamRankings.get(indexOfTeamToAttack);
                 teamToAttack.getGame().greenShell();
+                Game attackerGame = goombaPlayer.getTeam().getGame();
+                if (attackerGame != null) {
+                    attackerGame.updatePuzzleForTeam();
+                }
             }
         }
     }
