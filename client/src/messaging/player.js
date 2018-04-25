@@ -147,46 +147,6 @@ export class Player {
     } catch (error) {
       console.log("Publish failed. error = ", error);
     }
-    // // REMOVE TESTING CODE
-    // setTimeout(() => {
-    //   this.msgCallback(this.simulatePickAvatarResponse(avatar));
-    // }, 0);
-  }
-
-  // when integrating with the server, make sure the attributes that are not
-  // available in the server message are provided with hardcoded value.
-  simulatePickAvatarResponse(avatar) {
-    let msg = Object.assign(new TeamsMessage, {
-      // players with avatar
-      players: [
-        {
-          clientId: this.clientId,
-          username: this.username,
-          avatar: avatar
-        },
-        {
-          clientId: '1',
-          username: 'Kevin',
-          avatar: 'peach'
-        },
-        {
-          clientId: '2',
-          username: 'Rob',
-          avatar: 'yoshi'
-        },
-        {
-          clientId: '5',
-          username: 'Roland',
-          avatar: 'bowser'
-        },
-        {
-          clientId: '6',
-          username: 'Bob',
-          avatar: 'goomba'
-        },
-      ]
-    });
-    return msg;
   }
 
   swap(piece1, piece2) {

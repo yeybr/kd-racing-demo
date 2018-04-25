@@ -123,9 +123,11 @@ public class Game {
         boolean won = isGameWon();
         UpdatePuzzleMessage updatePuzzleMessage = new UpdatePuzzleMessage();
         updatePuzzleMessage.setTeamId(team.getId());
+        updatePuzzleMessage.setTeamName(team.getName());
         updatePuzzleMessage.setPuzzleName(puzzleName);
         updatePuzzleMessage.setPuzzle(puzzleBoard);
         updatePuzzleMessage.setGameWon(won);
+        updatePuzzleMessage.setPlayers(team.getPlayers());
         try {
             publisher.publish("team/" + team.getId(), updatePuzzleMessage);
         } catch (PublisherException ex) {
@@ -258,6 +260,7 @@ public class Game {
     }
 
     private void starPowerHandler(StarPowerMessage starPowerMessage) {
+        log.info("Got starPower");
         Player player = getTeam().getPlayer(CharacterType.mario);
         if (player != null) {
             Mario mario;
@@ -279,6 +282,7 @@ public class Game {
 
     private void peachHealHandler(PeachHealMessage peachHealMessage) {
         // TODO wait until player selection logic before checking
+        log.info("Got peachHeal");
         Player peachPlayer = getTeam().getPlayer(CharacterType.peach);
         if (peachPlayer != null) {
             CharacterType characterType = peachHealMessage.getCharacterType();
@@ -335,6 +339,7 @@ public class Game {
     }
 
     private void troubleFlipperHandler() {
+
         Player player = getTeam().getPlayer(CharacterType.bowser);
         if (player != null) {
             Bowser bowser;

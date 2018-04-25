@@ -81,7 +81,6 @@ public class Tournament implements GameOverListener, BadGuyActionHandler {
                             if (player.getCharacter() == null || !started) {
                                 activeGame.updateCharactersForTeam(false);
                             } else {
-                                activeGame.updateCharactersForTeam(false);
                                 activeGame.updatePuzzleForTeam();
                             }
                         } catch (SubscriberException ex) {
