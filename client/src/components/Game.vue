@@ -62,7 +62,7 @@
     <div v-if="state === 'playing'" id="puzzle-area" class="backgroundwhite">
       <div id="puzzle" :style="puzzleStyle">
         <transition-group name="puzzleswap" >
-          <div  v-for="(piece, i) in puzzle" @click="select" :index="piece.index" :key="piece.index" class="spot" :class="{selected: piece.selected}" :style="[holderStyle]">
+          <div  v-for="(piece, i) in puzzle" @click="select" :index="piece.index" :key="piece.index" class="spot" :class="{selected: piece.selectedBy && piece.selectedBy != clientId, selectedByMe: piece.selectedBy == clientId}" :style="[holderStyle]">
             <img :src="puzzlePicture" :index="i" v-bind:style="piece.style"/>
             <div class="highlight"></div>
           </div>
@@ -195,8 +195,6 @@ export default {
       },
       puzzleStyle: '',
       backgroundwhite: false,
-      selected: null,
-      mySwapFrom: -1,
       styleAvatar: {
         "background-image": avatarLink,
         "background-size": "contain",
@@ -347,18 +345,9 @@ export default {
         for (var i = 0; i < size * size; ++i) {
           pieces[i].style = `width: ${square}px; margin-left: -${unit *
               (pieces[i].index % size)}px; margin-top: -${unit * Math.floor(pieces[i].index / size)}px;`;
-         pieces[i].selected = false;
         }
         this.updateArray(this.puzzle, pieces);
-        this.selected = null;        
-         if (this.mySwapFrom > -1) {
-          let p = this.puzzle.find(p => {
-              return p.index === this.mySwapFrom;
-          });
-          p.selected = true;
-        
-      };
-          
+
         if (newState !== 'start') {
           this.checkWinCondition(msg.gameWon);
         }
@@ -487,32 +476,68 @@ export default {
         this.teamInfo.teamName = '';
       }
     },
+    // TODO (BTO): randomSwap needs changing to accomodate SelectMessage
+    //
     randomSwap: function() {
       console.log("random swap");
-      var piece1 = this.puzzle[this.getRandomInt(9)];
-      var piece2 = this.puzzle[this.getRandomInt(9)];
-      this.swap(piece1, piece2);
+      //var piece1 = this.puzzle[this.getRandomInt(9)];
+      //var piece2 = this.puzzle[this.getRandomInt(9)];
+      //this.swap(piece1, piece2);
     },
     select: function(e) {
-      let isAlreadySelected = this.puzzle.find(p => {
-        return p.selected;
+      let isAlreadySelectedByMe = this.puzzle.find(p => {
+        return p.selectedBy == this.clientId;
       });
       let index = e.target.previousElementSibling.attributes.index.value;
-      this.selected = this.puzzle[index];
-      this.selected.selected = true;
-      if (isAlreadySelected) {
-        this.swap(isAlreadySelected, this.selected);
-        this.mySwapFrom = -1;
-      } else {
-         this.mySwapFrom =  this.selected.index;
+
+      // Selection validity check:
+      //
+      // If you have already selected a piece, then the valid choices are either
+      // the piece you have already selected (to unselect it), or a non-selected
+      // piece.
+      //
+      // If you have no already selected a piece, then the valid choices are any
+      // non-selected piece.
+      //
+      let selectedPiece = {index: this.puzzle[index].index, selectedBy: this.puzzle[index].selectedBy};
+      let isSelectionValid = isAlreadySelectedByMe ?
+        (selectedPiece.selectedBy == this.clientId) || !selectedPiece.selectedBy :
+        !selectedPiece.selectedBy;
+
+      if (!isSelectionValid) {
+        return;
+      }
+
+      // Handle the final selection case
+      //
+      if (isAlreadySelectedByMe) {
+        let isNewSelectionAlreadySelectedByMe = (selectedPiece.selectedBy == this.clientId);
+
+        // Handles the unselection case
+        //
+        if (isNewSelectionAlreadySelectedByMe) {
+          selectedPiece.selectedBy = "";
+          this.playerMessenger.selectPiece(selectedPiece);
+        }
+        // Handle the swap case
+        //
+        else {
+          this.swap(isAlreadySelectedByMe, selectedPiece);
+        }
+      }
+      // Handle the initial selection case
+      //
+      else {
+        selectedPiece.selectedBy = this.clientId;
+        this.playerMessenger.selectPiece(selectedPiece);
       }
     },
     swap: function(a, b) {
       // console.log(a.index, b.index);
-      let piece1 = {index: a.index};
-      let piece2 = {index: b.index};
-      let pieces = this.puzzle.map((piece) => {
-        return {index: piece.index};
+      let piece1 = {index: a.index, selectedBy: a.selectedBy};
+      let piece2 = {index: b.index, selectedBy: b.selectedBy};
+      let pieces = this.puzzle.map((p) => {
+        return {index: p.index, selectedBy: p.selectedBy};
       });
       this.playerMessenger.swap(piece1, piece2, pieces);
     },
@@ -521,10 +546,13 @@ export default {
       if (type === "peach") {
         // TODO popup a modal to pick a teammate
         this.playerMessenger.peachHeal("mario");
-      } else if (type === "mario" && this.selected) {
-        let puzzlePiece = {index: this.selected.index};
-        this.mySwapFrom = -1;
-        this.playerMessenger.starPower(puzzlePiece);
+      } else if (type === "mario") {
+        let mySelectedPiece = this.puzzle.find(p => {
+          return p.selectedBy == this.clientId;
+        });
+        if (mySelectedPiece) {
+          this.playerMessenger.starPower(mySelectedPiece);
+        }
       } else if (type === "bowser") {
         this.playerMessenger.troubleFlipper();
       } else if (type === "yoshi") {
@@ -778,11 +806,17 @@ a {
 .spot.selected {
   border: solid 1px red;
 }
+.spot.selectedByMe {
+  border: solid 1px yellow;
+}
 /* .spot.swapped {
     transform:  rotateY(360deg);
 } */
 .spot.selected img {
   box-shadow: 10px 10px 10px 10px red inset;
+}
+.spot.selectedByMe img {
+  box-shadow: 10px 10px 10px 10px yellow inset;
 }
 
 #win {
@@ -816,6 +850,9 @@ a {
 }
 .selected .highlight {
   box-shadow: inset 0 0 20px red;
+}
+.selectedByMe .highlight {
+  box-shadow: inset 0 0 20px yellow;
 }
 
 /* TODO: move avatar selection to its own component */

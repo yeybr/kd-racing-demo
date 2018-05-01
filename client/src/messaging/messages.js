@@ -89,6 +89,14 @@ export class PickCharacterMessage extends TroubleFlipperMessage {
   }
 }
 
+export class SelectPieceMessage extends TroubleFlipperMessage {
+  constructor(piece, clientId) {
+    super();
+    this.piece = piece;
+    this.clientId = clientId;
+  }
+}
+
 export class SwapMessage extends TroubleFlipperMessage {
   constructor(piece1, piece2, clientId) {
     super();

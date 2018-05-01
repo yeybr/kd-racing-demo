@@ -39,6 +39,7 @@ public class Game {
         this.tournamentProperties = tournamentProperties;
         this.badGuyActionHandler = badGuyActionHandler;
         subscriber.registerHandler(SwapPiecesMessage.class, "games/" + team.getId(), this::swapPieces);
+        subscriber.registerHandler(SelectPieceMessage.class, "games/" + team.getId() + "/selectPiece", this::selectPiece);
         subscriber.registerHandler(PickCharacterMessage.class, "games/" + team.getId() + "/pickCharacter", this::pickCharacterHandler);
         subscriber.registerHandler(StarPowerMessage.class, "games/" + team.getId() + "/starPower", this::starPowerHandler);
         subscriber.registerHandler(PeachHealMessage.class, "games/" + team.getId() + "/peachHeal", this::peachHealHandler);
@@ -92,8 +93,32 @@ public class Game {
                 PuzzlePiece bPiece2 = findPuzzlePiece(piece2.getIndex());
                 bPiece1.setIndex(piece2.getIndex());
                 bPiece2.setIndex(piece1.getIndex());
+                bPiece1.setSelectedBy("");
+                bPiece2.setSelectedBy("");
             } catch (NoPieceFoundException ex) {
                 log.error("Unable to swap pieces " + piece1.getIndex() + " and " + piece2.getIndex(), ex);
+            }
+        }
+    }
+
+    private void selectPiece(PuzzlePiece piece, Player player) {
+        synchronized (puzzleBoard) {
+            try {
+                PuzzlePiece bPiece = findPuzzlePiece(piece.getIndex());
+                String newSelectedBy = piece.getSelectedBy();
+                String oldSelectedBy = bPiece.getSelectedBy();
+                log.info("oldSelectedBy = " + oldSelectedBy + ", newSelectedBy = " + newSelectedBy + ", player.getClientName() = " + player.getClientName());
+                boolean selectAction = oldSelectedBy.equals("") && newSelectedBy.equals(player.getClientName());
+                boolean unselectAction = newSelectedBy.equals("") && oldSelectedBy.equals(player.getClientName());
+                if (selectAction) {
+                    bPiece.setSelectedBy(newSelectedBy);
+                } else if (unselectAction) {
+                    bPiece.setSelectedBy("");
+                } else {
+                    log.error("Invalid action for SelectPieceMessage.");
+                }
+            } catch (NoPieceFoundException ex) {
+                log.error("Unable to select piece " + piece.getIndex(), ex);
             }
         }
     }
@@ -113,6 +138,7 @@ public class Game {
             for (int i = 0; i < puzzleLength ; i++) {
                 PuzzlePiece puzzlePiece = new PuzzlePiece();
                 puzzlePiece.setIndex(i);
+                puzzlePiece.setSelectedBy("");
                 puzzleBoard.add(puzzlePiece);
             }
             Collections.shuffle(puzzleBoard);
@@ -171,6 +197,12 @@ public class Game {
     private void swapPieces(SwapPiecesMessage swapPiecesMessage) {
         Player player = team.getPlayer(swapPiecesMessage.getClientId());
         swapPieces(swapPiecesMessage.getPiece1(), swapPiecesMessage.getPiece2(), player);
+        updatePuzzleForTeam();
+    }
+
+    private void selectPiece(SelectPieceMessage selectPieceMessage) {
+        Player player = team.getPlayer(selectPieceMessage.getClientId());
+        selectPiece(selectPieceMessage.getPiece(), player);
         updatePuzzleForTeam();
     }
 

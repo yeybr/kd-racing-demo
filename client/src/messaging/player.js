@@ -1,6 +1,9 @@
-import { UsersMessage, UsersAckMessage, TournamentsMessage, TeamsMessage, publishMessageToTopic, parseReceivedMessage, RankMessage } from '@/messaging/messages.js';
+import { UsersMessage, UsersAckMessage } from '@/messaging/messages.js';
+import { TournamentsMessage, TeamsMessage } from '@/messaging/messages.js';
 import { SwapMessage,  PickCharacterMessage } from '@/messaging/messages.js';
-import { StarPowerMessage, PeachHealMessage } from './messages';
+import { StarPowerMessage, PeachHealMessage } from '@/messaging/messages.js';
+import { RankMessage, SelectPieceMessage } from '@/messaging/messages.js';
+import { publishMessageToTopic, parseReceivedMessage } from '@/messaging/messages.js';
 export class Player {
   constructor(solaceApi, appProps, userInfo, msgCallback) {
     this.solaceApi = solaceApi;
@@ -144,6 +147,17 @@ export class Player {
     var pickCharacterMessage = new PickCharacterMessage(character, this.clientId);
     try {
       publishMessageToTopic(this.gameTopic + '/pickCharacter', pickCharacterMessage, this.session, this.solaceApi);
+    } catch (error) {
+      console.log("Publish failed. error = ", error);
+    }
+  }
+
+  selectPiece(piece) {
+    console.log('publish select message to ' + this.gameTopic);
+
+    var selectPieceMessage = new SelectPieceMessage(piece, this.clientId);
+    try {
+      publishMessageToTopic(this.gameTopic + "/selectPiece", selectPieceMessage, this.session, this.solaceApi);
     } catch (error) {
       console.log("Publish failed. error = ", error);
     }
