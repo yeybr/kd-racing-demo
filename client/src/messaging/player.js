@@ -133,7 +133,18 @@ export class Player {
   startGame() {
     console.log('Send message to request to start game');
 
-    var tournamentsMessage = new TournamentsMessage();
+    var tournamentsMessage = new TournamentsMessage("buildTeams");
+    try {
+      publishMessageToTopic('tournaments', tournamentsMessage, this.session, this.solaceApi);
+    } catch (error) {
+      console.log("Publish failed. error = ", error);
+    }
+  }
+
+  stopGame() {
+    console.log('Send message to request to start game');
+
+    var tournamentsMessage = new TournamentsMessage("stopGame");
     try {
       publishMessageToTopic('tournaments', tournamentsMessage, this.session, this.solaceApi);
     } catch (error) {

@@ -20,6 +20,8 @@ public class UpdatePuzzleMessage {
 
     private List<Player> players;
 
+    private boolean gameOver;
+
     public List<PuzzlePiece> getPuzzle() {
         return puzzle;
     }
@@ -66,6 +68,14 @@ public class UpdatePuzzleMessage {
 
     public void setPlayers(List<Player> players) {
         this.players = players;
+    }
+
+    public boolean isGameOver() {
+        return gameOver;
+    }
+
+    public void setGameOver(boolean gameOver) {
+        this.gameOver = gameOver;
     }
 
     public String toString() {

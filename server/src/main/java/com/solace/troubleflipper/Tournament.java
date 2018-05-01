@@ -32,6 +32,8 @@ public class Tournament implements GameOverListener, BadGuyActionHandler {
     private final Subscriber subscriber;
     private final Publisher publisher;
 
+    private boolean stopGame;
+
     private final TournamentProperties tournamentProperties;
 
     private Timer timer = new Timer("TournamentTimer");
@@ -112,7 +114,7 @@ public class Tournament implements GameOverListener, BadGuyActionHandler {
                 game.updateCharactersForTeam(false);
             }
         } else if (tournamentMessage.getAction().equals("stopGame")) {
-
+            stopGame = true;
         }
     }
 
