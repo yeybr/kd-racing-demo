@@ -282,7 +282,7 @@ export default {
           teamMsg.puzzleName = msg.puzzleName;
         }
         let teamInfo = {
-          timeAllowedForEachMove: 0
+          timeAllowedForEachMove: 10
         };
         teamMsg.teamInfo = teamInfo;
         if (msg.teamId) {
@@ -476,13 +476,11 @@ export default {
         this.teamInfo.teamName = '';
       }
     },
-    // TODO (BTO): randomSwap needs changing to accomodate SelectMessage
-    //
     randomSwap: function() {
       console.log("random swap");
-      //var piece1 = this.puzzle[this.getRandomInt(9)];
-      //var piece2 = this.puzzle[this.getRandomInt(9)];
-      //this.swap(piece1, piece2);
+      var piece1 = this.puzzle[this.getRandomInt(9)];
+      var piece2 = this.puzzle[this.getRandomInt(9)];
+      this.swap(piece1, piece2);
     },
     select: function(e) {
       let isAlreadySelectedByMe = this.puzzle.find(p => {
@@ -561,6 +559,9 @@ export default {
         this.playerMessenger.greenShell();
       }
     },
+    // TODO (BTO): We may want to move the stop countdown call to the swap and
+    //             make it player-specific instead of team-wide...
+    //
     checkWinCondition: function(gameWon) {
       this.win = gameWon;
       if (this.win) {
