@@ -107,7 +107,7 @@ public class Game {
                 PuzzlePiece bPiece = findPuzzlePiece(piece.getIndex());
                 String newSelectedBy = piece.getSelectedBy();
                 String oldSelectedBy = bPiece.getSelectedBy();
-                log.info("oldSelectedBy = " + oldSelectedBy + ", newSelectedBy = " + newSelectedBy + ", player.getClientName() = " + player.getClientName());
+                //log.info("oldSelectedBy = " + oldSelectedBy + ", newSelectedBy = " + newSelectedBy + ", player.getClientName() = " + player.getClientName());
                 boolean selectAction = oldSelectedBy.equals("") && newSelectedBy.equals(player.getClientName());
                 boolean unselectAction = newSelectedBy.equals("") && oldSelectedBy.equals(player.getClientName());
                 if (selectAction) {
