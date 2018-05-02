@@ -22,7 +22,7 @@ export class Player {
         // console.log('Creating the connection', this.solaceApi, this.appProps);
         let solace = this.solaceApi;
         var factoryProps = new solace.SolclientFactoryProperties();
-        factoryProps.profile = solace.SolclientFactoryProfiles.version10;
+        factoryProps.profile = solace.SolclientFactoryProfiles.version7;
         solace.SolclientFactory.init(factoryProps);
         // enable logging to JavaScript console at WARN level
         // NOTICE: works only with 'solclientjs-debug.js'
@@ -133,7 +133,18 @@ export class Player {
   startGame() {
     console.log('Send message to request to start game');
 
-    var tournamentsMessage = new TournamentsMessage();
+    var tournamentsMessage = new TournamentsMessage("buildTeams");
+    try {
+      publishMessageToTopic('tournaments', tournamentsMessage, this.session, this.solaceApi);
+    } catch (error) {
+      console.log("Publish failed. error = ", error);
+    }
+  }
+
+  stopGame() {
+    console.log('Send message to request to start game');
+
+    var tournamentsMessage = new TournamentsMessage("stopGame");
     try {
       publishMessageToTopic('tournaments', tournamentsMessage, this.session, this.solaceApi);
     } catch (error) {

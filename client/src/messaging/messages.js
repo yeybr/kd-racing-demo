@@ -69,9 +69,9 @@ export class UsersAckMessage extends UsersMessage {
 // Message sent from adminstrative client to server to signal start of game
 //
 export class TournamentsMessage extends TroubleFlipperMessage {
-  constructor() {
+  constructor(action) {
     super();
-    this.action = 'buildTeams';
+    this.action = action;
   }
 }
 

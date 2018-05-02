@@ -1,11 +1,21 @@
 <template>
   <div id='game' class="game-panel" :class="{backgroundwhite: backgroundwhite}">
+    <div class="modal" v-show="chooseHeal">
+      <div class="text">Choose a player</div>
+      <div class="content">
+        <div v-for="(player) in otherPlayers" v-if="player.character" :key="player.clientId" class="user-info" :class="player.character.type">
+          <div class="headshot" @click="heal(player)">
+            <img :src="player.avatarLink">
+          </div>
+        </div>
+      </div>
+    </div>
     <div v-show="state === 'playing'" class="header-section">
       <div style="position:relative;background-image: url(static/backgrounds.png);">
         <div class="titlebar">{{teamInfo.teamName}}</div>
       </div>
       <div class="header-info">
-        <div class="user-info" :class="characterType">
+        <div class="me user-info" :class="characterType">
           <div class="headshot" @click="power()">
             <img :src="avatarLink">
           </div>
@@ -207,6 +217,7 @@ export default {
       characterType: "",
       powerMoves: 0,
       players: [],
+      chooseHeal: false,
       // From server
       puzzle: [],
       puzzleName: "",
@@ -282,7 +293,7 @@ export default {
           teamMsg.puzzleName = msg.puzzleName;
         }
         let teamInfo = {
-          timeAllowedForEachMove: 10
+          timeAllowedForEachMove: 0
         };
         teamMsg.teamInfo = teamInfo;
         if (msg.teamId) {
@@ -330,9 +341,10 @@ export default {
         let pieces = msg.puzzle;
         // assume is 5 x 5
         let size = Math.sqrt(msg.puzzle.length);
-        var square = 412;
-        if (window.innerWidth < square) {
-          square = window.innerWidth;
+        var puzzleArea = document.getElementById("puzzle-area");
+        var square = puzzleArea.offsetHeight;
+        if (puzzleArea.offsetHeight > puzzleArea.offsetWidth) {
+          square = puzzleArea.offsetWidth;
         }
         this.puzzleStyle = `width: ${square}px; height: ${square}px;`;
 
@@ -380,17 +392,7 @@ export default {
           newPlayers.forEach((player) => {
             if (player.character) {
               player.avatarLink = `static/${player.character.type}-mario.jpg`;
-              if (player.character.type === 'mario') {
-                player.powerMoves = player.character.starPowerUps;
-              } else if (player.character.type === 'peach') {
-                player.powerMoves = player.character.healUsed ? 0 : 1;
-              } else if (player.character.type === 'yoshi') {
-                player.powerMoves = player.character.immuneUsed ? 0 : 1;
-              } else if (player.character.type === 'goomba') {
-                player.powerMoves = player.character.greenShells;
-              } else if (player.character.type === 'bowser') {
-                player.powerMoves = player.character.troubleFlipperUsed ? 0 : 1;
-              }
+              player.powerMoves = player.character.superPower;
             }
             if (player.clientName === this.clientId) {
               me = player;
@@ -454,6 +456,11 @@ export default {
     startGame: function() {
       if (this.playerMessenger) {
         this.playerMessenger.startGame();
+      }
+    },
+    stopGame: function() {
+      if (this.playerMessenger) {
+        this.playerMessenger.stopGame();
       }
     },
     pickCharacter: function(event) {
@@ -566,10 +573,9 @@ export default {
       this.playerMessenger.swap(piece1, piece2, pieces);
     },
     power: function() {
-      let type = this.character.type;
+      if (this.powerMoves) {let type = this.character.type;
       if (type === "peach") {
-        // TODO popup a modal to pick a teammate
-        this.playerMessenger.peachHeal("mario");
+        this.chooseHeal = true;
       } else if (type === "mario") {
         let selectedPiece = this.puzzle.find(p => {
           return p.selectedBy == this.clientId;
@@ -583,8 +589,13 @@ export default {
       } else if (type === "yoshi") {
         this.playerMessenger.yoshiGuard();
       } else if (type === "goomba") {
-        this.playerMessenger.greenShell();
+        this.playerMessenger.greenShell();}
       }
+    },
+    heal: function(player) {
+      console.log(player);
+      this.chooseHeal = false;
+      this.playerMessenger.peachHeal(player.character.type);
     },
     // TODO (BTO): We may want to move the stop countdown call to the swap and
     //             make it player-specific instead of team-wide...
@@ -647,6 +658,24 @@ a {
   color: #1dacfc;
 }
 
+.modal .text {
+  position: fixed;
+  top: 20%;
+  font-size: 40px;
+  color: white;
+  font-family: Bangers;
+  width: 100vw;
+  text-align: center;
+}
+.modal .content {
+  position: fixed;
+  top: 30%;
+  padding: 4vw;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+}
+
 .game-panel {
   display: flex;
   flex-direction: column;
@@ -676,6 +705,11 @@ a {
 .header-info .game-info .info {
   padding: 0px;
 }
+
+.header-info .me.user-info:active .headshot {
+  color: grey;
+  transform: scale(1.2);
+}
 .profile {
   border: 1px #b9acac9e solid;
   box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
@@ -698,6 +732,7 @@ a {
   border-radius: 18vw;
   position: relative;
   box-shadow: 0px 0px 1px 3px rgba(0, 0, 0, 0.1);
+  background: white;
 }
 
 .headshot img {

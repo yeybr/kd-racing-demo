@@ -88,6 +88,9 @@ public class Game {
             }
         }
         synchronized (puzzleBoard) {
+            if (gameOver) {
+                return;
+            }
             try {
                 PuzzlePiece bPiece1 = findPuzzlePiece(piece1.getIndex());
                 PuzzlePiece bPiece2 = findPuzzlePiece(piece2.getIndex());
@@ -195,6 +198,9 @@ public class Game {
     }
 
     private void swapPieces(SwapPiecesMessage swapPiecesMessage) {
+        if (swapPiecesMessage.getPiece1().getIndex() == swapPiecesMessage.getPiece2().getIndex()) {
+            return;
+        }
         Player player = team.getPlayer(swapPiecesMessage.getClientId());
         swapPieces(swapPiecesMessage.getPiece1(), swapPiecesMessage.getPiece2(), player);
         updatePuzzleForTeam();
@@ -301,9 +307,9 @@ public class Game {
             } else {
                 mario = (Mario) player.getBonusCharacters().get(CharacterType.mario);
             }
-            if (mario.getStarPowerUps() > 0) {
+            if (mario.getSuperPower() > 0) {
                 log.debug("Mario used star power");
-                mario.useStarPowerUp();
+                mario.useSuperPower();
                 starPower(starPowerMessage.getPuzzlePiece());
                 updatePuzzleForTeam();
             }
@@ -326,8 +332,8 @@ public class Game {
                 } else {
                     peach = (Peach) peachPlayer.getBonusCharacters().get(CharacterType.peach);
                 }
-                if (!peach.isHealUsed()) {
-                    peach.useHeal();
+                if (peach.getSuperPower() > 0) {
+                    peach.useSuperPower();
                     if (player.getCharacter().getType() == characterType) {
                         player.getCharacter().heal();
                     } else if (player.getBonusCharacters().get(characterType) != null){
@@ -354,8 +360,8 @@ public class Game {
             } else {
                 yoshi = (Yoshi) player.getBonusCharacters().get(CharacterType.yoshi);
             }
-            if (!yoshi.isImmuneUsed()) {
-                yoshi.useImmune();
+            if (yoshi.getSuperPower() > 0) {
+                yoshi.useSuperPower();
                 team.setImmune(true);
                 log.info("Team " + team.getName() + " is protected by Yoshi Guard for the next 10 seconds");
                 timer.schedule(new TimerTask() {
@@ -382,8 +388,8 @@ public class Game {
             } else {
                 bowser = (Bowser) player.getBonusCharacters().get(CharacterType.bowser);
             }
-            if (!bowser.isTroubleFlipperUsed()) {
-                bowser.useTroubleFlipper();
+            if (bowser.getSuperPower() > 0) {
+                bowser.useSuperPower();
                 badGuyActionHandler.troubleFlipper(player);
             }
         } else {
@@ -400,8 +406,8 @@ public class Game {
             } else {
                 goomba = (Goomba) player.getBonusCharacters().get(CharacterType.goomba);
             }
-            if (goomba.getGreenShells() > 0) {
-                goomba.useGreenShell();
+            if (goomba.getSuperPower() > 0) {
+                goomba.useSuperPower();
                 badGuyActionHandler.greenShell(player);
             }
         } else {

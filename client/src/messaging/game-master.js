@@ -17,7 +17,7 @@ export class GameMaster {
         // console.log("Creating the connection", this.solaceApi, this.appProps);
         let solace = this.solaceApi;
         var factoryProps = new solace.SolclientFactoryProperties();
-        factoryProps.profile = solace.SolclientFactoryProfiles.version10;
+        factoryProps.profile = solace.SolclientFactoryProfiles.version7;
         solace.SolclientFactory.init(factoryProps);
         // enable logging to JavaScript console at WARN level
         // NOTICE: works only with "solclientjs-debug.js"
