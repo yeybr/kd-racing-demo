@@ -571,11 +571,12 @@ export default {
         // TODO popup a modal to pick a teammate
         this.playerMessenger.peachHeal("mario");
       } else if (type === "mario") {
-        let mySelectedPiece = this.puzzle.find(p => {
+        let selectedPiece = this.puzzle.find(p => {
           return p.selectedBy == this.clientId;
         });
-        if (mySelectedPiece) {
-          this.playerMessenger.starPower(mySelectedPiece);
+        if (selectedPiece) {
+          let piece = {index: selectedPiece.index, selectedBy: selectedPiece.selectedBy};
+          this.playerMessenger.starPower(piece);
         }
       } else if (type === "bowser") {
         this.playerMessenger.troubleFlipper();
