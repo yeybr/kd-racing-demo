@@ -1,19 +1,28 @@
 <template>
   <div class="game-master-panel">
-    <div class="title">
-      <h1>{{msg}}</h1>
-      <!-- <div class="user-info">User: {{username}}</div> -->
+    <div class="header-section">
+      <div class="title">
+          <span class="red">G</span><span class="green">a</span><span class="yellow">m</span><span class="blue">e</span>
+          <span class="red">M</span><span class="green">a</span><span class="yellow">s</span><span class="blue">t</span><span class="red">e</span><span class="green">r</span>
+      </div>
     </div>
     <div v-show="state !== 'watching'" class="score-info waiting">
       <h3>Connecting...</h3>
     </div>
+    <div class="game-stats">
+      <div v-show="state === 'watching' && !started" class="score-info waiting">
+        <button type="button" class="game-btn btn" @click="startGame()">Start Game!</button>
+      </div>
+      <div v-show="state === 'watching' && started" class="score-info waiting">
+        <button type="button" class="game-btn btn" @click="stopGame()">Stop Game!</button>
+      </div>
+    </div>
     <div v-show="state === 'watching'" class="score-board">
-      <div class="game" v-for="gameInfo in scoreboardInfo.games" :key="gameInfo.id">
-        <span class="info">Puzzle: {{gameInfo.gameName}}</span>
-        <span class="info">Team: {{gameInfo.teamName}}</span>
-        <div class="info">Players:
-          <template v-for="(player, index) in gameInfo.players">
-            {{player.name}}{{(index === gameInfo.players.length - 1) ? '': ', '}}
+      <div class="team" v-for="teamInfo in teams" :key="teamInfo.teamId">
+        <div class="title">{{teamInfo.teamName}}</div>
+        <div class="body">
+          <template v-for="(player, index) in teamInfo.players">
+            {{player.name}}{{(index === teamInfo.players.length - 1) ? '': ', '}}
           </template>
         </div>
       </div>
@@ -22,6 +31,7 @@
 </template>
 
 <script>
+import { UsersAckMessage, TournamentMessage, parseReceivedMessage } from '@/messaging/messages.js';
 import { GameMaster } from '@/messaging/game-master';
 import CommonUtils from './common-utils';
 export default {
@@ -81,10 +91,9 @@ export default {
       state: 'connecting',
       clientId: "",
       username: "",
-      scoreboardInfo: {
-        teams: [
-        ]
-      }
+      started: false,
+      waitingPlayers: [],
+      teams: []
     }
   },
 
@@ -92,21 +101,55 @@ export default {
   methods: {
     handleMsg: function(msg) {
       console.log('Got message', msg);
-      this.clientId = msg.clientId;
-      this.username = msg.username;
-      if (msg.scoreboardInfo) {
-        this.updateData(this.scoreboardInfo, msg.scoreboardInfo);
+      let newState = null;
+      if (msg instanceof UsersAckMessage) {
+        // user connect reply
+        this.clientId = msg.clientId;
+        this.username = msg.username;
+        newState = 'waiting';
+        this.handleStateChange(newState);
+        return;
+      } else if (msg instanceof TournamentMessage) {
+        this.started = msg.started;
+        this.updateArray(this.waitingPlayers, msg.waitingPlayers);
+        this.updateArray(this.teams, msg.teams);
+        newState = 'watching';
+        this.handleStateChange(newState);
+      } else if (msg.connected == false) {
+        newState = 'connecting';
+        this.handleStateChange(newState);
+        return;
       }
-      this.handleStateChange(msg);
+
     },
-    handleStateChange: function(msg) {
-      if (msg.state) {
-        console.log('State change', msg);
-        this.state = msg.state;
-        if (this.state === 'watching') {
-          console.log('Save username ' + this.username + ', clientId ' + this.clientId + ' to localStorage');
-          this.saveIntoStorage('localStorage', 'trouble_flipper_game_master', { username: this.username, clientId: this.clientId });
-        }
+    handleStateChange: function(newState) {
+      if (!newState) {
+        return;
+      }
+      console.log("New state change", newState);
+      let currentState = this.state;
+      this.state = newState;
+
+      if (this.state === 'watching' && currentState !== 'watching') {
+        console.log('Save username ' + this.username + ', clientId ' + this.clientId + ' to localStorage');
+        this.saveIntoStorage('localStorage', 'trouble_flipper_game_master', { username: this.username, clientId: this.clientId });
+      } else if (this.state === "connecting") {
+        this.cleanup();
+      }
+    },
+    cleanup: function() {
+      this.started = false;
+      this.waitingPlayers.splice(0, this.waitingPlayers.length);
+      this.teams.splice(0, this.teams.length);
+    },
+    startGame: function() {
+      if (this.masterMessenger) {
+        this.masterMessenger.startGame();
+      }
+    },
+    stopGame: function() {
+      if (this.masterMessenger) {
+        this.masterMessenger.stopGame();
       }
     }
   }
@@ -137,32 +180,95 @@ a {
   justify-content: flex-start;
   padding: 15px;
 }
-.game-master-panel .title {
+
+.game-master-panel .header-section {
   display: flex;
   flex-direction: column;
-  justify-content: flex-start;
+  justify-content: center;
+  align-items: center;
 }
-.game-master-panel .title .user-info {
+
+.game-master-panel .header-section .title {
+  font-size: 6vw;
+}
+.game-master-panel .header-section .user-info {
   font-weight: 500;
 }
-.game-master-panel .score-info.waiting {
+/* .game-master-panel .score-info.waiting {
   padding: 15px 0px;
   align-self: center;
+} */
+
+.game-master-panel .score-info.waiting {
+  align-self: stretch;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
+.game-master-panel .score-info.waiting label {
+  margin-top: 40px;
+  font-size: 8vw;
+}
+.game-master-panel .score-info.waiting .game-btn {
+  font-size: 32px;
+  margin-bottom: 80px;
+  background: #006fea;
+  border-radius: 4px;
+  padding: 10px;
+  margin: 40px 0;
+  color: white;
+  width: 200px;
+  cursor: pointer;
+}
+
 .game-master-panel .score-board {
   display: flex;
   flex-direction: row;
   justify-content: flex-start;
 }
 
-.game-master-panel .score-board .game {
+.game-master-panel .score-board .team {
   margin: 15px;
-  padding: 15px;
+  border-radius: 20px;
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
   flex-wrap: wrap;
-  border: solid 1px grey;
+  background-color: #fcfcfc;
+  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
   width: 400px;
+}
+
+.game-master-panel .score-board .team .title {
+  font-size: 20px;
+  padding: 8px 16px;
+  border-bottom: solid 2px #dedede;
+  text-align: center;
+}
+
+.game-master-panel .score-board .team .body {
+  padding: 8px 16px 12px 16px;
+}
+
+.red {
+  color: #d41345;
+  text-shadow: -0.5vw -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000,
+    1px 1px 0 #000;
+}
+.blue {
+  color: rgb(5, 139, 255);
+  text-shadow: -0.5vw -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000,
+    1px 1px 0 #000;
+}
+
+.yellow {
+  color: rgb(255, 252, 0);
+  text-shadow: -0.5vw -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000,
+    1px 1px 0 #000;
+}
+.green {
+  color: rgb(37, 173, 33);
+  text-shadow: -0.5vw -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000,
+    1px 1px 0 #000;
 }
 </style>
