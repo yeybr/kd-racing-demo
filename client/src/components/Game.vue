@@ -293,7 +293,7 @@ export default {
           teamMsg.puzzleName = msg.puzzleName;
         }
         let teamInfo = {
-          timeAllowedForEachMove: 10
+          timeAllowedForEachMove: 0
         };
         teamMsg.teamInfo = teamInfo;
         if (msg.teamId) {
