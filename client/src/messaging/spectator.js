@@ -21,9 +21,6 @@ export class Spectator {
         var factoryProps = new solace.SolclientFactoryProperties();
         factoryProps.profile = solace.SolclientFactoryProfiles.version7;
         solace.SolclientFactory.init(factoryProps);
-        // enable logging to JavaScript console at WARN level
-        // NOTICE: works only with "solclientjs-debug.js"
-        solace.SolclientFactory.setLogLevel(solace.LogLevel.WARN);
         this.session = solace.SolclientFactory.createSession({
           url: this.appProps.url,
           vpnName: this.appProps.vpn,
@@ -32,8 +29,10 @@ export class Spectator {
           clientName: this.clientId || ''
         });
         this.session.on(solace.SessionEventCode.UP_NOTICE, (sessionEvent) => {
-          this.clientId = this.session.getSessionProperties().clientName;
-          console.log('Successfully connected with clientId ' + this.clientId);
+          let sessionProperties = this.session.getSessionProperties();
+          this.clientId = sessionProperties.clientName;
+          console.log('Successfully connected with clientId ' + this.clientId +
+            ', protocol in use ' + sessionProperties.transportProtocolInUse);
           this.register();
   
         });

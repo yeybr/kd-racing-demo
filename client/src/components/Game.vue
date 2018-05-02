@@ -38,7 +38,7 @@
     <div class="game-stats">
       <div v-show="state === 'waiting'" class="status waiting">
         <label>Waiting for game to start...</label>
-        <button type="button" class="start-btn btn" @click="startGame()">Start Game!</button>
+        <!-- <button type="button" class="start-btn btn" @click="startGame()">Start Game!</button> -->
       </div>
       <div v-show="state === 'connecting'" class="status waiting">
         <label>Connecting...</label>
@@ -276,15 +276,15 @@ export default {
       el.style.height = 0;
     },
     enter: function (el, done) {
-      console.log("abcde");
+      // console.log("abcde");
     },
     leave: function (el, done) {
-      console.log("abcde");
+      // console.log("abcde");
     },
     moveListStyle: function(el) {
-      console.log("moving el" + el);
-        el.style.opacity = 0.5;
-        el.style.border = "1px blue solid";
+      // console.log("moving el" + el);
+      el.style.opacity = 0.5;
+      el.style.border = "1px blue solid";
     },
     getRandomInt: function(max) {
       return Math.floor(Math.random() * Math.floor(max));
@@ -358,21 +358,23 @@ export default {
         // assume is 5 x 5
         let size = Math.sqrt(msg.puzzle.length);
         var puzzleArea = document.getElementById("puzzle-area");
-        var square = puzzleArea.offsetHeight;
-        if (puzzleArea.offsetHeight > puzzleArea.offsetWidth) {
-          square = puzzleArea.offsetWidth;
-        }
-        this.puzzleStyle = `width: ${square}px; height: ${square}px;`;
+        if (puzzleArea) {
+          var square = puzzleArea.offsetHeight;
+          if (puzzleArea.offsetHeight > puzzleArea.offsetWidth) {
+            square = puzzleArea.offsetWidth;
+          }
+          this.puzzleStyle = `width: ${square}px; height: ${square}px;`;
 
-        var splits = 100/size;
-        var movePercent = splits / 100;
-        var unit = square * movePercent;
-        this.holderStyle.width = unit + "px";
-        this.holderStyle.height = unit + "px";
+          var splits = 100/size;
+          var movePercent = splits / 100;
+          var unit = square * movePercent;
+          this.holderStyle.width = unit + "px";
+          this.holderStyle.height = unit + "px";
 
-        for (var i = 0; i < size * size; ++i) {
-          pieces[i].style = `width: ${square}px; margin-left: -${unit *
-              (pieces[i].index % size)}px; margin-top: -${unit * Math.floor(pieces[i].index / size)}px;`;
+          for (var i = 0; i < size * size; ++i) {
+            pieces[i].style = `width: ${square}px; margin-left: -${unit *
+                (pieces[i].index % size)}px; margin-top: -${unit * Math.floor(pieces[i].index / size)}px;`;
+          }
         }
         this.updateArray(this.puzzle, pieces);
 
@@ -536,7 +538,7 @@ export default {
         return p.selectedBy == this.clientId;
       });
       let index = e.target.previousElementSibling.attributes.index.value;
-      
+
       // Selection validity check:
       //
       // If you have already selected a piece, then the valid choices are either

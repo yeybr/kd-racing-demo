@@ -164,15 +164,23 @@ public class Game {
         }
         if (won) {
             log.info("Team " + team.getId() + " won the game!");
-            subscriber.deregisterHandler("games/" + team.getId());
-            subscriber.deregisterHandler("games/" + team.getId() + "/pickCharacter");
-            subscriber.deregisterHandler("games/" + team.getId() + "/starPower");
-            subscriber.deregisterHandler("games/" + team.getId() + "/peachHeal");
-            subscriber.deregisterHandler("games/" + team.getId() + "/yoshiGuard");
-            subscriber.deregisterHandler("games/" + team.getId() + "/troubleFlipper");
-            subscriber.deregisterHandler("games/" + team.getId() + "/greenShell");
-            gameOverListeners.forEach(l -> l.gameOver(this));
+            stopGame();
         }
+    }
+
+    private void stopGame() {
+        subscriber.deregisterHandler("games/" + team.getId());
+        subscriber.deregisterHandler("games/" + team.getId() + "/pickCharacter");
+        subscriber.deregisterHandler("games/" + team.getId() + "/starPower");
+        subscriber.deregisterHandler("games/" + team.getId() + "/peachHeal");
+        subscriber.deregisterHandler("games/" + team.getId() + "/yoshiGuard");
+        subscriber.deregisterHandler("games/" + team.getId() + "/troubleFlipper");
+        subscriber.deregisterHandler("games/" + team.getId() + "/greenShell");
+        gameOverListeners.forEach(l -> l.gameOver(this));
+    }
+
+    public void stop() {
+        stopGame();
     }
 
     private boolean isGameWon() {

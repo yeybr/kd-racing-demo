@@ -4,6 +4,7 @@ public class AddUserMessage {
 
     private String username;
     private String clientId;
+    private Boolean gameMaster;
 
     public String getUsername() {
         return username;
@@ -19,5 +20,13 @@ public class AddUserMessage {
 
     public void setClientId(String clientId) {
         this.clientId = clientId;
+    }
+
+    public Boolean getGameMaster() {
+        return gameMaster;
+    }
+
+    public void setGameMaster(Boolean gameMaster) {
+        this.gameMaster = gameMaster;
     }
 }
