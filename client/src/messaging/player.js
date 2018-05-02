@@ -1,6 +1,9 @@
-import { UsersMessage, UsersAckMessage, TournamentsMessage, TeamsMessage, publishMessageToTopic, parseReceivedMessage, RankMessage } from '@/messaging/messages.js';
+import { UsersMessage, UsersAckMessage } from '@/messaging/messages.js';
+import { TournamentsMessage, TeamsMessage } from '@/messaging/messages.js';
 import { SwapMessage,  PickCharacterMessage } from '@/messaging/messages.js';
-import { StarPowerMessage, PeachHealMessage } from './messages';
+import { StarPowerMessage, PeachHealMessage } from '@/messaging/messages.js';
+import { RankMessage, SelectPieceMessage } from '@/messaging/messages.js';
+import { publishMessageToTopic, parseReceivedMessage } from '@/messaging/messages.js';
 export class Player {
   constructor(solaceApi, appProps, userInfo, msgCallback) {
     this.solaceApi = solaceApi;
@@ -19,7 +22,7 @@ export class Player {
         // console.log('Creating the connection', this.solaceApi, this.appProps);
         let solace = this.solaceApi;
         var factoryProps = new solace.SolclientFactoryProperties();
-        factoryProps.profile = solace.SolclientFactoryProfiles.version10;
+        factoryProps.profile = solace.SolclientFactoryProfiles.version7;
         solace.SolclientFactory.init(factoryProps);
         // enable logging to JavaScript console at WARN level
         // NOTICE: works only with 'solclientjs-debug.js'
@@ -130,7 +133,18 @@ export class Player {
   startGame() {
     console.log('Send message to request to start game');
 
-    var tournamentsMessage = new TournamentsMessage();
+    var tournamentsMessage = new TournamentsMessage("buildTeams");
+    try {
+      publishMessageToTopic('tournaments', tournamentsMessage, this.session, this.solaceApi);
+    } catch (error) {
+      console.log("Publish failed. error = ", error);
+    }
+  }
+
+  stopGame() {
+    console.log('Send message to request to start game');
+
+    var tournamentsMessage = new TournamentsMessage("stopGame");
     try {
       publishMessageToTopic('tournaments', tournamentsMessage, this.session, this.solaceApi);
     } catch (error) {
@@ -144,6 +158,17 @@ export class Player {
     var pickCharacterMessage = new PickCharacterMessage(character, this.clientId);
     try {
       publishMessageToTopic(this.gameTopic + '/pickCharacter', pickCharacterMessage, this.session, this.solaceApi);
+    } catch (error) {
+      console.log("Publish failed. error = ", error);
+    }
+  }
+
+  selectPiece(piece) {
+    console.log('publish select message to ' + this.gameTopic);
+
+    var selectPieceMessage = new SelectPieceMessage(piece, this.clientId);
+    try {
+      publishMessageToTopic(this.gameTopic + "/selectPiece", selectPieceMessage, this.session, this.solaceApi);
     } catch (error) {
       console.log("Publish failed. error = ", error);
     }

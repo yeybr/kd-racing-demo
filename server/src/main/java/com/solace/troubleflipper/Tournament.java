@@ -17,6 +17,8 @@ import java.util.stream.Collectors;
 @Component
 public class Tournament implements GameOverListener, BadGuyActionHandler {
 
+    private static List<String> PUZZLE_NAMES = Arrays.asList("puzzle1", "puzzle2", "puzzle3", "puzzle4");
+
     private Logger log = LoggerFactory.getLogger("tournament");
 
     private final List<Player> players = new ArrayList<>();
@@ -30,6 +32,8 @@ public class Tournament implements GameOverListener, BadGuyActionHandler {
 
     private final Subscriber subscriber;
     private final Publisher publisher;
+
+    private boolean stopGame;
 
     private final TournamentProperties tournamentProperties;
 
@@ -111,14 +115,21 @@ public class Tournament implements GameOverListener, BadGuyActionHandler {
                 game.updateCharactersForTeam(false);
             }
         } else if (tournamentMessage.getAction().equals("stopGame")) {
-
+            stopGame = true;
         }
     }
 
-    private String getPuzzleName() {
-        int index = randomGen.nextInt(4) + 1;
-        log.info("puzzle index " + index);
-        return "puzzle" + index;
+    private String getPuzzleName(Team team) {
+        String puzzleName = null;
+        if (team != null) {
+            puzzleName = team.getNextPuzzleName();
+        }
+        if (puzzleName == null) {
+            int index = randomGen.nextInt(PUZZLE_NAMES.size());
+            puzzleName = PUZZLE_NAMES.get(index);
+            log.info("puzzle name " + puzzleName);
+        }
+        return puzzleName;
     }
 
     private void prepareTeams() {
@@ -284,9 +295,10 @@ public class Tournament implements GameOverListener, BadGuyActionHandler {
         } else {
             team.setName(teamName);
         }
+        team.setPuzzleNames(new ArrayList<String>(PUZZLE_NAMES));
         completedGames.put(team.getId(), new ArrayList<>());
         Game game = new Game(team, subscriber, publisher, timer, tournamentProperties, this);
-        game.setPuzzleName(getPuzzleName());
+        game.setPuzzleName(getPuzzleName(team));
         team.setGame(game);
         for (Player player : players) {
             team.addPlayer(player);
@@ -319,7 +331,7 @@ public class Tournament implements GameOverListener, BadGuyActionHandler {
 //        game.clearGameOverListeners();
         team.addCompletedGame();
         Game newGame = new Game(team, subscriber, publisher, timer, tournamentProperties, this);
-        newGame.setPuzzleName(getPuzzleName());
+        newGame.setPuzzleName(getPuzzleName(team));
         team.setGame(newGame);
         timer.schedule(new TimerTask() {
             @Override

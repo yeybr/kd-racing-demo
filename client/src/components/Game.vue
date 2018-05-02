@@ -1,11 +1,21 @@
 <template>
   <div id='game' class="game-panel" :class="{backgroundwhite: backgroundwhite}">
+    <div class="modal" v-show="chooseHeal">
+      <div class="text">Choose a player</div>
+      <div class="content">
+        <div v-for="(player) in otherPlayers" v-if="player.character" :key="player.clientId" class="user-info" :class="player.character.type">
+          <div class="headshot" @click="heal(player)">
+            <img :src="player.avatarLink">
+          </div>
+        </div>
+      </div>
+    </div>
     <div v-show="state === 'playing'" class="header-section">
       <div style="position:relative;background-image: url(static/backgrounds.png);">
         <div class="titlebar">{{teamInfo.teamName}}</div>
       </div>
       <div class="header-info">
-        <div class="user-info" :class="characterType">
+        <div class="me user-info" :class="characterType">
           <div class="headshot" @click="power()">
             <img :src="avatarLink">
           </div>
@@ -61,11 +71,8 @@
     </div>
     <div v-if="state === 'playing'" id="puzzle-area" class="backgroundwhite">
       <div id="puzzle" :style="puzzleStyle">
-        <transition-group  v-bind:name="transitionName"
-        v-on:before-enter="beforeEnter"
-        v-on:enter="enter"
-        v-on:leave="leave">
-          <div  v-for="(piece, i) in puzzle" @click="select" :index="piece.index" :key="piece.index" class="spot" :class="{selected: piece.selected}" :style="[holderStyle]">
+        <transition-group name="puzzleswap" >
+          <div  v-for="(piece, i) in puzzle" @click="select" :index="piece.index" :key="piece.index" class="spot" :class="{selected: piece.selectedBy && piece.selectedBy != clientId, selectedByMe: piece.selectedBy == clientId}" :style="[holderStyle]">
             <img :src="puzzlePicture" :index="i" v-bind:style="piece.style"/>
             <div class="highlight"></div>
           </div>
@@ -198,8 +205,6 @@ export default {
       },
       puzzleStyle: '',
       backgroundwhite: false,
-      selected: null,
-      mySwapFrom: -1,
       styleAvatar: {
         "background-image": avatarLink,
         "background-size": "contain",
@@ -212,6 +217,7 @@ export default {
       characterType: "",
       powerMoves: 0,
       players: [],
+      chooseHeal: false,
       // From server
       puzzle: [],
       puzzleName: "",
@@ -351,9 +357,10 @@ export default {
         let pieces = msg.puzzle;
         // assume is 5 x 5
         let size = Math.sqrt(msg.puzzle.length);
-        var square = 412;
-        if (window.innerWidth < square) {
-          square = window.innerWidth;
+        var puzzleArea = document.getElementById("puzzle-area");
+        var square = puzzleArea.offsetHeight;
+        if (puzzleArea.offsetHeight > puzzleArea.offsetWidth) {
+          square = puzzleArea.offsetWidth;
         }
         this.puzzleStyle = `width: ${square}px; height: ${square}px;`;
 
@@ -366,20 +373,33 @@ export default {
         for (var i = 0; i < size * size; ++i) {
           pieces[i].style = `width: ${square}px; margin-left: -${unit *
               (pieces[i].index % size)}px; margin-top: -${unit * Math.floor(pieces[i].index / size)}px;`;
-         pieces[i].selected = false;
         }
         this.updateArray(this.puzzle, pieces);
 
-       
-        if (this.mySwapFrom > -1) {
-          let p = this.puzzle.find(p => {
-              return p.index === this.mySwapFrom;
-          });
-          p.selected = true;
-        
-      };
-        
+
          this.selected = null;
+
+        // This timer will be responsible for auto de-selection of the puzzle
+        // piece in the case of a player selecting a piece for too long.
+        //
+        let isSelectedByMe = this.puzzle.find(p => {
+          return p.selectedBy == this.clientId;
+        });
+        let isUnselectTimerStarted = this.countdownTimer;
+
+        // Player has selected a piece successfully
+        //
+        if (isSelectedByMe && !isUnselectTimerStarted) {
+          if (msg.teamInfo) {
+            this.startCountDown(msg.teamInfo.timeAllowedForEachMove);
+          }
+        }
+        // Player has unselected a peice or swapped a piece successfully
+        //
+        else if (!isSelectedByMe && isUnselectTimerStarted) {
+          this.stopCountDown();
+        }
+
         if (newState !== 'start') {
           this.checkWinCondition(msg.gameWon);
         }
@@ -391,17 +411,7 @@ export default {
           newPlayers.forEach((player) => {
             if (player.character) {
               player.avatarLink = `static/${player.character.type}-mario.jpg`;
-              if (player.character.type === 'mario') {
-                player.powerMoves = player.character.starPowerUps;
-              } else if (player.character.type === 'peach') {
-                player.powerMoves = player.character.healUsed ? 0 : 1;
-              } else if (player.character.type === 'yoshi') {
-                player.powerMoves = player.character.immuneUsed ? 0 : 1;
-              } else if (player.character.type === 'goomba') {
-                player.powerMoves = player.character.greenShells;
-              } else if (player.character.type === 'bowser') {
-                player.powerMoves = player.character.troubleFlipperUsed ? 0 : 1;
-              }
+              player.powerMoves = player.character.superPower;
             }
             if (player.clientName === this.clientId) {
               me = player;
@@ -443,8 +453,6 @@ export default {
           this.teamInfo && this.teamInfo.timeAllowedForEachMove
             ? this.teamInfo.timeAllowedForEachMove
             : 0;
-        this.timeRemaining = this.timeForEachMove;
-        this.startCountDown();
       } else if (this.state !== "playing") {
         this.stopCountDown();
         if (this.state === "waiting") {
@@ -469,6 +477,11 @@ export default {
         this.playerMessenger.startGame();
       }
     },
+    stopGame: function() {
+      if (this.playerMessenger) {
+        this.playerMessenger.stopGame();
+      }
+    },
     pickCharacter: function(event) {
       let character = event.currentTarget.getAttribute("data_id")
       if (this.teamInfo.availableCharacters && this.teamInfo.availableCharacters.indexOf(character) >= 0) {
@@ -478,25 +491,32 @@ export default {
         }
       }
     },
-    startCountDown: function() {
+    startCountDown: function(time) {
       this.stopCountDown();
-      if (this.timeForEachMove > 0) {
-        console.log("start count down timer", this.timeRemaining);
-        this.countdownTimer = setInterval(() => {
-          this.timeRemaining--;
-          if (this.timeRemaining <= 0) {
-            // console.log("no time left", this.timeRemaining);
-            this.stopCountDown();
-            this.randomSwap();
+      console.log("start count down timer", this.timeRemaining);
+      this.timeRemaining = time;
+      this.countdownTimer = setInterval(() => {
+        this.timeRemaining--;
+        if (this.timeRemaining <= 0) {
+          // console.log("no time left", this.timeRemaining);
+          this.stopCountDown();
+          let selectedPiece = this.puzzle.find(p => {
+            return p.selectedBy == this.clientId;
+          });
+          if (!selectedPiece) {
+            return;
           }
-        }, 1000);
-      }
+          let piece = {index: selectedPiece.index, selectedBy: ""};
+          this.playerMessenger.selectPiece(piece);
+        }
+      }, 1000);
     },
     stopCountDown: function() {
       if (this.countdownTimer) {
         console.log("stop countdownTimer");
         clearInterval(this.countdownTimer);
         this.countdownTimer = null;
+        this.timeRemaining = 0;
       }
     },
     cleanupGame: function() {
@@ -515,8 +535,8 @@ export default {
       this.swap(piece1, piece2);
     },
     select: function(e) {
-      let isAlreadySelected = this.puzzle.find(p => {
-        return p.selected;
+      let isAlreadySelectedByMe = this.puzzle.find(p => {
+        return p.selectedBy == this.clientId;
       });
       let index = e.target.previousElementSibling.attributes.index.value;
       this.selected = this.puzzle[index];
@@ -525,35 +545,46 @@ export default {
         this.swap(isAlreadySelected, this.selected);
         this.mySwapFrom = -1;
       } else {
-        this.mySwapFrom =  this.selected.index;
+        this.mySwapFrom = index;
       }
     },
     swap: function(a, b) {
       // console.log(a.index, b.index);
-      let piece1 = {index: a.index};
-      let piece2 = {index: b.index};
-      let pieces = this.puzzle.map((piece) => {
-        return {index: piece.index};
+      let piece1 = {index: a.index, selectedBy: a.selectedBy};
+      let piece2 = {index: b.index, selectedBy: b.selectedBy};
+      let pieces = this.puzzle.map((p) => {
+        return {index: p.index, selectedBy: p.selectedBy};
       });
       this.playerMessenger.swap(piece1, piece2, pieces);
     },
     power: function() {
-      let type = this.character.type;
+      if (this.powerMoves) {let type = this.character.type;
       if (type === "peach") {
-        // TODO popup a modal to pick a teammate
-        this.playerMessenger.peachHeal("mario");
-      } else if (type === "mario" && this.selected) {
-        let puzzlePiece = {index: this.selected.index};
-        this.mySwapFrom = -1;
-        this.playerMessenger.starPower(puzzlePiece);
+        this.chooseHeal = true;
+      } else if (type === "mario") {
+        let selectedPiece = this.puzzle.find(p => {
+          return p.selectedBy == this.clientId;
+        });
+        if (selectedPiece) {
+          let piece = {index: selectedPiece.index, selectedBy: selectedPiece.selectedBy};
+          this.playerMessenger.starPower(piece);
+        }
       } else if (type === "bowser") {
         this.playerMessenger.troubleFlipper();
       } else if (type === "yoshi") {
         this.playerMessenger.yoshiGuard();
       } else if (type === "goomba") {
-        this.playerMessenger.greenShell();
+        this.playerMessenger.greenShell();}
       }
     },
+    heal: function(player) {
+      console.log(player);
+      this.chooseHeal = false;
+      this.playerMessenger.peachHeal(player.character.type);
+    },
+    // TODO (BTO): We may want to move the stop countdown call to the swap and
+    //             make it player-specific instead of team-wide...
+    //
     checkWinCondition: function(gameWon) {
       this.win = gameWon;
       if (this.win) {
@@ -566,10 +597,6 @@ export default {
             clearInterval(i);
           }
         }, 1000);
-      } else {
-        // reset timeRemaining
-        this.timeRemaining = this.timeForEachMove;
-        this.startCountDown();
       }
     },
     starPath(x, y, size, points) {
@@ -616,6 +643,24 @@ a {
   color: #1dacfc;
 }
 
+.modal .text {
+  position: fixed;
+  top: 20%;
+  font-size: 40px;
+  color: white;
+  font-family: Bangers;
+  width: 100vw;
+  text-align: center;
+}
+.modal .content {
+  position: fixed;
+  top: 30%;
+  padding: 4vw;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+}
+
 .game-panel {
   display: flex;
   flex-direction: column;
@@ -645,6 +690,11 @@ a {
 .header-info .game-info .info {
   padding: 0px;
 }
+
+.header-info .me.user-info:active .headshot {
+  color: grey;
+  transform: scale(1.2);
+}
 .profile {
   border: 1px #b9acac9e solid;
   box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
@@ -667,6 +717,7 @@ a {
   border-radius: 18vw;
   position: relative;
   box-shadow: 0px 0px 1px 3px rgba(0, 0, 0, 0.1);
+  background: white;
 }
 
 .headshot img {
@@ -806,11 +857,17 @@ a {
  /* transform: translateY(30px); */
 
 }
+.spot.selectedByMe {
+  border: solid 1px yellow;
+}
 /* .spot.swapped {
     transform:  rotateY(360deg);
 } */
 .spot.selected img {
   box-shadow: 10px 10px 10px 10px red inset;
+}
+.spot.selectedByMe img {
+  box-shadow: 10px 10px 10px 10px yellow inset;
 }
 
 #win {
@@ -844,6 +901,9 @@ a {
 }
 .selected .highlight {
   box-shadow: inset 0 0 20px red;
+}
+.selectedByMe .highlight {
+  box-shadow: inset 0 0 20px yellow;
 }
 
 /* TODO: move avatar selection to its own component */
@@ -977,17 +1037,17 @@ a {
 }
 .puzzleswap-move {
   transition: transform 1s;
-  border: 2px  solid red; 
+  border: 2px  solid red;
   /* opacity: .6;
   border: 2px  solid red; */
-  
+
 }
 
 .puzzleswapblue-move {
   transition: transform 1s;
-  border: 2px  solid blue; 
+  border: 2px  solid blue;
   /* opacity: .6;
   border: 2px  solid red; */
-  
+
 }
 </style>

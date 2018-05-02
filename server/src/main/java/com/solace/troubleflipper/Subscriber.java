@@ -6,6 +6,7 @@ import com.solacesystems.jcsmp.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.validation.constraints.Null;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
@@ -74,6 +75,9 @@ public class Subscriber {
     }
 
     public void registerHandler(String topic, Runnable runnable) {
+        if (runnable == null) {
+            throw new NullPointerException("The runnable cannot be null for topic " + topic);
+        }
         handlers.put(topic, runnable);
         mappers.put(topic, null);
     }

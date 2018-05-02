@@ -6,6 +6,7 @@ public class Team {
 
     private String id;
     private String name;
+    private List<String> puzzleNames;
     private Map<CharacterType, Player> characters = new EnumMap<>(CharacterType.class);
     private Map<String, Player> playersMap = new HashMap<>();
     private List<Player> players = new ArrayList<>();
@@ -35,6 +36,26 @@ public class Team {
 
     public Game getGame() {
         return game;
+    }
+
+    public List<String> getPuzzleNames() {
+        return puzzleNames;
+    }
+
+    public void setPuzzleNames(List<String> puzzleNames) {
+        this.puzzleNames = puzzleNames;
+    }
+
+    public String getNextPuzzleName() {
+        if (this.puzzleNames == null || this.puzzleNames.isEmpty()) {
+            return null;
+        } else if (this.puzzleNames.size() == 1) {
+            return this.puzzleNames.get(0);
+        } else {
+            String puzzleName = this.puzzleNames.remove(0);
+            this.puzzleNames.add(puzzleName);
+            return puzzleName;
+        }
     }
 
     public void addPlayer(Player player) {
