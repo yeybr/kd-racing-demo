@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Component
 public class Tournament implements GameOverListener, BadGuyActionHandler {
@@ -235,6 +236,26 @@ public class Tournament implements GameOverListener, BadGuyActionHandler {
                         log.error("Unable to update the scores for players", ex);
                     }
                 }
+                PlayerListMessage playersMessage = new PlayerListMessage();
+                playersMessage.setPlayers(playerRankings);
+
+                List<Map<String, String>> teams =
+                        teamRankings.stream().map(team -> {
+                            Map<String, String>teamMessage = new HashMap<>();
+                            teamMessage.put("id", team.getId());
+                            teamMessage.put("name", team.getName());
+                            teamMessage.put("game", team.getGame().getPuzzleName());
+                            return teamMessage;
+
+                        }).collect(Collectors.toList());
+                playersMessage.setTeams(teams);
+                try {
+                    publisher.publish("score/players", playersMessage);
+                } catch (PublisherException ex) {
+                    log.error("Unable to send player to score/players", ex);
+                }
+
+
             }
         }, 0, 5000);
 

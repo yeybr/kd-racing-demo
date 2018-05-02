@@ -1,3 +1,5 @@
+import { UsersMessage, UsersAckMessage, TournamentsMessage, TeamsMessage, publishMessageToTopic, parseReceivedMessage, RankMessage } from '@/messaging/messages.js';
+
 export class Spectator {
   constructor(solaceApi, appProps, userInfo, msgCallback) {
     this.solaceApi = solaceApi;
@@ -33,6 +35,7 @@ export class Spectator {
           this.clientId = this.session.getSessionProperties().clientName;
           console.log('Successfully connected with clientId ' + this.clientId);
           this.register();
+  
         });
         this.session.on(solace.SessionEventCode.CONNECT_FAILED_ERROR, (sessionEvent) => {
           console.log('Connection failed to the message router: ' + sessionEvent.infoStr +
@@ -62,6 +65,7 @@ export class Spectator {
   }
 
   handleMessage(destination, jsonMessage) {
+    
     if (jsonMessage) {
       let msg = null;
       if (typeof jsonMessage === 'string') {
@@ -81,13 +85,33 @@ export class Spectator {
       }
     }
   }
-
+  subscribeToTopic(topic) {
+    if (this.session !== null) {
+      let solace = this.solaceApi;
+      try {
+        this.session.subscribe(
+          solace.SolclientFactory.createTopicDestination(topic),
+          true,
+          topic,
+          10000
+        );
+      } catch (e) {
+        console.log('Subscribe failed.', e);
+      }
+    }
+  }
   register() {
     console.log('Connect spectator ' + this.username + ', clientId ' + this.clientId);
+    // this.subscribeToTopic('score/>');
+    // this.subscribeToTopic('team/>');
+    // this.subscribeToTopic('user/>');
+    this.subscribeToTopic('score/players');
+    console.log('subscribing to players ranking');
+    
    // TESTING CODE
-   setTimeout(() => {
-    this.msgCallback(this.simulateTeamResponse());
-   }, 2000);
+  //  setTimeout(() => {
+  //   this.msgCallback(this.simulateTeamResponse());
+  //  }, 2000);
   }
 
   simulateTeamResponse() {
