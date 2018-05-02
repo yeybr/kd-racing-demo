@@ -20,8 +20,8 @@
     <div v-show="state === 'watching'" class="waiting-players">
       <div class="title">Waiting Players ({{waitingPlayers.length}})</div>
       <div class="players">
-        <div v-for="(player, index) in waitingPlayers" :key="player.id">
-          {{player.gamerTag}}{{(index === waitingPlayers.length - 1) ? '': ', '}}
+        <div v-for="(player, index) in waitingPlayers" :key="player.id" class="player">
+          {{player.gamerTag}}{{(index === waitingPlayers.length - 1) ? '': ','}}
         </div>
       </div>
     </div>
@@ -243,6 +243,10 @@ a {
   display: flex;
   flex-direction: row;
   justify-content: flex-start;
+}
+
+.game-master-panel .waiting-players .players .player {
+  padding-right: 5px;
 }
 
 .game-master-panel .teams {

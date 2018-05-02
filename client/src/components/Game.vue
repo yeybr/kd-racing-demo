@@ -69,7 +69,7 @@
         </div>
       </div>
     </div>
-    <div v-if="state === 'playing'" id="puzzle-area" class="backgroundwhite">
+    <div v-if="state === 'playing' && puzzlePicture" id="puzzle-area" class="backgroundwhite">
       <div id="puzzle" :style="puzzleStyle">
         <transition-group name="puzzleswap" >
           <div  v-for="(piece, i) in puzzle" @click="select" :index="piece.index" :key="piece.index" class="spot" :class="{selected: piece.selectedBy && piece.selectedBy != clientId, selectedByMe: piece.selectedBy == clientId}" :style="[holderStyle]">
@@ -83,7 +83,7 @@
         </div>
       </div>
     </div>
-    <div v-if="state === 'playing'" class="rank-container backgroundwhite">
+    <div v-if="state === 'playing' && puzzlePicture" class="rank-container backgroundwhite">
       <div class="rank">
         <div class="label">Team Rank</div>
         <div class="value">
@@ -346,13 +346,13 @@ export default {
     handleTeamsMessage: function(msg) {
       console.log('teamMsg', msg);
       let newState = null;
-      if (msg.puzzleName) {
-        this.puzzleName = msg.puzzleName;
-      }
+      this.puzzleName = msg.puzzleName;
       if (this.puzzleName) {
         this.puzzlePicture = `static/${this.puzzleName}`;
-        console.log('puzzlePicture', this.puzzlePicture);
+      } else {
+        this.puzzlePicture = '';
       }
+      console.log('puzzlePicture', this.puzzlePicture);
       if (msg.puzzle && msg.puzzle.length > 0) {
         let puzzleArea = document.getElementById("puzzle-area");
         console.log('puzzleArea', puzzleArea);

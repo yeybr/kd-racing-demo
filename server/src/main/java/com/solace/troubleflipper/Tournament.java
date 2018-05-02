@@ -24,6 +24,7 @@ public class Tournament implements GameOverListener, BadGuyActionHandler {
     private volatile boolean gameStarted = false;
     private volatile boolean tournamentStarted = false;
     private int waitCounter = 10;
+    private boolean resetWaitCounter = false;
     private Map<String, Team> teams = new HashMap<>();
     private Map<String, Game> activeGames = new HashMap<>();
     private Map<String, Collection<Game>> completedGames = new HashMap<>();
@@ -171,6 +172,7 @@ public class Tournament implements GameOverListener, BadGuyActionHandler {
     // call inside synchronized(tournamentLock)
     private void prepareTeams() {
         waitCounter = 10;
+        resetWaitCounter = false;
         teams.clear();
         activeGames.clear();
         completedGames.clear();
@@ -225,7 +227,10 @@ public class Tournament implements GameOverListener, BadGuyActionHandler {
                             startGames();
                         }
                     } else {
-                        this.cancel();
+                        if (resetWaitCounter) {
+                            this.cancel();
+                            log.info("character assignment unsuccessful");
+                        }
                         try {
                             log.info("force assign characters");
                             for (Game game : activeGames.values()) {
@@ -235,9 +240,12 @@ public class Tournament implements GameOverListener, BadGuyActionHandler {
                                 pickCharacterMessage.setCharacterType(CharacterType.mario);
                                 publisher.publish("games/" + game.getTeam().getId() + "/pickCharacter", pickCharacterMessage);
                             }
-                            startGames();
+                            // give it two more run
+                            waitCounter = 5;
+                            resetWaitCounter = true;
                         } catch (PublisherException ex) {
                             log.error("Unable to publish pick character message for game", ex);
+                            this.cancel();
                         }
                     }
                 }
@@ -248,6 +256,7 @@ public class Tournament implements GameOverListener, BadGuyActionHandler {
 
     // call from synchronized(tournamentLock)
     private void startGames() {
+        log.info("startGames");
         gameStarted = true;
         for (Game game : activeGames.values()) {
             game.start();
