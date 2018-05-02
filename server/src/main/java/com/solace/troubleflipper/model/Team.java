@@ -1,5 +1,7 @@
 package com.solace.troubleflipper.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import java.util.*;
 
 public class Team {
@@ -7,9 +9,12 @@ public class Team {
     private String id;
     private String name;
     private List<String> puzzleNames;
+    @JsonIgnore
     private Map<CharacterType, Player> characters = new EnumMap<>(CharacterType.class);
+    @JsonIgnore
     private Map<String, Player> playersMap = new HashMap<>();
     private List<Player> players = new ArrayList<>();
+    @JsonIgnore
     private Game game;
     private int completedGames = 0;
     private boolean immune = false;
