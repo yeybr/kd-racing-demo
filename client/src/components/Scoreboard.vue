@@ -16,8 +16,9 @@
 
               <div class="info">
               <div> Players scoreboard : total players {{scoreboardInfo.players.length}}</div>
-                <transition-group name="flip-list">
-                  <div class="score-table-row" v-for="(player, index) in scoreboardInfo.players"  v-bind:key="index">
+              <div class="score-table-body">
+                <transition-group name="flip-lista" >
+                  <div class="score-table-row" v-for="(player, index) in scoreboardInfo.players"  v-bind:key="player.gamerTag">
                     <div>
                      <span >{{index}}</span> 
                     </div>
@@ -37,19 +38,23 @@
 
                   </div>
                 </transition-group>
+              </div>
           </div>
 
     
           </div> <!--end of player score board-->
         <div  class="score-table" id="team-score-table">
            <div> Team scoreboard : total teams {{scoreboardInfo.teams.length}}</div>
+           <div class="score-table-body">
                 <transition-group name="player-rank-list">
                   <div class="score-table-row " v-for="(team, index) in scoreboardInfo.teams"  v-bind:key="index">
-                    <div style="font-size:3vw">
-                        <span >{{index}}</span> {{team.name}} {{team.game.puzzleName}}
+                    <div style="font-size:3vw;display:flex;align-items: center;" >
+                        <div style="flex-grow:2">{{index}} {{team.name}}</div>
+                        <div style="padding-left: 2em; font-size:.5em" > {{team.game}} </div>
                     </div>
                 </div>
                 </transition-group>
+              </div>
           </div> <!-- end of team score table-->
       </div>
        
@@ -228,7 +233,11 @@ a {
   width: 400px;
 }
 
-#player-score-table {
+.score-table-body {
+     height: 80vh;
+    overflow-y: scroll;
+}
+#player-score-table, #team-score-table {
 background: rgba(226, 30, 30, 0.14);
 color: white;
 }
@@ -327,7 +336,6 @@ color: white;
     background: #924692;
     padding: 1vw;
     margin: 1vw;
-      transition: 0.6s;
 }
 .score-table-row > .id {
   flex-basis: 40%;
@@ -360,15 +368,9 @@ color: white;
     justify-content: center;
     width: 100%;
 }
-#player-score-table {
-}
-#team-score-table {
 
-}
 .score-table {
     flex-basis: 50%;
-    height: 80vh;
-    overflow-y: scroll;
 }
 
 </style>

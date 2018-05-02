@@ -376,9 +376,6 @@ export default {
         }
         this.updateArray(this.puzzle, pieces);
 
-
-         this.selected = null;
-
         // This timer will be responsible for auto de-selection of the puzzle
         // piece in the case of a player selecting a piece for too long.
         //
@@ -539,13 +536,44 @@ export default {
         return p.selectedBy == this.clientId;
       });
       let index = e.target.previousElementSibling.attributes.index.value;
-      this.selected = this.puzzle[index];
-      this.selected.selected = true;
-      if (isAlreadySelected) {
-        this.swap(isAlreadySelected, this.selected);
-        this.mySwapFrom = -1;
-      } else {
-        this.mySwapFrom = index;
+      
+      // Selection validity check:
+      //
+      // If you have already selected a piece, then the valid choices are either
+      // the piece you have already selected (to unselect it), or a non-selected
+      // piece.
+      //
+      // If you have no already selected a piece, then the valid choices are any
+      // non-selected piece.
+      //
+      let selectedPiece = {index: this.puzzle[index].index, selectedBy: this.puzzle[index].selectedBy};
+      let isSelectionValid = isAlreadySelectedByMe ?
+        (selectedPiece.selectedBy == this.clientId) || !selectedPiece.selectedBy :
+        !selectedPiece.selectedBy;
+      if (!isSelectionValid) {
+        return;
+      }
+      // Handle the final selection case
+      //
+      if (isAlreadySelectedByMe) {
+        let isNewSelectionAlreadySelectedByMe = (selectedPiece.selectedBy == this.clientId);
+        // Handles the unselection case
+        //
+        if (isNewSelectionAlreadySelectedByMe) {
+          selectedPiece.selectedBy = "";
+          this.playerMessenger.selectPiece(selectedPiece);
+        }
+        // Handle the swap case
+        //
+        else {
+          this.swap(isAlreadySelectedByMe, selectedPiece);
+        }
+      }
+      // Handle the initial selection case
+      //
+      else {
+        selectedPiece.selectedBy = this.clientId;
+        this.playerMessenger.selectPiece(selectedPiece);
       }
     },
     swap: function(a, b) {
