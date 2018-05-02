@@ -359,6 +359,27 @@ export default {
         }
         this.updateArray(this.puzzle, pieces);
 
+        // This timer will be responsible for auto de-selection of the puzzle
+        // piece in the case of a player selecting a piece for too long.
+        //
+        let isSelectedByMe = this.puzzle.find(p => {
+          return p.selectedBy == this.clientId;
+        });
+        let isUnselectTimerStarted = this.countdownTimer;
+
+        // Player has selected a piece successfully
+        //
+        if (isSelectedByMe && !isUnselectTimerStarted) {
+          if (msg.teamInfo) {
+            this.startCountDown(msg.teamInfo.timeAllowedForEachMove);
+          }
+        }
+        // Player has unselected a peice or swapped a piece successfully
+        //
+        else if (!isSelectedByMe && isUnselectTimerStarted) {
+          this.stopCountDown();
+        }
+
         if (newState !== 'start') {
           this.checkWinCondition(msg.gameWon);
         }
@@ -412,8 +433,6 @@ export default {
           this.teamInfo && this.teamInfo.timeAllowedForEachMove
             ? this.teamInfo.timeAllowedForEachMove
             : 0;
-        this.timeRemaining = this.timeForEachMove;
-        this.startCountDown();
       } else if (this.state !== "playing") {
         this.stopCountDown();
         if (this.state === "waiting") {
@@ -452,25 +471,32 @@ export default {
         }
       }
     },
-    startCountDown: function() {
+    startCountDown: function(time) {
       this.stopCountDown();
-      if (this.timeForEachMove > 0) {
-        console.log("start count down timer", this.timeRemaining);
-        this.countdownTimer = setInterval(() => {
-          this.timeRemaining--;
-          if (this.timeRemaining <= 0) {
-            // console.log("no time left", this.timeRemaining);
-            this.stopCountDown();
-            this.randomSwap();
+      console.log("start count down timer", this.timeRemaining);
+      this.timeRemaining = time;
+      this.countdownTimer = setInterval(() => {
+        this.timeRemaining--;
+        if (this.timeRemaining <= 0) {
+          // console.log("no time left", this.timeRemaining);
+          this.stopCountDown();
+          let selectedPiece = this.puzzle.find(p => {
+            return p.selectedBy == this.clientId;
+          });
+          if (!selectedPiece) {
+            return;
           }
-        }, 1000);
-      }
+          let piece = {index: selectedPiece.index, selectedBy: ""};
+          this.playerMessenger.selectPiece(piece);
+        }
+      }, 1000);
     },
     stopCountDown: function() {
       if (this.countdownTimer) {
         console.log("stop countdownTimer");
         clearInterval(this.countdownTimer);
         this.countdownTimer = null;
+        this.timeRemaining = 0;
       }
     },
     cleanupGame: function() {
@@ -585,10 +611,6 @@ export default {
             clearInterval(i);
           }
         }, 1000);
-      } else {
-        // reset timeRemaining
-        this.timeRemaining = this.timeForEachMove;
-        this.startCountDown();
       }
     },
     starPath(x, y, size, points) {
