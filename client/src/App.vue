@@ -19,7 +19,7 @@ export default {
         vpn: "msgvpn-91b69335zj",
         username: "solace-cloud-client",
         password: "1a57th4am83cb5ali4rtlu4p55",
-        url: "ws://mr-91b69335zj.messaging.solace.cloud:80"
+        url: "ws://vmr-91b69335zj.messaging.solace.cloud:80"
       }
     };
   }

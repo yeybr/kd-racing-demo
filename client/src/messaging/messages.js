@@ -130,6 +130,16 @@ export class TeamRankMessage extends TroubleFlipperMessage {
   }
 }
 
+//score/teamId
+export class PlayerListMessage extends TroubleFlipperMessage {
+  constructor() {
+    super();
+    // this.id = teamId;
+    // this.rank = rank;
+    // this.total = totalTeams;
+  }
+}
+
 // Should be called on received messages. Returns message object.
 //
 // NOTES (Brandon):
@@ -146,7 +156,9 @@ export function parseReceivedMessage(topic, msg) {
     return Object.assign(new UsersAckMessage, msgObj);
   } else if (topic.startsWith('team/')) {
     return Object.assign(new TeamsMessage, msgObj);
-  } else if (topic.startsWith('score/')) {
+  } else if (topic.startsWith('score/players')) {
+    return Object.assign(new PlayerListMessage, msgObj);
+  }else if (topic.startsWith('score/')) {
     if (msgObj.teamId) {
       return Object.assign(new TeamRankMessage, msgObj);
     } else {

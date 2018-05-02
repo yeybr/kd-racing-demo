@@ -369,10 +369,17 @@ export default {
          pieces[i].selected = false;
         }
         this.updateArray(this.puzzle, pieces);
-        this.selected = null;
+
+       
         if (this.mySwapFrom > -1) {
-          this.puzzle[this.mySwapFrom].selected = true;
-        }
+          let p = this.puzzle.find(p => {
+              return p.index === this.mySwapFrom;
+          });
+          p.selected = true;
+        
+      };
+        
+         this.selected = null;
         if (newState !== 'start') {
           this.checkWinCondition(msg.gameWon);
         }
@@ -518,7 +525,7 @@ export default {
         this.swap(isAlreadySelected, this.selected);
         this.mySwapFrom = -1;
       } else {
-        this.mySwapFrom = index;
+        this.mySwapFrom =  this.selected.index;
       }
     },
     swap: function(a, b) {
