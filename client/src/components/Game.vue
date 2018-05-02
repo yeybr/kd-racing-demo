@@ -309,7 +309,7 @@ export default {
           teamMsg.puzzleName = msg.puzzleName;
         }
         let teamInfo = {
-          timeAllowedForEachMove: 0
+          timeAllowedForEachMove: 10
         };
         teamMsg.teamInfo = teamInfo;
         if (msg.teamId) {
@@ -426,7 +426,7 @@ export default {
         }
         this.updateData(this.teamInfo, msg.teamInfo);
         if (this.puzzleName) {
-          this.puzzlePicture = `static/${this.puzzleName}.png`;
+          this.puzzlePicture = `static/${this.puzzleName}`;
         }
       }
       if (!this.character) {
