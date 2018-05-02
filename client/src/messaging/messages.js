@@ -19,10 +19,13 @@ export class TroubleFlipperMessage {
 // Initial message sent from client upon choosing username.
 //
 export class UsersMessage extends TroubleFlipperMessage {
-  constructor(username, clientId) {
+  constructor(username, clientId, gameMaster) {
     super();
     this.username = username;
     this.clientId = clientId;
+    if (gameMaster === true) {
+      this.gameMaster = true;
+    }
   }
 
   getUsername() {
@@ -48,8 +51,8 @@ export class UsersAckMessage extends UsersMessage {
     return "failure";
   }
 
-  constructor(result, username, clientId) {
-    super(username, clientId);
+  constructor(result, username, clientId, gameMaster) {
+    super(username, clientId, gameMaster);
     this.result = result;
   }
 
@@ -71,7 +74,11 @@ export class UsersAckMessage extends UsersMessage {
 export class TournamentsMessage extends TroubleFlipperMessage {
   constructor(action) {
     super();
-    this.action = action;
+    if (action) {
+      this.action = action;
+    } else {
+      this.action = 'buildTeams';
+    }
   }
 }
 
@@ -119,6 +126,7 @@ export class PeachHealMessage extends TroubleFlipperMessage {
     this.characterType = characterType;
   }
 }
+
 //score/id
 export class PlayerRankMessage extends TroubleFlipperMessage {
   constructor(id, rank, totalPlayers) {
@@ -128,6 +136,7 @@ export class PlayerRankMessage extends TroubleFlipperMessage {
     // this.total = totalPlayers;
   }
 }
+
 //score/teamId
 export class TeamRankMessage extends TroubleFlipperMessage {
   constructor(teamId, rank, totalTeams) {
@@ -148,6 +157,12 @@ export class PlayerListMessage extends TroubleFlipperMessage {
   }
 }
 
+export class TournamentMessage extends TroubleFlipperMessage {
+  constructor() {
+    super();
+  }
+}
+
 // Should be called on received messages. Returns message object.
 //
 // NOTES (Brandon):
@@ -158,7 +173,7 @@ export class PlayerListMessage extends TroubleFlipperMessage {
 //   in the future
 //
 export function parseReceivedMessage(topic, msg) {
-  // console.log('Received msg from ' + topic, msg);
+  // console.log('Received msg from ', topic, msg);
   let msgObj = JSON.parse(msg);
   if (topic.startsWith('user/')) {
     return Object.assign(new UsersAckMessage, msgObj);
@@ -172,7 +187,8 @@ export function parseReceivedMessage(topic, msg) {
     } else {
       return Object.assign(new PlayerRankMessage, msgObj);
     }
-
+  } else if (topic.startsWith('tournament/')) {
+    return Object.assign(new TournamentMessage, msgObj);
   } else {
     console.log('Unexpected topic', topic);
     return null;
