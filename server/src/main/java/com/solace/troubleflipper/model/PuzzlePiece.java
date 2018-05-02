@@ -3,9 +3,6 @@ package com.solace.troubleflipper.model;
 public class PuzzlePiece {
 
     private int index;
-    private String lastSetByPlayer;
-    private Character lastSetByCharacter;
-
 
     private String selectedBy;
 
@@ -38,21 +35,5 @@ public class PuzzlePiece {
     @Override
     public int hashCode() {
         return index;
-    }
-
-    public String getLastSetByPlayer() {
-        return lastSetByPlayer;
-    }
-
-    public void setLastSetByPlayer(String lastSetByPlayer) {
-        this.lastSetByPlayer = lastSetByPlayer;
-    }
-
-    public Character getLastSetByCharacter() {
-        return lastSetByCharacter;
-    }
-
-    public void setLastSetByCharacter(Character lastSetByCharacter) {
-        this.lastSetByCharacter = lastSetByCharacter;
     }
 }
