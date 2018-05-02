@@ -170,6 +170,7 @@ public class Game {
 
     private void stopGame() {
         subscriber.deregisterHandler("games/" + team.getId());
+        subscriber.deregisterHandler("games/" + team.getId() + "/selectPiece");
         subscriber.deregisterHandler("games/" + team.getId() + "/pickCharacter");
         subscriber.deregisterHandler("games/" + team.getId() + "/starPower");
         subscriber.deregisterHandler("games/" + team.getId() + "/peachHeal");

@@ -260,13 +260,13 @@ a {
   display: flex;
   flex-direction: row;
   justify-content: flex-start;
+  flex-wrap: wrap;
 }
 
 .game-master-panel .teams .score-board .team {
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
-  flex-wrap: wrap;
   margin: 15px;
   border-radius: 20px;
   background: #924692;;

@@ -349,60 +349,23 @@ export default {
       if (msg.puzzleName) {
         this.puzzleName = msg.puzzleName;
       }
+      if (this.puzzleName) {
+        this.puzzlePicture = `static/${this.puzzleName}`;
+        console.log('puzzlePicture', this.puzzlePicture);
+      }
       if (msg.puzzle && msg.puzzle.length > 0) {
-        // if (this.puzzle.length === 0) {
-        //   // must be first team message, transition to select avatar
-        //   newState = 'start';
-        // }
-        let pieces = msg.puzzle;
-        // assume is 5 x 5
-        let size = Math.sqrt(msg.puzzle.length);
-        var puzzleArea = document.getElementById("puzzle-area");
+        let puzzleArea = document.getElementById("puzzle-area");
+        console.log('puzzleArea', puzzleArea);
         if (puzzleArea) {
-          var square = puzzleArea.offsetHeight;
-          if (puzzleArea.offsetHeight > puzzleArea.offsetWidth) {
-            square = puzzleArea.offsetWidth;
-          }
-          this.puzzleStyle = `width: ${square}px; height: ${square}px;`;
-
-          var splits = 100/size;
-          var movePercent = splits / 100;
-          var unit = square * movePercent;
-          this.holderStyle.width = unit + "px";
-          this.holderStyle.height = unit + "px";
-
-          for (var i = 0; i < size * size; ++i) {
-            pieces[i].style = `width: ${square}px; margin-left: -${unit *
-                (pieces[i].index % size)}px; margin-top: -${unit * Math.floor(pieces[i].index / size)}px;`;
-          }
-        }
-        this.updateArray(this.puzzle, pieces);
-
-        // This timer will be responsible for auto de-selection of the puzzle
-        // piece in the case of a player selecting a piece for too long.
-        //
-        let isSelectedByMe = this.puzzle.find(p => {
-          return p.selectedBy == this.clientId;
-        });
-        let isUnselectTimerStarted = this.countdownTimer;
-
-        // Player has selected a piece successfully
-        //
-        if (isSelectedByMe && !isUnselectTimerStarted) {
-          if (msg.teamInfo) {
-            this.startCountDown(msg.teamInfo.timeAllowedForEachMove);
-          }
-        }
-        // Player has unselected a peice or swapped a piece successfully
-        //
-        else if (!isSelectedByMe && isUnselectTimerStarted) {
-          this.stopCountDown();
-        }
-
-        if (newState !== 'start') {
-          this.checkWinCondition(msg.gameWon);
+          this.updatePuzzleArea(msg, puzzleArea, newState);
+        } else {
+          setTimeout(() => {
+            puzzleArea = document.getElementById("puzzle-area");
+            this.updatePuzzleArea(msg, puzzleArea, this.state);
+          }, 50)
         }
       }
+
       if (msg.teamInfo) {
         if (msg.teamInfo.players) {
           let newPlayers = msg.teamInfo.players;
@@ -427,10 +390,6 @@ export default {
           }
         }
         this.updateData(this.teamInfo, msg.teamInfo);
-        if (this.puzzleName) {
-          this.puzzlePicture = `static/${this.puzzleName}`;
-          console.log('puzzlePicture', this.puzzlePicture);
-        }
       }
       if (!this.character) {
         // must be first team message, transition to select avatar
@@ -440,6 +399,57 @@ export default {
       }
       this.handleStateChange(newState);
     },
+
+    updatePuzzleArea: function(msg, puzzleArea, newState) {
+      let pieces = msg.puzzle;
+      // assume is 5 x 5
+      let size = Math.sqrt(msg.puzzle.length);
+      if (puzzleArea) {
+        var square = puzzleArea.offsetHeight;
+        if (puzzleArea.offsetHeight > puzzleArea.offsetWidth) {
+          square = puzzleArea.offsetWidth;
+        }
+        this.puzzleStyle = `width: ${square}px; height: ${square}px;`;
+
+        var splits = 100/size;
+        var movePercent = splits / 100;
+        var unit = square * movePercent;
+        this.holderStyle.width = unit + "px";
+        this.holderStyle.height = unit + "px";
+
+        for (var i = 0; i < size * size; ++i) {
+          pieces[i].style = `width: ${square}px; margin-left: -${unit *
+              (pieces[i].index % size)}px; margin-top: -${unit * Math.floor(pieces[i].index / size)}px;`;
+        }
+      }
+      this.updateArray(this.puzzle, pieces);
+
+      // This timer will be responsible for auto de-selection of the puzzle
+      // piece in the case of a player selecting a piece for too long.
+      //
+      let isSelectedByMe = this.puzzle.find(p => {
+        return p.selectedBy == this.clientId;
+      });
+      let isUnselectTimerStarted = this.countdownTimer;
+
+      // Player has selected a piece successfully
+      //
+      if (isSelectedByMe && !isUnselectTimerStarted) {
+        if (msg.teamInfo) {
+          this.startCountDown(msg.teamInfo.timeAllowedForEachMove);
+        }
+      }
+      // Player has unselected a peice or swapped a piece successfully
+      //
+      else if (!isSelectedByMe && isUnselectTimerStarted) {
+        this.stopCountDown();
+      }
+
+      if (newState !== 'start') {
+        this.checkWinCondition(msg.gameWon);
+      }
+    },
+
     handleStateChange: function(newState) {
       if (!newState) {
         return;
