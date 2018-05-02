@@ -374,7 +374,9 @@ public class Tournament implements GameOverListener, BadGuyActionHandler {
             if (player.getTeam() == null) {
                 waitingPlayers.add(player);
             } else {
-                teams.add(player.getTeam());
+                if (!teams.contains(player.getTeam())) {
+                    teams.add(player.getTeam());
+                }
             }
         });
         UpdateTournamentMessage updateTournamentMessage = new UpdateTournamentMessage();
