@@ -17,7 +17,7 @@
               <div class="info">
               <div> Players scoreboard : total players {{scoreboardInfo.players.length}}</div>
               <div class="score-table-body">
-                <transition-group name="flip-lista" >
+                <transition-group name="flip-list" >
                   <div class="score-table-row" v-for="(player, index) in scoreboardInfo.players"  v-bind:key="player.gamerTag">
                     <div>
                      <span >{{index}}</span> 
