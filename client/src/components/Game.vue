@@ -429,6 +429,7 @@ export default {
         this.updateData(this.teamInfo, msg.teamInfo);
         if (this.puzzleName) {
           this.puzzlePicture = `static/${this.puzzleName}`;
+          console.log('puzzlePicture', this.puzzlePicture);
         }
       }
       if (!this.character) {

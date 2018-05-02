@@ -3,7 +3,6 @@ package com.solace.troubleflipper;
 import com.solace.troubleflipper.configuration.SubscriptionHandler;
 import com.solace.troubleflipper.messages.*;
 import com.solace.troubleflipper.model.*;
-import com.solace.troubleflipper.model.Character;
 import com.solace.troubleflipper.properties.BadGuyActionHandler;
 import com.solace.troubleflipper.properties.TournamentProperties;
 import org.slf4j.Logger;
@@ -93,6 +92,7 @@ public class Tournament implements GameOverListener, BadGuyActionHandler {
                 try {
                     publisher.publish("user/" + player.getClientName(), addUserAckMessage);
                     log.info("Player " + player.getGamerTag() + " with id " + player.getClientName() + " has been registered in the tournament");
+                    updateTournamentMessage();
                     if (present) {
                         // check if there is active game and send out team information
                         Optional<Game> firstMatchGame = activeGames.values().stream().filter(item ->
@@ -157,12 +157,13 @@ public class Tournament implements GameOverListener, BadGuyActionHandler {
     private String getPuzzleName(Team team) {
         String puzzleName = null;
         if (team != null) {
-            puzzleName = team.getNextPuzzleName();
+            puzzleName = team.chooseNextPuzzleName();
+            log.info("Next puzzle " + puzzleName + " from " + team.getPuzzleNames().toString());
         }
         if (puzzleName == null) {
             int index = randomGen.nextInt(PUZZLE_NAMES.size());
             puzzleName = PUZZLE_NAMES.get(index);
-            log.info("puzzle name " + puzzleName);
+            log.info("Random puzzle name " + puzzleName);
         }
         return puzzleName;
     }
@@ -285,7 +286,9 @@ public class Tournament implements GameOverListener, BadGuyActionHandler {
                             Map<String, String>teamMessage = new HashMap<>();
                             teamMessage.put("id", team.getId());
                             teamMessage.put("name", team.getName());
-                            teamMessage.put("game", team.getGame().getPuzzleName());
+                            if (team.getGame() != null) {
+                                teamMessage.put("game", team.getGame().getPuzzleName());
+                            }
                             return teamMessage;
 
                         }).collect(Collectors.toList());

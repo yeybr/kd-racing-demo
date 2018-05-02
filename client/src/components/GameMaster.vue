@@ -17,13 +17,24 @@
         <button type="button" class="game-btn btn" @click="stopGame()">Stop Game!</button>
       </div>
     </div>
-    <div v-show="state === 'watching'" class="score-board">
-      <div class="team" v-for="teamInfo in teams" :key="teamInfo.id">
-        <div class="title">{{teamInfo.name}}</div>
-        <div class="body">
-          <template v-for="(player, index) in teamInfo.players">
-            {{player.gamerTag}}{{(index === teamInfo.players.length - 1) ? '': ', '}}
-          </template>
+    <div v-show="state === 'watching'" class="waiting-players">
+      <div class="title">Waiting Players ({{waitingPlayers.length}})</div>
+      <div class="players">
+        <div v-for="(player, index) in waitingPlayers" :key="player.id">
+          {{player.gamerTag}}{{(index === waitingPlayers.length - 1) ? '': ', '}}
+        </div>
+      </div>
+    </div>
+    <div v-show="state === 'watching'" class="teams">
+      <div class="title">Teams</div>
+      <div class="score-board">
+        <div class="team" v-for="teamInfo in teams" :key="teamInfo.id">
+          <div class="title">{{teamInfo.name}}</div>
+          <div class="body">
+            <template v-for="(player, index) in teamInfo.players">
+              {{player.gamerTag}}{{(index === teamInfo.players.length - 1) ? '': ', '}}
+            </template>
+          </div>
         </div>
       </div>
     </div>
@@ -194,10 +205,6 @@ a {
 .game-master-panel .header-section .user-info {
   font-weight: 500;
 }
-/* .game-master-panel .score-info.waiting {
-  padding: 15px 0px;
-  align-self: center;
-} */
 
 .game-master-panel .score-info.waiting {
   align-self: stretch;
@@ -221,33 +228,64 @@ a {
   cursor: pointer;
 }
 
-.game-master-panel .score-board {
+.game-master-panel .waiting-players {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  margin: 15px;
+}
+
+.game-master-panel .waiting-players .title {
+  font-size: 20px;
+}
+
+.game-master-panel .waiting-players .players {
   display: flex;
   flex-direction: row;
   justify-content: flex-start;
 }
 
-.game-master-panel .score-board .team {
+.game-master-panel .teams {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
   margin: 15px;
-  border-radius: 20px;
+}
+
+.game-master-panel .teams .title {
+  font-size: 20px;
+}
+
+.game-master-panel .teams .score-board {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+}
+
+.game-master-panel .teams .score-board .team {
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
   flex-wrap: wrap;
-  background-color: #fcfcfc;
+  margin: 15px;
+  border-radius: 20px;
+  background: #924692;;
   box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
   width: 400px;
 }
 
-.game-master-panel .score-board .team .title {
+.game-master-panel .teams .score-board .team .title {
   font-size: 20px;
   padding: 8px 16px;
-  border-bottom: solid 2px #dedede;
+  /* border-bottom: solid 2px #dedede; */
+  border-bottom: groove 1px white;
   text-align: center;
+  color: white;
 }
 
-.game-master-panel .score-board .team .body {
+.game-master-panel .teams .score-board .team .body {
   padding: 8px 16px 12px 16px;
+  color: white;
 }
 
 .red {

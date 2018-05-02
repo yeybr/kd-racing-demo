@@ -20,20 +20,20 @@
                 <transition-group name="flip-list" >
                   <div class="score-table-row" v-for="(player, index) in scoreboardInfo.players"  v-bind:key="player.gamerTag">
                     <div>
-                     <span >{{index}}</span> 
+                     <span >{{index}}</span>
                     </div>
                     <div class="headshot" >
                         <img :src="player.avatarLink">
                       </div>
 
                     <div style="font-size:3vw" class="id">
-                       {{player.gamerTag}} 
+                       {{player.gamerTag}}
                     </div>
 
-                  <div class="moves" style="position:relative"><img style="width:5vw" src="../assets/starcoin.png"><div class="labels" style="color:green"> {{player.rightMoves}} </div> 
+                  <div class="moves" style="position:relative"><img style="width:5vw" src="../assets/starcoin.png"><div class="labels" style="color:green"> {{player.rightMoves}} </div>
                      </div>
 
-                  <div class="moves" style="position:relative"><img style="width:5vw" src="../assets/ghost-mario.png"><div class="labels" style="color:red"> {{player.wrongMoves}} </div> 
+                  <div class="moves" style="position:relative"><img style="width:5vw" src="../assets/ghost-mario.png"><div class="labels" style="color:red"> {{player.wrongMoves}} </div>
                      </div>
 
                   </div>
@@ -41,7 +41,7 @@
               </div>
           </div>
 
-    
+
           </div> <!--end of player score board-->
         <div  class="score-table" id="team-score-table">
            <div> Team scoreboard : total teams {{scoreboardInfo.teams.length}}</div>
@@ -57,7 +57,7 @@
               </div>
           </div> <!-- end of team score table-->
       </div>
-       
+
     </div>
 
       <!-- <div class="game" v-for="gameInfo in scoreboardInfo.games" :key="gameInfo.id">
@@ -71,7 +71,7 @@
       </div> -->
     </div>
   </div>
-  
+
 </template>
 
 <script>
@@ -89,7 +89,7 @@ export default {
       this.username = 'spectator';
       // Retrive userInfo from local storage
       let userInfo = this.retrieveFromStorage('localStorage', 'trouble_flipper_spectator');
-      
+
       let clientId = null;
       if (userInfo) {
         clientId = userInfo.clientId;
@@ -149,31 +149,32 @@ export default {
     handleMsg: function(msg) {
       console.log('Got message', msg);
       // this.scoreboardInfo.players = msg.players;
-      
+
       if (msg.players) {
-        this.updateData(this.scoreboardInfo.players, msg.players);       
+        this.updateData(this.scoreboardInfo.players, msg.players);
         this.scoreboardInfo.players.forEach(function(player) {
           console.log(player);
           player.avatarLink = `static/${player.character.type}-mario.jpg`;
         });
-        this.handleStateChange(msg);
       }
       if (msg.teams) {
-        this.updateData(this.scoreboardInfo.teams, msg.teams);      
+        this.updateData(this.scoreboardInfo.teams, msg.teams);
       }
+      this.handleStateChange(msg);
 
-     
     },
     handleStateChange: function(msg) {
-      this.state = 'watching';
-      // if (msg.state) {
-      //   console.log('State change', msg);
-      //   this.state = msg.state;
-      //   if (this.state === 'watching') {
-      //     console.log('Save username ' + this.username + ', clientId ' + this.clientId + ' to localStorage');
-      //     this.saveIntoStorage('localStorage', 'trouble_flipper_spectator', { username: this.username, clientId: this.clientId });
-      //   }
-      // }
+      let currentState = this.state;
+      if (msg.state) {
+        this.state = msg.state;
+      } else {
+        this.state = 'watching';
+      }
+
+      if (currentState !== 'watching' && this.state === 'watching') {
+        console.log('Save username ' + this.username + ', clientId ' + this.clientId + ' to localStorage');
+        this.saveIntoStorage('localStorage', 'trouble_flipper_spectator', { username: this.username, clientId: this.clientId });
+      }
     }
   }
 }
@@ -219,7 +220,7 @@ a {
   display: flex;
   flex-direction: row;
   justify-content: flex-start;
-  
+
 }
 
 .score-panel .score-board .game {
@@ -327,7 +328,7 @@ color: white;
     background: ##fe113;
     margin: 1vw 20vw;
     border-radius: 10vw;
-  
+
 }
 
 .score-table-row {
@@ -342,7 +343,7 @@ color: white;
 }
 .score-table-row > .moves {
   flex-basis: 20%;
-  
+
 }
 .moves img {
   opacity: .6;

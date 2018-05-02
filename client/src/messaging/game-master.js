@@ -58,7 +58,7 @@ export class GameMaster {
           }
         });
         this.session.on(solace.SessionEventCode.MESSAGE, (message) => {
-          console.log('Received message: "' + message.getBinaryAttachment() + '", details:\n' + message.dump());
+          // console.log('Received message: "' + message.getBinaryAttachment() + '", details:\n' + message.dump());
           var topic = message.getDestination().getName();
           this.handleMessage(topic, message.getBinaryAttachment());
         });

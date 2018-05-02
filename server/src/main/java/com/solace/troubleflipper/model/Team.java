@@ -51,7 +51,7 @@ public class Team {
         this.puzzleNames = puzzleNames;
     }
 
-    public String getNextPuzzleName() {
+    public String chooseNextPuzzleName() {
         if (this.puzzleNames == null || this.puzzleNames.isEmpty()) {
             return null;
         } else if (this.puzzleNames.size() == 1) {
