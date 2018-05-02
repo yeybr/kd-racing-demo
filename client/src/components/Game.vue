@@ -198,7 +198,7 @@ export default {
       avatarLink: avatarLink,
       rank: 0,
       totalPlayers: 0,
-      puzzlePicture: 'static/puzzle1.png',
+      puzzlePicture: 'static/puzzle1.jpg',
       holderStyle: {
         width: "0px",
         height: "0px"
