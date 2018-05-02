@@ -18,11 +18,11 @@
       </div>
     </div>
     <div v-show="state === 'watching'" class="score-board">
-      <div class="team" v-for="teamInfo in teams" :key="teamInfo.teamId">
-        <div class="title">{{teamInfo.teamName}}</div>
+      <div class="team" v-for="teamInfo in teams" :key="teamInfo.id">
+        <div class="title">{{teamInfo.name}}</div>
         <div class="body">
           <template v-for="(player, index) in teamInfo.players">
-            {{player.name}}{{(index === teamInfo.players.length - 1) ? '': ', '}}
+            {{player.gamerTag}}{{(index === teamInfo.players.length - 1) ? '': ', '}}
           </template>
         </div>
       </div>
