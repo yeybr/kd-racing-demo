@@ -1,13 +1,14 @@
 <template>
   <div class="game-master-panel">
+    <div class="modal-overlay" v-show="showModal">
+    </div>
     <div class="modal" v-show="showModal">
-      <div class="text">Information</div>
-      <div class="content">
-        Please select maximum two teams.
-      </div>
-      <div class="footer">
-        <button type="button" class="btn btn-secondary" @click="closeModal()">OK</button>
-      </div>
+        <div class="content">
+          Please select maximum two teams.
+        </div>
+        <div class="footer">
+          <button type="button" class="btn ok-btn" @click="closeModal()">OK</button>
+        </div>
     </div>
     <div class="header-section">
       <div class="title">
@@ -184,7 +185,6 @@ export default {
     },
     selectTeam: function(event) {
       let teamId = event.currentTarget.getAttribute('id')
-            console.log('selectTeam', teamId);
       let index = this.selectedTeams.indexOf(teamId);
       if (event.currentTarget.classList.contains('selected')) {
         event.currentTarget.classList.remove('selected');
@@ -217,7 +217,13 @@ export default {
     exitCompareMode: function() {
       if (this.masterMessenger) {
         this.selectedTeams.forEach(teamId => {
-          this.masterMessenger.unsubscribeToTopic('team/' + teamId);
+          if (this.masterMessenger) {
+            this.masterMessenger.unsubscribeToTopic('team/' + teamId);
+            let teamElement = document.getElementById(teamId);
+            if (teamElement) {
+              teamElement.classList.remove('selected');
+            }
+          }
         });
       }
       this.selectedTeams.splice(0, this.selectedTeams.length);
@@ -250,6 +256,55 @@ a {
   flex-direction: column;
   justify-content: flex-start;
   padding: 15px;
+}
+
+.modal-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 100%;
+  background-color: transparent;
+  opacity: 1;
+  z-index: 1030;
+}
+
+.modal {
+  background-color: white;
+  z-index: 1050;
+  border: 0;
+  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+  top: 40%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 500px;
+  height: 200px;
+  display: flex;
+  flex-direction: column;
+}
+
+.modal .content {
+  padding: 40px 20px 20px 20px;
+}
+.modal .footer {
+  padding: 20px 20px 40px 20px;
+  font-size: 30px;
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-end;
+}
+
+.modal .footer .ok-btn {
+  font-size: 20px;
+  /* margin-bottom: 40px; */
+  background: #006fea;
+  border-radius: 4px;
+  padding: 10px;
+  /* margin: 40px 0; */
+  color: white;
+  width: 100px;
+  cursor: pointer;
+  min-height: 32px;
 }
 
 .game-master-panel .header-section {
