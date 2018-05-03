@@ -131,6 +131,9 @@ export default {
   name: "game",
   mixins: [CommonUtils],
   // lifecycle callbacks
+  beforeCreate() {
+    document.body.className = 'mario';
+  },
   created() {
     console.log("game created: data bound");
     this.indeterminate = false;

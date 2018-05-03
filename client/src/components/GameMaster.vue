@@ -51,6 +51,9 @@ import CommonUtils from './common-utils';
 export default {
   name: 'gamemaster',
   mixins: [CommonUtils],
+  beforeCreate() {
+    document.body.className = 'mario';
+  },
   created() {
     console.log('gamemaster created: data bound');
 
@@ -58,25 +61,20 @@ export default {
       // this.username = this.$route.query.username;
       this.username = 'admin';
       // Retrive userInfo from local storage
-      let userInfo = this.retrieveFromStorage('localStorage', 'trouble_flipper_game_master');
       let clientId = null;
-      if (userInfo) {
-        clientId = userInfo.clientId;
-        if (userInfo.username !== this.username) {
-          userInfo.username = this.username;
-          this.saveIntoStorage('localStorage', 'trouble_flipper_game_master', userInfo);
-        }
-      }
+      // let userInfo = this.retrieveFromStorage('localStorage', 'trouble_flipper_game_master');
+      // if (userInfo) {
+      //   clientId = userInfo.clientId;
+      //   if (userInfo.username !== this.username) {
+      //     userInfo.username = this.username;
+      //     this.saveIntoStorage('localStorage', 'trouble_flipper_game_master', userInfo);
+      //   }
+      // }
       this.clientId = clientId;
       this.masterMessenger = new GameMaster(this.$solace, this.$parent.appProps,
         {username: this.username, clientId: this.clientId},
         this.handleMsg.bind(this));
       this.masterMessenger.connect();
-    // } else {
-    //   this.$router.push({
-    //     name: 'signin'
-    //   });
-    // }
   },
   // mounted() {
   //   console.log('gamemaster mounted: dom element inserted');
@@ -145,10 +143,11 @@ export default {
       let currentState = this.state;
       this.state = newState;
 
-      if (this.state === 'watching' && currentState !== 'watching') {
-        console.log('Save username ' + this.username + ', clientId ' + this.clientId + ' to localStorage');
-        this.saveIntoStorage('localStorage', 'trouble_flipper_game_master', { username: this.username, clientId: this.clientId });
-      } else if (this.state === "connecting") {
+      // if (this.state === 'watching' && currentState !== 'watching') {
+      //   console.log('Save username ' + this.username + ', clientId ' + this.clientId + ' to localStorage');
+      //   this.saveIntoStorage('localStorage', 'trouble_flipper_game_master', { username: this.username, clientId: this.clientId });
+      // } else
+      if (this.state === "connecting") {
         this.cleanup();
       }
     },
