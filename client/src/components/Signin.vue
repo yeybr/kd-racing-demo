@@ -32,6 +32,9 @@ export default {
   name: "signin",
   mixins: [CommonUtils],
   // lifecycle callbacks
+  beforeCreate() {
+    document.body.className = 'mario';
+  },
   created() {
     // instance created and data bound
     // looking for existing player information from local storage and prepopulate username

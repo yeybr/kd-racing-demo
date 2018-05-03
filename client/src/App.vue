@@ -41,6 +41,20 @@ body {
   background-image: url("assets/backgrounds.png");
   overflow-y: auto;
   height: 100%;
+  background-size: initial;
+}
+
+body.mario {
+  background-image: url("assets/backgrounds.png");
+  overflow-y: auto;
+  height: 100%;
+  background-size: initial;
+}
+
+body.scoreboard {
+  background-image: url("assets/scorebackground.png");
+  overflow-y: auto;
+  background-size: cover;
 }
 
 /* Transitions using the page hook */

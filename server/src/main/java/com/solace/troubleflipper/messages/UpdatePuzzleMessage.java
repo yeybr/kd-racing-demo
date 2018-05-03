@@ -16,11 +16,16 @@ public class UpdatePuzzleMessage {
 
     private String puzzleName;
 
+    private int correctPieces;
+
     private Boolean gameWon;
+
+    private int completedGames;
 
     private List<Player> players;
 
     private boolean gameOver;
+
 
     public List<PuzzlePiece> getPuzzle() {
         return puzzle;
@@ -76,6 +81,22 @@ public class UpdatePuzzleMessage {
 
     public void setGameOver(boolean gameOver) {
         this.gameOver = gameOver;
+    }
+
+    public int getCorrectPieces() {
+        return correctPieces;
+    }
+
+    public void setCorrectPieces(int correctPieces) {
+        this.correctPieces = correctPieces;
+    }
+
+    public int getCompletedGames() {
+        return completedGames;
+    }
+
+    public void setCompletedGames(int completedGames) {
+        this.completedGames = completedGames;
     }
 
     public String toString() {

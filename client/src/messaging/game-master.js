@@ -1,3 +1,7 @@
+import { UsersMessage, UsersAckMessage } from '@/messaging/messages.js';
+import { TournamentMessage, TournamentsMessage } from '@/messaging/messages.js';;
+import { publishMessageToTopic, parseReceivedMessage } from '@/messaging/messages.js';
+
 export class GameMaster {
   constructor(solaceApi, appProps, userInfo, msgCallback) {
     this.solaceApi = solaceApi;
@@ -19,9 +23,6 @@ export class GameMaster {
         var factoryProps = new solace.SolclientFactoryProperties();
         factoryProps.profile = solace.SolclientFactoryProfiles.version7;
         solace.SolclientFactory.init(factoryProps);
-        // enable logging to JavaScript console at WARN level
-        // NOTICE: works only with "solclientjs-debug.js"
-        solace.SolclientFactory.setLogLevel(solace.LogLevel.WARN);
         this.session = solace.SolclientFactory.createSession({
           url: this.appProps.url,
           vpnName: this.appProps.vpn,
@@ -30,26 +31,36 @@ export class GameMaster {
           clientName: this.clientId || ''
         });
         this.session.on(solace.SessionEventCode.UP_NOTICE, (sessionEvent) => {
-          this.clientId = this.session.getSessionProperties().clientName;
-          console.log('Successfully connected with clientId ' + this.clientId);
-          this.register();
+          let sessionProperties = this.session.getSessionProperties();
+          this.clientId = sessionProperties.clientName;
+          console.log('Successfully connected with clientId ' + this.clientId +
+            ', protocol in use ' + sessionProperties.transportProtocolInUse);
+          this.subscribeToTopic('user/' + this.clientId);
         });
         this.session.on(solace.SessionEventCode.CONNECT_FAILED_ERROR, (sessionEvent) => {
           console.log('Connection failed to the message router: ' + sessionEvent.infoStr +
             ' - check correct parameter values and connectivity!');
-          this.msgCallback({state: 'connecting'});
+            this.msgCallback({connected: false});
         });
         this.session.on(solace.SessionEventCode.DISCONNECTED, (sessionEvent) => {
           console.log('Disconnected: ' + sessionEvent.infoStr);
-          this.msgCallback({state: 'connecting'});
+          this.msgCallback({connected: false});
           if (this.session !== null) {
             this.session.dispose();
             this.session = null;
           }
         });
+        this.session.on(solace.SessionEventCode.SUBSCRIPTION_OK, (sessionEvent) => {
+          var topicName = sessionEvent.correlationKey;
+          console.log('Successfully subscribed to topic: ' + topicName);
+          if (topicName === 'user/' + this.clientId) {
+            this.register();
+          }
+        });
         this.session.on(solace.SessionEventCode.MESSAGE, (message) => {
-          console.log('Received message: "' + message.getBinaryAttachment() + '", details:\n' + message.dump());
-          this.handleMessage(message.getDestination(), message.getBinaryAttachment());
+          // console.log('Received message: "' + message.getBinaryAttachment() + '", details:\n' + message.dump());
+          var topic = message.getDestination().getName();
+          this.handleMessage(topic, message.getBinaryAttachment());
         });
         this.session.connect();
       }
@@ -61,108 +72,155 @@ export class GameMaster {
     }
   }
 
-  handleMessage(destination, jsonMessage) {
-    if (jsonMessage) {
-      let msg = null;
-      if (typeof jsonMessage === 'string') {
-        try {
-          msg = JSON.parse(jsonMessage);
-        } catch (e) {
-          console.log('cannot parse message', e);
-        }
-      } else if (typeof jsonMessage === 'object') {
-        msg = jsonMessage;
-      } else {
-        console.log('unknown message type',  jsonMessage);
+  subscribeToTopic(topic) {
+    if (this.session !== null) {
+      let solace = this.solaceApi;
+      try {
+        this.session.subscribe(
+          solace.SolclientFactory.createTopicDestination(topic),
+          true,
+          topic,
+          10000
+        );
+      } catch (e) {
+        console.log('Subscribe failed.', e);
       }
-      if (msg) {
-        // process message future if needed, such as adding new state value
-        this.msgCallback(msg);
+    }
+  }
+
+  unsubscribeToTopic(topic) {
+    if (this.session !== null) {
+      let solace = this.solaceApi;
+      try {
+        this.session.unsubscribe(
+          solace.SolclientFactory.createTopicDestination(topic),
+          true,
+          topic,
+          10000
+        );
+      } catch (e) {
+        console.log('Unsubscribe failed.', e);
       }
+    }
+  }
+
+  handleMessage(topic, message) {
+    if (typeof message !== 'string') {
+      console.log('Error: unexpected message type');
+      return;
+    }
+
+    try {
+      var messageInstance = parseReceivedMessage(topic, message);
+      if (messageInstance !== null) {
+        this.msgCallback(messageInstance);
+      }
+    } catch (e) {
+      console.log('Error:', e);
     }
   }
 
   register() {
     console.log('Connect game master ' + this.username + ', clientId ' + this.clientId);
+
+    var usersMessage = new UsersMessage(this.username, this.clientId, true);
+    try {
+      publishMessageToTopic('users', usersMessage, this.session, this.solaceApi);
+    } catch (error) {
+      console.log("Publish failed. error = ", error);
+    }
    // TESTING CODE
-   setTimeout(() => {
-    this.msgCallback(this.simulateTeamResponse());
-   }, 2000);
+  //  setTimeout(() => {
+  //   this.msgCallback(this.simulateTeamResponse());
+  //  }, 2000);
   }
 
   simulateTeamResponse() {
-    return {
-      state: 'watching',
+    let response = Object.assign(new TournamentMessage, {
       clientId: this.clientId,
       username: this.username,
-      scoreboardInfo: {
-        games: [
-          {
-            gameId: '1',
-            gameName: 'Mario',
-            teamId: '1',
-            teamName: 'Team 1',
-            win: false,
-            players: [
-              {
-                id: '1',
-                name: 'Kevin'
-              },
-              {
-                id: '2',
-                name: 'Rob'
-              },
-              {
-                id: '5',
-                name: 'Roland'
-              },
-            ],
-            stats: {
-              total: 16,
-              finished: 0,
-              totalMoves: 0,
-              correctMoves: 0
+      started: false,
+      waitingPlayers: [
+        {
+          id: '10',
+          name: 'Amy'
+        },
+        {
+          id: '12',
+          name: 'Nathan'
+        }
+      ],
+      teams: [
+        {
+          teamId: '1',
+          teamName: 'Team 1',
+          players: [
+            {
+              id: '1',
+              name: 'Kevin'
+            },
+            {
+              id: '2',
+              name: 'Rob'
+            },
+            {
+              id: '5',
+              name: 'Roland'
+            },
+          ]
+        },
+        {
+          teamId: '2',
+          teamName: 'Team 2',
+          players: [
+            {
+              id: '3',
+              name: 'Brandon'
+            },
+            {
+              id: '4',
+              name: 'Abhishek'
+            },
+            {
+              id: '6',
+              name: 'Ye'
+            },
+            {
+              id: '7',
+              name: 'Monica'
             }
-          },
-          {
-            gameId: '2',
-            gameName: 'Yoshi',
-            teamId: '2',
-            teamName: 'Team 2',
-            win: false,
-            players: [
-              {
-                id: '3',
-                name: 'Brandon'
-              },
-              {
-                id: '4',
-                name: 'Abhishek'
-              },
-              {
-                id: '6',
-                name: 'Ye'
-              },
-              {
-                id: '7',
-                name: 'Monica'
-              }
-            ],
-            stats: {
-              total: 16,
-              finished: 0,
-              totalMoves: 0,
-              correctMoves: 0
-            }
-          }
-        ]
-      }
-    }
+          ]
+        }
+      ]
+    });
+    return response;
   }
 
   // called by Scoreboard.vue destroy method
   unregister() {
     console.log('Let server know game master ' + this.username + ', clientId ' + this.clientId + ' becomes inactive');
+  }
+
+  startGame() {
+    console.log('Send message to request to start game');
+
+    var tournamentsMessage = new TournamentsMessage();
+    try {
+      publishMessageToTopic('tournaments', tournamentsMessage, this.session, this.solaceApi);
+    } catch (error) {
+      console.log("Publish failed. error = ", error);
+    }
+  }
+
+  stopGame() {
+    console.log('Send message to request to stop game');
+
+    var tournamentsMessage = new TournamentsMessage('stopGames');
+    try {
+      publishMessageToTopic('tournaments', tournamentsMessage, this.session, this.solaceApi);
+    } catch (error) {
+      console.log("Publish failed. error = ", error);
+    }
   }
 
   disconnect() {
@@ -175,7 +233,7 @@ export class GameMaster {
       }
     } catch (e) {
       console.log('Disconnect fails', e);
-      this.msgCallback({state: 'connecting'});
+      this.msgCallback({connected: false});
     }
   }
 

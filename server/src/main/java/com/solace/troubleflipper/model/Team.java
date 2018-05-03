@@ -1,5 +1,7 @@
 package com.solace.troubleflipper.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import java.util.*;
 
 public class Team {
@@ -7,9 +9,12 @@ public class Team {
     private String id;
     private String name;
     private List<String> puzzleNames;
+    @JsonIgnore
     private Map<CharacterType, Player> characters = new EnumMap<>(CharacterType.class);
+    @JsonIgnore
     private Map<String, Player> playersMap = new HashMap<>();
     private List<Player> players = new ArrayList<>();
+    @JsonIgnore
     private Game game;
     private int completedGames = 0;
     private boolean immune = false;
@@ -46,7 +51,7 @@ public class Team {
         this.puzzleNames = puzzleNames;
     }
 
-    public String getNextPuzzleName() {
+    public String chooseNextPuzzleName() {
         if (this.puzzleNames == null || this.puzzleNames.isEmpty()) {
             return null;
         } else if (this.puzzleNames.size() == 1) {
@@ -62,6 +67,12 @@ public class Team {
         playersMap.put(player.getClientName(), player);
         players.add(player);
         player.setTeam(this);
+    }
+
+    public void removePlayer(Player player) {
+        playersMap.remove(player.getClientName());
+        players.remove(player);
+        player.setTeam(null);
     }
 
     public void chooseCharacter(CharacterType characterType, Player player) {

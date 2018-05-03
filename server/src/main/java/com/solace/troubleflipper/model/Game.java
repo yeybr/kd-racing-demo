@@ -24,7 +24,12 @@ public class Game {
     private Timer timer;
     private final TournamentProperties tournamentProperties;
     private final BadGuyActionHandler badGuyActionHandler;
+
+    // game won
     private boolean gameOver = false;
+
+    // game stopped
+    private volatile boolean gameStopped = false;
 
     private int correctPieces;
 
@@ -46,6 +51,10 @@ public class Game {
         subscriber.registerHandler("games/" + team.getId() + "/yoshiGuard", this::yoshiGuardHandler);
         subscriber.registerHandler("games/" + team.getId() + "/troubleFlipper", this::troubleFlipperHandler);
         subscriber.registerHandler("games/" + team.getId() + "/greenShell", this::greenShellHandler);
+    }
+
+    public boolean isGameOver() {
+        return gameOver;
     }
 
     public void addGameOverListener(GameOverListener gameOverListener) {
@@ -109,17 +118,18 @@ public class Game {
             try {
                 PuzzlePiece bPiece = findPuzzlePiece(piece.getIndex());
                 String newSelectedBy = piece.getSelectedBy();
-                String oldSelectedBy = bPiece.getSelectedBy();
-                //log.info("oldSelectedBy = " + oldSelectedBy + ", newSelectedBy = " + newSelectedBy + ", player.getClientName() = " + player.getClientName());
-                boolean selectAction = oldSelectedBy.equals("") && newSelectedBy.equals(player.getClientName());
-                boolean unselectAction = newSelectedBy.equals("") && oldSelectedBy.equals(player.getClientName());
-                if (selectAction) {
-                    bPiece.setSelectedBy(newSelectedBy);
-                } else if (unselectAction) {
-                    bPiece.setSelectedBy("");
-                } else {
-                    log.error("Invalid action for SelectPieceMessage.");
-                }
+                bPiece.setSelectedBy(newSelectedBy == null ? "" : newSelectedBy);
+//                String oldSelectedBy = bPiece.getSelectedBy();
+//                //log.info("oldSelectedBy = " + oldSelectedBy + ", newSelectedBy = " + newSelectedBy + ", player.getClientName() = " + player.getClientName());
+//                boolean selectAction = oldSelectedBy.equals("") && newSelectedBy.equals(player.getClientName());
+//                boolean unselectAction = newSelectedBy.equals("") && oldSelectedBy.equals(player.getClientName());
+//                if (selectAction) {
+//                    bPiece.setSelectedBy(newSelectedBy);
+//                } else if (unselectAction) {
+//                    bPiece.setSelectedBy("");
+//                } else {
+//                    log.error("Invalid action for SelectPieceMessage.");
+//                }
             } catch (NoPieceFoundException ex) {
                 log.error("Unable to select piece " + piece.getIndex(), ex);
             }
@@ -148,35 +158,55 @@ public class Game {
         }
     }
 
-    public void updatePuzzleForTeam() {
+    public void updatePuzzleForTeam(boolean tournamentStopped) {
         boolean won = isGameWon();
         UpdatePuzzleMessage updatePuzzleMessage = new UpdatePuzzleMessage();
         updatePuzzleMessage.setTeamId(team.getId());
         updatePuzzleMessage.setTeamName(team.getName());
         updatePuzzleMessage.setPuzzleName(puzzleName);
+        updatePuzzleMessage.setCorrectPieces(correctPieces);
         updatePuzzleMessage.setPuzzle(puzzleBoard);
         updatePuzzleMessage.setGameWon(won);
+        updatePuzzleMessage.setCompletedGames(team.getCompletedGames());
         updatePuzzleMessage.setPlayers(team.getPlayers());
+        updatePuzzleMessage.setGameOver(tournamentStopped);
         try {
+            if (tournamentStopped) {
+                log.info("Publish game tournament stopped message to " + team.getId());
+            }
             publisher.publish("team/" + team.getId(), updatePuzzleMessage);
         } catch (PublisherException ex) {
             log.error("Unable to update puzzle for team " + team.getId(), ex);
         }
         if (won) {
             log.info("Team " + team.getId() + " won the game!");
-            subscriber.deregisterHandler("games/" + team.getId());
-            subscriber.deregisterHandler("games/" + team.getId() + "/pickCharacter");
-            subscriber.deregisterHandler("games/" + team.getId() + "/starPower");
-            subscriber.deregisterHandler("games/" + team.getId() + "/peachHeal");
-            subscriber.deregisterHandler("games/" + team.getId() + "/yoshiGuard");
-            subscriber.deregisterHandler("games/" + team.getId() + "/troubleFlipper");
-            subscriber.deregisterHandler("games/" + team.getId() + "/greenShell");
+            removeGameHandlers();
             gameOverListeners.forEach(l -> l.gameOver(this));
         }
     }
 
+    private void removeGameHandlers() {
+        subscriber.deregisterHandler("games/" + team.getId());
+        subscriber.deregisterHandler("games/" + team.getId() + "/selectPiece");
+        subscriber.deregisterHandler("games/" + team.getId() + "/pickCharacter");
+        subscriber.deregisterHandler("games/" + team.getId() + "/starPower");
+        subscriber.deregisterHandler("games/" + team.getId() + "/peachHeal");
+        subscriber.deregisterHandler("games/" + team.getId() + "/yoshiGuard");
+        subscriber.deregisterHandler("games/" + team.getId() + "/troubleFlipper");
+        subscriber.deregisterHandler("games/" + team.getId() + "/greenShell");
+    }
+
+    public boolean stop() {
+        gameStopped = true;
+        removeGameHandlers();
+        return isGameWon();
+    }
+
     private boolean isGameWon() {
         synchronized (puzzleBoard) {
+            if (puzzleBoard.size() == 0) {
+                return false;
+            }
             boolean result = true;
             correctPieces = 0;
             for (int i = 0; i < puzzleBoard.size(); ++i) {
@@ -198,21 +228,30 @@ public class Game {
     }
 
     private void swapPieces(SwapPiecesMessage swapPiecesMessage) {
+        if (gameStopped) {
+            return;
+        }
         if (swapPiecesMessage.getPiece1().getIndex() == swapPiecesMessage.getPiece2().getIndex()) {
             return;
         }
         Player player = team.getPlayer(swapPiecesMessage.getClientId());
         swapPieces(swapPiecesMessage.getPiece1(), swapPiecesMessage.getPiece2(), player);
-        updatePuzzleForTeam();
+        updatePuzzleForTeam(false);
     }
 
     private void selectPiece(SelectPieceMessage selectPieceMessage) {
+        if (gameStopped) {
+            return;
+        }
         Player player = team.getPlayer(selectPieceMessage.getClientId());
         selectPiece(selectPieceMessage.getPiece(), player);
-        updatePuzzleForTeam();
+        updatePuzzleForTeam(false);
     }
 
     private void pickCharacterHandler(PickCharacterMessage pickCharacterMessage) {
+        if (gameStopped) {
+            return;
+        }
         String clientName = pickCharacterMessage.getClientId();
         CharacterType characterType = pickCharacterMessage.getCharacterType();
 
@@ -298,6 +337,9 @@ public class Game {
     }
 
     private void starPowerHandler(StarPowerMessage starPowerMessage) {
+        if (gameStopped) {
+            return;
+        }
         log.info("Got starPower");
         Player player = getTeam().getPlayer(CharacterType.mario);
         if (player != null) {
@@ -311,7 +353,7 @@ public class Game {
                 log.debug("Mario used star power");
                 mario.useSuperPower();
                 starPower(starPowerMessage.getPuzzlePiece());
-                updatePuzzleForTeam();
+                updatePuzzleForTeam(false);
             }
         } else {
             log.info("Cannot find mario player");
@@ -319,7 +361,9 @@ public class Game {
     }
 
     private void peachHealHandler(PeachHealMessage peachHealMessage) {
-        // TODO wait until player selection logic before checking
+        if (gameStopped) {
+            return;
+        }
         log.info("Got peachHeal");
         Player peachPlayer = getTeam().getPlayer(CharacterType.peach);
         if (peachPlayer != null) {
@@ -339,7 +383,7 @@ public class Game {
                     } else if (player.getBonusCharacters().get(characterType) != null){
                         player.getBonusCharacters().get(characterType).heal();
                     }
-                    updatePuzzleForTeam();
+                    updatePuzzleForTeam(false);
                 }
             } else {
                 log.info("Cannot find player to heal");
@@ -352,6 +396,9 @@ public class Game {
     }
 
     private void yoshiGuardHandler() {
+        if (gameStopped) {
+            return;
+        }
         Player player = getTeam().getPlayer(CharacterType.yoshi);
         if (player != null) {
             Yoshi yoshi;
@@ -371,7 +418,7 @@ public class Game {
                         log.info("Team " + team.getName() + " is no longer protected by Yoshi Guard");
                     }
                 }, 10000);
-                updatePuzzleForTeam();
+                updatePuzzleForTeam(false);
             }
         } else {
             log.info("Cannot find yoshi player");
@@ -379,7 +426,9 @@ public class Game {
     }
 
     private void troubleFlipperHandler() {
-
+        if (gameStopped) {
+            return;
+        }
         Player player = getTeam().getPlayer(CharacterType.bowser);
         if (player != null) {
             Bowser bowser;
@@ -398,6 +447,9 @@ public class Game {
     }
 
     private void greenShellHandler() {
+        if (gameStopped) {
+            return;
+        }
         Player player = getTeam().getPlayer(CharacterType.goomba);
         if (player != null) {
             Goomba goomba;
@@ -416,6 +468,9 @@ public class Game {
     }
 
     private void starPower(PuzzlePiece selectedPuzzlePiece) {
+        if (gameStopped) {
+            return;
+        }
         int correctIndexForPuzzlePiece = selectedPuzzlePiece.getIndex();
         Player mario = team.getPlayer(CharacterType.mario);
         if (mario != null) {
@@ -426,18 +481,24 @@ public class Game {
     }
 
     public void troubleFlipper(Player bowser) {
+        if (gameStopped) {
+            return;
+        }
         if (!gameOver && !team.isImmune()) {
             log.info(bowser.getGamerTag() + " from team " + bowser.getTeam().getName()+  " used trouble flipper on " + team.getName());
             synchronized (puzzleBoard) {
                 Collections.shuffle(puzzleBoard);
             }
-            updatePuzzleForTeam();
+            updatePuzzleForTeam(false);
         } else if (team.isImmune()) {
             log.info("Team " + team.getName() + " has yoshi guarded a trouble flipper attack from " + bowser.getGamerTag() + " on team " + bowser.getTeam().getName());
         }
     }
 
     public void greenShell() {
+        if (gameStopped) {
+            return;
+        }
         if (!gameOver && !team.isImmune()) {
             List<PuzzlePiece> correctPieces = new ArrayList<>();
             synchronized (puzzleBoard) {
@@ -454,7 +515,7 @@ public class Game {
             } else if (correctPieces.size() == 1) {
                 // TODO should probably swap a single piece with a random piece here
             }
-            updatePuzzleForTeam();
+            updatePuzzleForTeam(false);
         } else if (team.isImmune()) {
             log.info("Team " + team.getName() + " has yoshi guarded a green shell attack!");
         }

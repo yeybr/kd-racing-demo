@@ -21,9 +21,6 @@ export class Spectator {
         var factoryProps = new solace.SolclientFactoryProperties();
         factoryProps.profile = solace.SolclientFactoryProfiles.version7;
         solace.SolclientFactory.init(factoryProps);
-        // enable logging to JavaScript console at WARN level
-        // NOTICE: works only with "solclientjs-debug.js"
-        solace.SolclientFactory.setLogLevel(solace.LogLevel.WARN);
         this.session = solace.SolclientFactory.createSession({
           url: this.appProps.url,
           vpnName: this.appProps.vpn,
@@ -32,10 +29,12 @@ export class Spectator {
           clientName: this.clientId || ''
         });
         this.session.on(solace.SessionEventCode.UP_NOTICE, (sessionEvent) => {
-          this.clientId = this.session.getSessionProperties().clientName;
-          console.log('Successfully connected with clientId ' + this.clientId);
+          let sessionProperties = this.session.getSessionProperties();
+          this.clientId = sessionProperties.clientName;
+          console.log('Successfully connected with clientId ' + this.clientId +
+            ', protocol in use ' + sessionProperties.transportProtocolInUse);
           this.register();
-  
+
         });
         this.session.on(solace.SessionEventCode.CONNECT_FAILED_ERROR, (sessionEvent) => {
           console.log('Connection failed to the message router: ' + sessionEvent.infoStr +
@@ -50,8 +49,15 @@ export class Spectator {
             this.session = null;
           }
         });
+        this.session.on(solace.SessionEventCode.SUBSCRIPTION_OK, (sessionEvent) => {
+          var topicName = sessionEvent.correlationKey;
+          console.log('Successfully subscribed to topic: ' + topicName);
+          if (topicName === 'score/players') {
+            this.msgCallback({state: 'watching'});
+          }
+        });
         this.session.on(solace.SessionEventCode.MESSAGE, (message) => {
-          console.log('Received message: "' + message.getBinaryAttachment() + '", details:\n' + message.dump());
+          // console.log('Received message: "' + message.getBinaryAttachment() + '", details:\n' + message.dump());
           this.handleMessage(message.getDestination(), message.getBinaryAttachment());
         });
         this.session.connect();
@@ -65,7 +71,7 @@ export class Spectator {
   }
 
   handleMessage(destination, jsonMessage) {
-    
+
     if (jsonMessage) {
       let msg = null;
       if (typeof jsonMessage === 'string') {
@@ -107,7 +113,7 @@ export class Spectator {
     // this.subscribeToTopic('user/>');
     this.subscribeToTopic('score/players');
     console.log('subscribing to players ranking');
-    
+
    // TESTING CODE
   //  setTimeout(() => {
   //   this.msgCallback(this.simulateTeamResponse());

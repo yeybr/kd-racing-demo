@@ -55,7 +55,7 @@
               </div>
           </div>
 
-    
+
           </div> <!--end of player score board-->
         <div  class="score-table" id="team-score-table">
            <div> Team scoreboard : total teams {{scoreboardInfo.teams.length}}</div>
@@ -74,7 +74,7 @@
               </div>
           </div> <!-- end of team score table-->
       </div>
-       
+
     </div>
 
       <!-- <div class="game" v-for="gameInfo in scoreboardInfo.games" :key="gameInfo.id">
@@ -99,8 +99,11 @@ import { Spectator } from '@/messaging/spectator';
 import CommonUtils from './common-utils';
 
 export default {
-  name: 'scoreboard',
+  name: "scoreboard",
   mixins: [CommonUtils],
+  beforeCreate() {
+    document.body.className = "scoreboard";
+  },
   created() {
     console.log('scoreboard created: data bound');
 
@@ -149,6 +152,14 @@ export default {
     //     name: 'signin'
     //   });
     // }
+    this.clientId = clientId;
+    this.spectatorMessenger = new Spectator(
+      this.$solace,
+      this.$parent.appProps,
+      { username: this.username, clientId: this.clientId },
+      this.handleMsg.bind(this)
+    );
+    this.spectatorMessenger.connect();
   },
   // mounted() {
   //   console.log('scoreboard mounted: dom element inserted');
@@ -162,7 +173,7 @@ export default {
   // },
   destroyed() {
     // clean up any resource, such as close websocket connection, remove subscription
-    console.log('scoreboard destroyed: dom removed');
+    console.log("scoreboard destroyed: dom removed");
     if (this.spectatorMessenger) {
       this.spectatorMessenger.unregister();
       this.spectatorMessenger.disconnect();
@@ -173,47 +184,53 @@ export default {
   // Underlying model
   data() {
     return {
-      msg: 'Trouble Flipper Scoreboard',
-      state: 'connecting',
+      msg: "Trouble Flipper Scoreboard",
+      state: "connecting",
       scoreboardInfo: {
-        teams: [
-        ],
-        players: [
-
-        ]
+        teams: [],
+        players: []
       }
-    }
+    };
   },
 
   // any actions
   methods: {
     handleMsg: function(msg) {
-      console.log('Got message', msg);
+      console.log("Got message", msg);
       // this.scoreboardInfo.players = msg.players;
-      
+
       if (msg.players) {
-        this.updateData(this.scoreboardInfo.players, msg.players);       
+        this.updateData(this.scoreboardInfo.players, msg.players);
         this.scoreboardInfo.players.forEach(function(player) {
           console.log(player);
           player.avatarLink = `static/${player.character.type}-mario.jpg`;
         });
-        this.handleStateChange(msg);
       }
       if (msg.teams) {
-        this.updateData(this.scoreboardInfo.teams, msg.teams);      
+        this.updateData(this.scoreboardInfo.teams, msg.teams);
       }
-
-     
+      this.handleStateChange(msg);
     },
     handleStateChange: function(msg) {
-      this.state = 'watching';
-      // if (msg.state) {
-      //   console.log('State change', msg);
-      //   this.state = msg.state;
-      //   if (this.state === 'watching') {
-      //     console.log('Save username ' + this.username + ', clientId ' + this.clientId + ' to localStorage');
-      //     this.saveIntoStorage('localStorage', 'trouble_flipper_spectator', { username: this.username, clientId: this.clientId });
-      //   }
+      let currentState = this.state;
+      if (msg.state) {
+        this.state = msg.state;
+      } else {
+        this.state = "watching";
+      }
+
+      // if (currentState !== "watching" && this.state === "watching") {
+      //   console.log(
+      //     "Save username " +
+      //       this.username +
+      //       ", clientId " +
+      //       this.clientId +
+      //       " to localStorage"
+      //   );
+      //   this.saveIntoStorage("localStorage", "trouble_flipper_spectator", {
+      //     username: this.username,
+      //     clientId: this.clientId
+      //   });
       // }
     },
     ordinal_suffix_of: function (i) {
@@ -231,13 +248,14 @@ export default {
         return i + "th";
     }
   }
-}
+};
 </script>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <!-- Enable sas by using lang="scss" -->
 <style scoped>
-h1, h2 {
+h1,
+h2 {
   font-weight: normal;
 }
 ul {
@@ -249,7 +267,7 @@ li {
   margin: 0 10px;
 }
 a {
-  color: #1DACFC;
+  color: #1dacfc;
 }
 
 .score-panel {
@@ -274,7 +292,6 @@ a {
   display: flex;
   flex-direction: row;
   justify-content: flex-start;
-  
 }
 
 .score-panel .score-board .game {
@@ -308,20 +325,18 @@ color: white;
 }
 
 .headshot {
- width: 5vw;
+  width: 5vw;
   height: 5vw;
   overflow: hidden;
   border-radius: 3vw;
   position: relative;
   box-shadow: 0px 0px 1px 3px rgba(0, 0, 0, 0.1);
-      margin: 0 2vw 0 0;
+  margin: 0 2vw 0 0;
 }
-
 
 .headshot img {
   position: absolute;
   width: 5vw;
-
 }
 
 .powers {
@@ -385,7 +400,6 @@ color: white;
   color: rgb(194, 86, 23);
 }
 
-
 .score-title {
   font-size: 4vw;
       text-align: center;
@@ -439,9 +453,9 @@ color: white;
   
 }
 .moves img {
-  opacity: .6;
+  opacity: 0.6;
 }
-.score-table-row  .labels {
+.score-table-row .labels {
   font-size: 30px;
   align-self: center;
   /* position:absolute;
@@ -498,27 +512,15 @@ color: white;
 }
 
 .scores-panel {
-      display: flex;
-    align-items: start;
-    justify-content: center;
-    width: 100%;
+  display: flex;
+  align-items: start;
+  justify-content: center;
+  width: 100%;
 }
 
 .score-table {
-    flex-basis: 50%;
+  flex-basis: 50%;
 }
-
-
-@keyframes MoveUpDown {
-  0%, 100% {
-    top: 0;
-  }
-  50% {
-    top: 100px;
-  }
-}
-
-
 </style>
 
 <style lang="css">
@@ -527,5 +529,4 @@ body {
   overflow-y: auto;
   background-size: cover;
 }
-
 </style>

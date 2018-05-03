@@ -24,9 +24,6 @@ export class Player {
         var factoryProps = new solace.SolclientFactoryProperties();
         factoryProps.profile = solace.SolclientFactoryProfiles.version7;
         solace.SolclientFactory.init(factoryProps);
-        // enable logging to JavaScript console at WARN level
-        // NOTICE: works only with 'solclientjs-debug.js'
-        solace.SolclientFactory.setLogLevel(solace.LogLevel.WARN);
         this.session = solace.SolclientFactory.createSession({
           url: this.appProps.url,
           vpnName: this.appProps.vpn,
@@ -35,8 +32,10 @@ export class Player {
           clientName: this.clientId || ''
         });
         this.session.on(solace.SessionEventCode.UP_NOTICE, (sessionEvent) => {
-          this.clientId = this.session.getSessionProperties().clientName;
-          console.log('Successfully connected with clientId ' + this.clientId);
+          let sessionProperties = this.session.getSessionProperties();
+          this.clientId = sessionProperties.clientName;
+          console.log('Successfully connected with clientId ' + this.clientId +
+            ', protocol in use ' + sessionProperties.transportProtocolInUse);
           this.subscribeToTopic('user/' + this.clientId);
         });
         this.session.on(solace.SessionEventCode.CONNECT_FAILED_ERROR, (sessionEvent) => {
@@ -91,24 +90,24 @@ export class Player {
   }
 
   handleMessage(topic, message) {
-      if (typeof message !== 'string') {
-        console.log('Error: unexpected message type');
-        return;
-      }
+    if (typeof message !== 'string') {
+      console.log('Error: unexpected message type');
+      return;
+    }
 
-      try {
-        var messageInstance = parseReceivedMessage(topic, message);
-        if (messageInstance instanceof TeamsMessage) {
-          // set team topic
-          this.teamTopic = topic;
-          this.gameTopic = 'games/' + messageInstance.teamId;
-        }
-        if (messageInstance !== null) {
-          this.msgCallback(messageInstance);
-        }
-      } catch (e) {
-        console.log('Error:', e);
+    try {
+      var messageInstance = parseReceivedMessage(topic, message);
+      if (messageInstance instanceof TeamsMessage) {
+        // set team topic
+        this.teamTopic = topic;
+        this.gameTopic = 'games/' + messageInstance.teamId;
       }
+      if (messageInstance !== null) {
+        this.msgCallback(messageInstance);
+      }
+    } catch (e) {
+      console.log('Error:', e);
+    }
   }
 
   register() {
@@ -238,7 +237,7 @@ export class Player {
       }
     } catch (e) {
       console.log('Disconnect fails', e);
-      this.msgCallback({state: 'connecting'});
+      this.msgCallback({connected: false});
     }
   }
 }

@@ -92,8 +92,13 @@ public class Subscriber {
         try {
             session.addSubscription(JCSMPFactory.onlyInstance().createClientName(clientName), topic, JCSMPSession.WAIT_FOR_CONFIRM);
         } catch (JCSMPException ex) {
+            if (ex instanceof JCSMPErrorResponseException) {
+                JCSMPErrorResponseException re = (JCSMPErrorResponseException) ex;
+                if (re.getResponseCode() == 400 && re.getSubcodeEx() == JCSMPErrorResponseSubcodeEx.SUBSCRIPTION_ALREADY_PRESENT) {
+                    return;
+                }
+            }
             String message = "Unable to add subscription for client " + clientName + " on topic " + topicName;
-            log.error(message, ex);
             throw new SubscriberException(message, ex);
         }
     }
