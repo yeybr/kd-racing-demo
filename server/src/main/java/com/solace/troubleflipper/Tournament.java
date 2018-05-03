@@ -347,6 +347,8 @@ public class Tournament implements GameOverListener, BadGuyActionHandler {
                             Map<String, String>teamMessage = new HashMap<>();
                             teamMessage.put("id", team.getId());
                             teamMessage.put("name", team.getName());
+                            teamMessage.put("completed", new Integer(team.getCompletedGames()).toString());
+
                             if (team.getGame() != null) {
                                 teamMessage.put("game", team.getGame().getPuzzleName());
                             }
