@@ -23,7 +23,7 @@
       <div v-show="state === 'watching' && !started" class="score-info waiting">
         <button type="button" class="game-btn btn" @click="startGame()">Start Game</button>
       </div>
-      <div v-show="state === 'watching' && started" class="score-info waiting">
+      <div v-show="state === 'watching' && started && !compareMode" class="score-info waiting">
         <button type="button" class="game-btn btn" @click="stopGame()">Stop Game</button>
       </div>
       <div v-show="state === 'watching' && started && !compareMode" class="score-info waiting">
