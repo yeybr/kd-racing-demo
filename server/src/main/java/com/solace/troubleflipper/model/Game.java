@@ -24,6 +24,8 @@ public class Game {
     private Timer timer;
     private final TournamentProperties tournamentProperties;
     private final BadGuyActionHandler badGuyActionHandler;
+
+    // game won
     private boolean gameOver = false;
 
     private int correctPieces;
@@ -46,6 +48,10 @@ public class Game {
         subscriber.registerHandler("games/" + team.getId() + "/yoshiGuard", this::yoshiGuardHandler);
         subscriber.registerHandler("games/" + team.getId() + "/troubleFlipper", this::troubleFlipperHandler);
         subscriber.registerHandler("games/" + team.getId() + "/greenShell", this::greenShellHandler);
+    }
+
+    public boolean isGameOver() {
+        return gameOver;
     }
 
     public void addGameOverListener(GameOverListener gameOverListener) {

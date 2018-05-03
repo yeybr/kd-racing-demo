@@ -17,7 +17,7 @@ import java.util.stream.Collectors;
 @Component
 public class Tournament implements GameOverListener, BadGuyActionHandler {
 
-    private static List<String> PUZZLE_NAMES = Arrays.asList("puzzle-brick-loading-docs.jpg", "puzzle-cookies-icing.jpg", "puzzle1.jpg", "puzzle-Ian-is-not-Santa.jpg", "puzzle3.jpg");
+    private static List<String> PUZZLE_NAMES = Arrays.asList("puzzle-brick-loading-docs.jpg", "puzzle-cookies-icing.jpg", "puzzle-Ian-is-not-Santa.jpg", "puzzle1.jpg", "puzzle3.jpg");
 
     private Logger log = LoggerFactory.getLogger("tournament");
 
@@ -419,29 +419,29 @@ public class Tournament implements GameOverListener, BadGuyActionHandler {
 
     @Override
     public void gameOver(Game game) {
-        String teamId = game.getTeam().getId();
-        Team team = teams.get(teamId);
-        activeGames.remove(teamId);
-        completedGames.get(teamId).add(game);
-        // remove game over listeners
-        // cannot do this due to race condition in game's stopGame method
-//        game.clearGameOverListeners();
-        team.addCompletedGame();
-        if (tournamentStarted && gameStarted) {
-            Game newGame = new Game(team, subscriber, publisher, timer, tournamentProperties, this);
-            newGame.setPuzzleName(getPuzzleName(team));
-            team.setGame(newGame);
-            timer.schedule(new TimerTask() {
-                @Override
-                public void run() {
-                    if (tournamentStarted && gameStarted) {
-                        activeGames.put(teamId, newGame);
-                        newGame.addGameOverListener(Tournament.this);
-                        newGame.start();
-                        newGame.updatePuzzleForTeam(false);
+        if (game.isGameOver()) {
+            // game is won
+            String teamId = game.getTeam().getId();
+            Team team = teams.get(teamId);
+            activeGames.remove(teamId);
+            completedGames.get(teamId).add(game);
+            team.addCompletedGame();
+            if (tournamentStarted && gameStarted) {
+                Game newGame = new Game(team, subscriber, publisher, timer, tournamentProperties, this);
+                newGame.setPuzzleName(getPuzzleName(team));
+                team.setGame(newGame);
+                timer.schedule(new TimerTask() {
+                    @Override
+                    public void run() {
+                        if (tournamentStarted && gameStarted) {
+                            activeGames.put(teamId, newGame);
+                            newGame.addGameOverListener(Tournament.this);
+                            newGame.start();
+                            newGame.updatePuzzleForTeam(false);
+                        }
                     }
-                }
-            }, 3000);
+                }, 3000);
+            }
         }
     }
 
