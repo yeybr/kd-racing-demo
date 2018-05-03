@@ -10,7 +10,7 @@
         </div>
       </div>
     </div>
-    <div v-show="state === 'playing'" class="header-section">
+    <div v-show="state === 'playing' || state === 'stopped'" class="header-section">
       <div style="position:relative;background-image: url(static/backgrounds.png);">
         <div class="titlebar">{{teamInfo.teamName}}</div>
       </div>
@@ -69,10 +69,19 @@
         </div>
       </div>
     </div>
+    <div v-if="state === 'stopped'" class="game-summary">
+      <div>Summary</div>
+      <div>Current Game Correct Pieces: {{teamInfo.correctPieces}}</div>
+      <div>Completed Games: {{teamInfo.completedGames}}</div>
+      <div>Team Rank: {{teamRank.rank}}/{{teamRank.totalTeam}}</div>
+      <div>Individual Rank: {{rank}}/{{totalPlayers}}</div>
+    </div>
     <div v-if="state === 'playing' && puzzlePicture" id="puzzle-area" class="backgroundwhite">
       <div id="puzzle" :style="puzzleStyle">
         <transition-group name="puzzleswap" >
-          <div  v-for="(piece, i) in puzzle" @click="select" :index="piece.index" :key="piece.index" class="spot" :class="{selected: piece.selectedBy && piece.selectedBy != clientId, selectedByMe: piece.selectedBy == clientId}" :style="[holderStyle]">
+          <div  v-for="(piece, i) in puzzle" @click="select" :index="piece.index" :key="piece.index" class="spot"
+            :class="{selected: piece.selectedBy && piece.selectedBy !== clientId, selectedByMe: piece.selectedBy === clientId}"
+            :style="[holderStyle]">
             <img :src="puzzlePicture" :index="i" v-bind:style="piece.style"/>
             <div class="highlight"></div>
           </div>
@@ -227,7 +236,9 @@ export default {
         players: [],
         totalTeam: 0,
         teamRank: 0,
-        timeAllowedForEachMove: 0
+        timeAllowedForEachMove: 0,
+        correctPieces: 0,
+        completedGames: 0
       },
       teamRank: {
         rank: 0,
@@ -302,6 +313,7 @@ export default {
       } else if (msg instanceof TeamsMessage) {
         let teamMsg = {};
         teamMsg.gameWon = msg.gameWon;
+        teamMsg.gameOver = msg.gameOver;
         if (msg.puzzle) {
           teamMsg.puzzle = msg.puzzle;
         }
@@ -328,8 +340,10 @@ export default {
           teamInfo.players = this.teamInfo.players;
         }
         teamInfo.availableCharacters = msg.availableCharacters || [];
+        teamInfo.correctPieces = msg.correctPieces;
+        teamInfo.completedGames = msg.completedGames;
         this.handleTeamsMessage(teamMsg);
-      } else if (msg.connected == false) {
+      } else if (msg.connected === false) {
         newState = 'connecting';
         this.handleStateChange(newState);
         return;
@@ -346,6 +360,9 @@ export default {
     handleTeamsMessage: function(msg) {
       console.log('teamMsg', msg);
       let newState = null;
+      if (msg.gameOver) {
+        newState = 'stopped';
+      }
       this.puzzleName = msg.puzzleName;
       if (this.puzzleName) {
         this.puzzlePicture = `static/${this.puzzleName}`;
@@ -355,7 +372,7 @@ export default {
       console.log('puzzlePicture', this.puzzlePicture);
       if (msg.puzzle && msg.puzzle.length > 0) {
         let puzzleArea = document.getElementById("puzzle-area");
-        console.log('puzzleArea', puzzleArea);
+        // console.log('puzzleArea', puzzleArea);
         if (puzzleArea) {
           this.updatePuzzleArea(msg, puzzleArea, newState);
         } else {
@@ -391,11 +408,14 @@ export default {
         }
         this.updateData(this.teamInfo, msg.teamInfo);
       }
-      if (!this.character) {
-        // must be first team message, transition to select avatar
-        newState = 'start';
-      } else {
-        newState = 'playing';
+
+      if (!newState) {
+        if (!this.character) {
+          // must be first team message, transition to select avatar
+          newState = 'start';
+        } else {
+          newState = 'playing';
+        }
       }
       this.handleStateChange(newState);
     },
@@ -428,7 +448,7 @@ export default {
       // piece in the case of a player selecting a piece for too long.
       //
       let isSelectedByMe = this.puzzle.find(p => {
-        return p.selectedBy == this.clientId;
+        return p.selectedBy === this.clientId;
       });
       let isUnselectTimerStarted = this.countdownTimer;
 
@@ -511,7 +531,7 @@ export default {
           // console.log("no time left", this.timeRemaining);
           this.stopCountDown();
           let selectedPiece = this.puzzle.find(p => {
-            return p.selectedBy == this.clientId;
+            return p.selectedBy === this.clientId;
           });
           if (!selectedPiece) {
             return;
@@ -546,7 +566,7 @@ export default {
     },
     select: function(e) {
       let isAlreadySelectedByMe = this.puzzle.find(p => {
-        return p.selectedBy == this.clientId;
+        return p.selectedBy === this.clientId;
       });
       let index = e.target.previousElementSibling.attributes.index.value;
 
@@ -561,15 +581,18 @@ export default {
       //
       let selectedPiece = {index: this.puzzle[index].index, selectedBy: this.puzzle[index].selectedBy};
       let isSelectionValid = isAlreadySelectedByMe ?
-        (selectedPiece.selectedBy == this.clientId) || !selectedPiece.selectedBy :
+        (selectedPiece.selectedBy === this.clientId) || !selectedPiece.selectedBy :
         !selectedPiece.selectedBy;
       if (!isSelectionValid) {
+        console.log('Selection is invalid, piece already selected by me',
+          (isAlreadySelectedByMe ? isAlreadySelectedByMe.selectedBy : ''),
+          'newly selected piece', selectedPiece.selectedBy);
         return;
       }
       // Handle the final selection case
       //
       if (isAlreadySelectedByMe) {
-        let isNewSelectionAlreadySelectedByMe = (selectedPiece.selectedBy == this.clientId);
+        let isNewSelectionAlreadySelectedByMe = (selectedPiece.selectedBy === this.clientId);
         // Handles the unselection case
         //
         if (isNewSelectionAlreadySelectedByMe) {
@@ -604,7 +627,7 @@ export default {
         this.chooseHeal = true;
       } else if (type === "mario") {
         let selectedPiece = this.puzzle.find(p => {
-          return p.selectedBy == this.clientId;
+          return p.selectedBy === this.clientId;
         });
         if (selectedPiece) {
           let piece = {index: selectedPiece.index, selectedBy: selectedPiece.selectedBy};
@@ -861,6 +884,14 @@ a {
   color: white;
   width: 200px;
   cursor: pointer;
+}
+
+.game-summary {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 25px;
 }
 
 /* puzzle section */

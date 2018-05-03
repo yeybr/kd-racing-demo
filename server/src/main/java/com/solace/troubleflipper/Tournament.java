@@ -5,6 +5,7 @@ import com.solace.troubleflipper.messages.*;
 import com.solace.troubleflipper.model.*;
 import com.solace.troubleflipper.properties.BadGuyActionHandler;
 import com.solace.troubleflipper.properties.TournamentProperties;
+import com.solacesystems.jcsmp.JCSMPErrorResponseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,7 +17,7 @@ import java.util.stream.Collectors;
 @Component
 public class Tournament implements GameOverListener, BadGuyActionHandler {
 
-    private static List<String> PUZZLE_NAMES = Arrays.asList("puzzle-brick-loading-docs.jpg", "puzzle-cookies-icing.jpg", "puzzle-Ian-is-not-Santa.jpg", "puzzle-ice-man-cometh.jpg");
+    private static List<String> PUZZLE_NAMES = Arrays.asList("puzzle-brick-loading-docs.jpg", "puzzle-cookies-icing.jpg", "puzzle1.jpg", "puzzle-Ian-is-not-Santa.jpg", "puzzle3.jpg");
 
     private Logger log = LoggerFactory.getLogger("tournament");
 
@@ -108,7 +109,7 @@ public class Tournament implements GameOverListener, BadGuyActionHandler {
                                 if (player.getCharacter() == null || !gameStarted) {
                                     activeGame.updateCharactersForTeam(false);
                                 } else {
-                                    activeGame.updatePuzzleForTeam();
+                                    activeGame.updatePuzzleForTeam(false);
                                 }
                             } catch (SubscriberException ex) {
                                 log.error("Unable to register subscription for " + player.getClientName() + " on team " + player.getTeam().getId(), ex);
@@ -127,28 +128,30 @@ public class Tournament implements GameOverListener, BadGuyActionHandler {
 
     @SubscriptionHandler(topic = "tournaments", messageType = TournamentMessage.class)
     private void startTournament(TournamentMessage tournamentMessage) {
-        if ((tournamentMessage.getAction().equals("buildTeams")) && (players.size() > 0)) {
+        if (tournamentMessage.getAction().equals("buildTeams")) {
             synchronized (tournamentLock) {
-                tournamentStarted = true;
                 if (players.size() > 0) {
-                    if (activeGames.size() > 0) {
+                    if (tournamentStarted) {
                         log.info("Tournament is already in progress");
                         return;
                     }
+                    tournamentStarted = true;
                     prepareTeams();
                     for (Game game : activeGames.values()) {
                         game.addGameOverListener(this);
                         game.updateCharactersForTeam(false);
                     }
+                    updateTournamentMessage();
                 }
-                updateTournamentMessage();
             }
         } else if (tournamentMessage.getAction().equals("stopGames")) {
-            tournamentStarted = false;
-            gameStarted = false;
+            log.info("Stop tournament");
             synchronized (tournamentLock) {
+                tournamentStarted = false;
+                gameStarted = false;
                 for (Game game : activeGames.values()) {
                     game.stop();
+                    game.updatePuzzleForTeam(true);
                 }
                 updateTournamentMessage();
             }
@@ -260,7 +263,7 @@ public class Tournament implements GameOverListener, BadGuyActionHandler {
         gameStarted = true;
         for (Game game : activeGames.values()) {
             game.start();
-            game.updatePuzzleForTeam();
+            game.updatePuzzleForTeam(false);
         }
 
         timer.schedule(new TimerTask() {
@@ -374,7 +377,19 @@ public class Tournament implements GameOverListener, BadGuyActionHandler {
                 subscriber.subscribeForClient("score/" + player.getTeam().getId(), player.getClientName());
                 subscriber.subscribeForClient("score/" + player.getClientName(), player.getClientName());
             } catch (SubscriberException ex) {
-                log.error("Unable to register subscription for " + player.getClientName() + " on team " + player.getTeam().getId(), ex);
+                boolean playerNotFound = false;
+                if (ex.getCause() instanceof JCSMPErrorResponseException) {
+                    if (((JCSMPErrorResponseException) ex.getCause()).getResponseCode() == 404) {
+                        log.info("Player has left, remove player from team");
+                        playerNotFound = true;
+                        playerRankings.remove(player);
+                        team.removePlayer(player);
+                        this.players.remove(player);
+                    }
+                }
+                if (!playerNotFound) {
+                    log.error("Unable to register subscription for " + player.getClientName() + " on team " + player.getTeam().getId(), ex);
+                }
             }
         }
     }
@@ -423,7 +438,7 @@ public class Tournament implements GameOverListener, BadGuyActionHandler {
                         activeGames.put(teamId, newGame);
                         newGame.addGameOverListener(Tournament.this);
                         newGame.start();
-                        newGame.updatePuzzleForTeam();
+                        newGame.updatePuzzleForTeam(false);
                     }
                 }
             }, 3000);
@@ -433,16 +448,18 @@ public class Tournament implements GameOverListener, BadGuyActionHandler {
     @Override
     public void troubleFlipper(Player bowserPlayer) {
         synchronized (teamRankings) {
-            int rank = teamRankings.indexOf(bowserPlayer.getTeam());
-            if (rank == 0) {
-                log.info("Bowser from team " + bowserPlayer.getTeam().getName() + " used trouble flipper, but they are in first place");
-            } else {
-                int indexOfTeamToAttack = rank - 1;
-                Team teamToAttack = teamRankings.get(indexOfTeamToAttack);
-                teamToAttack.getGame().troubleFlipper(bowserPlayer);
-                Game attackerGame = bowserPlayer.getTeam().getGame();
-                if (attackerGame != null) {
-                    attackerGame.updatePuzzleForTeam();
+            if (tournamentStarted && gameStarted) {
+                int rank = teamRankings.indexOf(bowserPlayer.getTeam());
+                if (rank == 0) {
+                    log.info("Bowser from team " + bowserPlayer.getTeam().getName() + " used trouble flipper, but they are in first place");
+                } else {
+                    int indexOfTeamToAttack = rank - 1;
+                    Team teamToAttack = teamRankings.get(indexOfTeamToAttack);
+                    teamToAttack.getGame().troubleFlipper(bowserPlayer);
+                    Game attackerGame = bowserPlayer.getTeam().getGame();
+                    if (attackerGame != null) {
+                        attackerGame.updatePuzzleForTeam(false);
+                    }
                 }
             }
         }
@@ -451,16 +468,18 @@ public class Tournament implements GameOverListener, BadGuyActionHandler {
     @Override
     public void greenShell(Player goombaPlayer) {
         synchronized (teamRankings) {
-            int rank = teamRankings.indexOf(goombaPlayer.getTeam());
-            if (rank == 0) {
-                log.info("Goomba from team " + goombaPlayer.getTeam().getName() + " used a green shell, but they are in first place");
-            } else {
-                int indexOfTeamToAttack = rank - 1;
-                Team teamToAttack = teamRankings.get(indexOfTeamToAttack);
-                teamToAttack.getGame().greenShell();
-                Game attackerGame = goombaPlayer.getTeam().getGame();
-                if (attackerGame != null) {
-                    attackerGame.updatePuzzleForTeam();
+            if (tournamentStarted && gameStarted) {
+                int rank = teamRankings.indexOf(goombaPlayer.getTeam());
+                if (rank == 0) {
+                    log.info("Goomba from team " + goombaPlayer.getTeam().getName() + " used a green shell, but they are in first place");
+                } else {
+                    int indexOfTeamToAttack = rank - 1;
+                    Team teamToAttack = teamRankings.get(indexOfTeamToAttack);
+                    teamToAttack.getGame().greenShell();
+                    Game attackerGame = goombaPlayer.getTeam().getGame();
+                    if (attackerGame != null) {
+                        attackerGame.updatePuzzleForTeam(false);
+                    }
                 }
             }
         }

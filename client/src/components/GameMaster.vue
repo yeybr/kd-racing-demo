@@ -9,12 +9,15 @@
     <div v-show="state !== 'watching'" class="score-info waiting">
       <h3>Connecting...</h3>
     </div>
-    <div class="game-stats">
+    <div class="game-action">
       <div v-show="state === 'watching' && !started" class="score-info waiting">
-        <button type="button" class="game-btn btn" @click="startGame()">Start Game!</button>
+        <button type="button" class="game-btn btn" @click="startGame()">Start Game</button>
       </div>
       <div v-show="state === 'watching' && started" class="score-info waiting">
-        <button type="button" class="game-btn btn" @click="stopGame()">Stop Game!</button>
+        <button type="button" class="game-btn btn" @click="stopGame()">Stop Game</button>
+      </div>
+      <div v-show="state === 'watching' && started" class="score-info waiting">
+        <button type="button" class="game-btn btn" @click="compareGame()">Compare Games</button>
       </div>
     </div>
     <div v-show="state === 'watching'" class="waiting-players">
@@ -28,7 +31,7 @@
     <div v-show="state === 'watching'" class="teams">
       <div class="title">Teams</div>
       <div class="score-board">
-        <div class="team" v-for="teamInfo in teams" :key="teamInfo.id">
+        <div class="team" v-for="teamInfo in teams" :key="teamInfo.id" :id="teamInfo.id" @click="selectTeam">
           <div class="title">{{teamInfo.name}}</div>
           <div class="body">
             <template v-for="(player, index) in teamInfo.players">
@@ -104,7 +107,8 @@ export default {
       username: "",
       started: false,
       waitingPlayers: [],
-      teams: []
+      teams: [],
+      selectedTeams: []
     }
   },
 
@@ -162,6 +166,24 @@ export default {
       if (this.masterMessenger) {
         this.masterMessenger.stopGame();
       }
+    },
+    selectTeam: function(event) {
+      let teamId = event.currentTarget.getAttribute('id')
+      let index = this.selectedTeams.indexOf(teamId);
+      if (event.currentTarget.classList.contains('selected')) {
+        event.currentTarget.classList.remove('selected');
+        if (index >= 0) {
+          this.selectedTeams.splice(index, 1);
+        }
+      } else {
+        event.currentTarget.classList.add('selected');
+        if (index < 0) {
+          this.selectedTeams.push(teamId);
+        }
+      }
+    },
+    compareGame: function() {
+      console.log('selectedTeams', this.selectedTeams);
     }
   }
 }
@@ -206,11 +228,19 @@ a {
   font-weight: 500;
 }
 
+.game-master-panel .game-action {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
 .game-master-panel .score-info.waiting {
-  align-self: stretch;
   display: flex;
   flex-direction: column;
   align-items: center;
+  padding-left: 10px;
+  padding-right: 10px;
 }
 .game-master-panel .score-info.waiting label {
   margin-top: 40px;
@@ -218,7 +248,7 @@ a {
 }
 .game-master-panel .score-info.waiting .game-btn {
   font-size: 32px;
-  margin-bottom: 80px;
+  margin-bottom: 40px;
   background: #006fea;
   border-radius: 4px;
   padding: 10px;
@@ -226,6 +256,7 @@ a {
   color: white;
   width: 200px;
   cursor: pointer;
+  min-height: 68px;
 }
 
 .game-master-panel .waiting-players {
@@ -273,9 +304,15 @@ a {
   justify-content: flex-start;
   margin: 15px;
   border-radius: 20px;
+  border: solid 2px transparent;
   background: #924692;;
   box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
   width: 400px;
+  min-height: 90px;
+}
+
+.game-master-panel .teams .score-board .team.selected {
+  border: solid 2px green;
 }
 
 .game-master-panel .teams .score-board .team .title {

@@ -69,6 +69,12 @@ public class Team {
         player.setTeam(this);
     }
 
+    public void removePlayer(Player player) {
+        playersMap.remove(player.getClientName());
+        players.remove(player);
+        player.setTeam(null);
+    }
+
     public void chooseCharacter(CharacterType characterType, Player player) {
         Character character = createCharacter(characterType);
         player.setCharacter(character);
