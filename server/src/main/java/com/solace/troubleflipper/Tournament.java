@@ -245,6 +245,8 @@ public class Tournament implements GameOverListener, BadGuyActionHandler {
                             teamMessage.put("id", team.getId());
                             teamMessage.put("name", team.getName());
                             teamMessage.put("game", team.getGame().getPuzzleName());
+                            teamMessage.put("completed", new Integer(team.getCompletedGames()).toString());
+
                             return teamMessage;
 
                         }).collect(Collectors.toList());

@@ -1,6 +1,13 @@
+
+
 <template>
+  
 
   <div class="score1-panel">
+
+      
+  
+  
       <div class="titlebar"><div class="score-title red">Leader Board</div></div>
     <div class="title">
       <!-- <h1>{{msg}}</h1> -->
@@ -16,28 +23,36 @@
 
               <div class="info">
               <div> Players scoreboard : total players {{scoreboardInfo.players.length}}</div>
-              <div class="score-table-body">
-                <transition-group name="flip-lista" >
-                  <div class="score-table-row" v-for="(player, index) in scoreboardInfo.players"  v-bind:key="player.gamerTag">
-                    <div>
-                     <span >{{index}}</span> 
-                    </div>
-                    <div class="headshot" >
-                        <img :src="player.avatarLink">
+              <div class="score-table-body" id="scoretablebodycontent">
+                
+                  <transition-group name="flip-list" >
+                    <div class="score-table-row" v-for="(player, index) in scoreboardInfo.players"  v-bind:key="player.gamerTag">
+                      <div class="score-rank">
+                      <span >{{index + 1}}</span> 
+                      </div>
+                      <div class="headshot" >
+                          <img :src="player.avatarLink">
+                        </div>
+
+                      <div style="font-size:3vw" class="id">
+                        {{player.gamerTag}} 
                       </div>
 
-                    <div style="font-size:3vw" class="id">
-                       {{player.gamerTag}} 
+                    <div class="moves" style="position:relative">
+                      
+                        <img style="width:5vw" src="../assets/starcoin.png">
+                        <transition name="bounce">
+                        <div class="labels" style="color:green"> {{player.rightMoves}} </div> 
+                      </transition>
+                      </div>
+
+                    <div class="moves" style="position:relative"><img style="width:4vw" src="../assets/bowserhead-mario.png"><div class="labels" style="color:#d2c3c3"> {{player.wrongMoves}} </div> 
+                      </div>
+
                     </div>
-
-                  <div class="moves" style="position:relative"><img style="width:5vw" src="../assets/starcoin.png"><div class="labels" style="color:green"> {{player.rightMoves}} </div> 
-                     </div>
-
-                  <div class="moves" style="position:relative"><img style="width:5vw" src="../assets/ghost-mario.png"><div class="labels" style="color:red"> {{player.wrongMoves}} </div> 
-                     </div>
-
-                  </div>
-                </transition-group>
+                  </transition-group>
+                
+                
               </div>
           </div>
 
@@ -48,9 +63,12 @@
            <div class="score-table-body">
                 <transition-group name="player-rank-list">
                   <div class="score-table-row " v-for="(team, index) in scoreboardInfo.teams"  v-bind:key="index">
-                    <div style="font-size:3vw;display:flex;align-items: center;" >
-                        <div style="flex-grow:2">{{index}} {{team.name}}</div>
+                    <div style="font-size:3vw;display:flex;align-items: center;" >                        
+                        <div class="id">{{index}} {{team.name}}</div>
                         <div style="padding-left: 2em; font-size:.5em" > {{team.game}} </div>
+                        <div style="padding:0 2em;" class="moves" > {{team.completed}} </div>
+
+                        
                     </div>
                 </div>
                 </transition-group>
@@ -71,13 +89,16 @@
       </div> -->
     </div>
   </div>
-  
+
 </template>
 
 <script>
+import Vue from 'vue'
+
 import { UsersAckMessage, TeamsMessage, parseReceivedMessage, PlayerRankMessage, PlayerListMessage } from '@/messaging/messages.js';
 import { Spectator } from '@/messaging/spectator';
 import CommonUtils from './common-utils';
+
 export default {
   name: 'scoreboard',
   mixins: [CommonUtils],
@@ -103,6 +124,27 @@ export default {
         {username: this.username, clientId: this.clientId},
         this.handleMsg.bind(this));
       this.spectatorMessenger.connect();
+
+    // window.setInterval((function() {
+    //     let currentPos = document.getElementById("scoretablebodycontent").offsetTop;
+    //     // document.getElementById("scoretablebodycontent").scrollTop += 100;
+    //     document.getElementById("scoretablebodycontent").scrollBy({ 
+    //       top: 100, // could be negative value
+    //       left: 0, 
+    //       behavior: 'smooth' 
+    //     });
+    //     let newPos = document.getElementById("scoretablebodycontent").offsetTop;
+    //     if (currentPos == newPos) {
+    //         document.getElementById("scoretablebodycontent").scrollBy({ 
+    //         top: -100, // could be negative value
+    //         left: 0, 
+    //         behavior: 'smooth' 
+    //     });
+    //     }
+        
+        
+    //   }), 5000);
+
     // } else {
     //   this.$router.push({
     //     name: 'signin'
@@ -174,6 +216,20 @@ export default {
       //     this.saveIntoStorage('localStorage', 'trouble_flipper_spectator', { username: this.username, clientId: this.clientId });
       //   }
       // }
+    },
+    ordinal_suffix_of: function (i) {
+        var j = i % 10,
+            k = i % 100;
+        if (j == 1 && k != 11) {
+            return i + "st";
+        }
+        if (j == 2 && k != 12) {
+            return i + "nd";
+        }
+        if (j == 3 && k != 13) {
+            return i + "rd";
+        }
+        return i + "th";
     }
   }
 }
@@ -234,11 +290,21 @@ a {
 }
 
 .score-table-body {
-     height: 80vh;
+     height: 60vh;
     overflow-y: scroll;
+    position: relative;
 }
+
+.score-table-body-content {
+  animation: MoveUpDown 1s linear infinite;
+  position: absolute;
+  left: 0;
+  bottom: 0;
+}
+
+
 #player-score-table, #team-score-table {
-background: rgba(226, 30, 30, 0.14);
+/* background: rgba(226, 30, 30, 0.14); */
 color: white;
 }
 
@@ -322,7 +388,7 @@ color: white;
 
 
 .score-title {
-  font-size: 8vw;
+  font-size: 4vw;
       text-align: center;
     background: ##fe113;
     margin: 1vw 20vw;
@@ -333,9 +399,35 @@ color: white;
 .score-table-row {
   display: flex;
       border-radius: 10vw;
-    background: #924692;
     padding: 1vw;
-    margin: 1vw;
+    margin: .5vw 2vw;
+    
+        padding: .3vw 1vw;
+      margin: .5vw 2vw;
+        border: 2px solid #b3a6a6; 
+            box-shadow: 0.5vw -1px 3px #565151, 9px 2px 0 #c3acac, 5px 1px 0 #9c9292, 10px 3px 0px 1px #a99191;
+    text-shadow: 0.5vw -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 black, 1px 1px 0 #000;
+
+}
+.score-table-row .score-rank {
+    font-size: 3vw;
+    padding: 0 .5em;
+    width: 5vw;
+}
+.score-table-row .id {
+    font-size: 3vw;
+    padding: 0 .5em;
+    white-space: nowrap; 
+    overflow: hidden;
+    text-overflow: ellipsis;
+        max-width: 20vw;
+}
+#player-score-table .score-table-row {
+    background: #924692;
+}
+  #team-score-table .score-table-row {
+    background: rgb(37, 173, 33);;
+  
 }
 .score-table-row > .id {
   flex-basis: 40%;
@@ -362,6 +454,46 @@ color: white;
   transition: transform 1s;
 }
 
+.flip-list-enter, .flip-list-leave-to
+/* .list-complete-leave-active below version 2.1.8 */ {
+  opacity: 0;
+  transform: rotateY(90deg );
+}
+
+.bounce-enter-active {
+  animation: bounce-in .5s;
+}
+.bounce-leave-active {
+  animation: bounce-in .5s reverse;
+}
+@keyframes bounce-in {
+  0% {
+    transform: scale(0);
+  }
+  50% {
+    transform: scale(1.5);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+
+.component-fade-enter-active, .component-fade-leave-active {
+  transition: opacity .3s ease;
+}
+.component-fade-enter, .component-fade-leave-to
+/* .component-fade-leave-active below version 2.1.8 */ {
+  opacity: 0;
+}
+
+.fade-enter-active, .fade-leave-active {
+  transition: opacity .5s;
+}
+.fade-enter, .fade-leave-to /* .fade-leave-active below version 2.1.8 */ {
+  opacity: 0;
+}
+
 .scores-panel {
       display: flex;
     align-items: start;
@@ -372,6 +504,17 @@ color: white;
 .score-table {
     flex-basis: 50%;
 }
+
+
+@keyframes MoveUpDown {
+  0%, 100% {
+    top: 0;
+  }
+  50% {
+    top: 100px;
+  }
+}
+
 
 </style>
 
