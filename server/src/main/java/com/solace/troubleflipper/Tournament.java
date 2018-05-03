@@ -162,6 +162,10 @@ public class Tournament implements GameOverListener, BadGuyActionHandler {
             }
         } else if (tournamentMessage.getAction().equals("stopGames")) {
             synchronized (tournamentLock) {
+                if (!tournamentStarted) {
+                    log.info("Tournament stop in progress");
+                    return;
+                }
                 log.info("Stop tournament for " + activeGames.size() + " teams");
                 tournamentStarted = false;
                 gameStarted = false;
