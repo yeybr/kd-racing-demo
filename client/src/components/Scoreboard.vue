@@ -38,15 +38,14 @@
                         {{player.gamerTag}} 
                       </div>
 
-                    <div class="moves" style="position:relative">
+                    <div class="moves" style="position:relative;display:flex">
                       
                         <img style="width:5vw" src="../assets/starcoin.png">
-                        <transition name="bounce">
-                        <div class="labels" style="color:green"> {{player.rightMoves}} </div> 
-                      </transition>
+                        <div class="labels" style="color:green"> X {{player.rightMoves}} </div> 
+                      
                       </div>
 
-                    <div class="moves" style="position:relative"><img style="width:4vw" src="../assets/bowserhead-mario.png"><div class="labels" style="color:#d2c3c3"> {{player.wrongMoves}} </div> 
+                    <div class="moves" style="position:relative"><img style="width:4vw" src="../assets/bowserhead-mario.png"><div class="labels" style="color:#d2c3c3"> X {{player.wrongMoves}} </div> 
                       </div>
 
                     </div>
@@ -434,6 +433,9 @@ color: white;
 }
 .score-table-row > .moves {
   flex-basis: 20%;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
   
 }
 .moves img {
@@ -441,9 +443,10 @@ color: white;
 }
 .score-table-row  .labels {
   font-size: 30px;
-  position:absolute;
+  align-self: center;
+  /* position:absolute;
   top: calc(2vw - 15px);
-  left: 2vw;
+  left: 2vw; */
 }
 .red {
   color: #d41345;
