@@ -28,6 +28,9 @@ public class Game {
     // game won
     private boolean gameOver = false;
 
+    // game stopped
+    private volatile boolean gameStopped = false;
+
     private int correctPieces;
 
     private final Collection<GameOverListener> gameOverListeners = new ArrayList<>();
@@ -168,17 +171,21 @@ public class Game {
         updatePuzzleMessage.setPlayers(team.getPlayers());
         updatePuzzleMessage.setGameOver(tournamentStopped);
         try {
+            if (tournamentStopped) {
+                log.info("Publish game tournament stopped message to " + team.getId());
+            }
             publisher.publish("team/" + team.getId(), updatePuzzleMessage);
         } catch (PublisherException ex) {
             log.error("Unable to update puzzle for team " + team.getId(), ex);
         }
         if (won) {
             log.info("Team " + team.getId() + " won the game!");
-            stopGame();
+            removeGameHandlers();
+            gameOverListeners.forEach(l -> l.gameOver(this));
         }
     }
 
-    private void stopGame() {
+    private void removeGameHandlers() {
         subscriber.deregisterHandler("games/" + team.getId());
         subscriber.deregisterHandler("games/" + team.getId() + "/selectPiece");
         subscriber.deregisterHandler("games/" + team.getId() + "/pickCharacter");
@@ -187,15 +194,19 @@ public class Game {
         subscriber.deregisterHandler("games/" + team.getId() + "/yoshiGuard");
         subscriber.deregisterHandler("games/" + team.getId() + "/troubleFlipper");
         subscriber.deregisterHandler("games/" + team.getId() + "/greenShell");
-        gameOverListeners.forEach(l -> l.gameOver(this));
     }
 
-    public void stop() {
-        stopGame();
+    public boolean stop() {
+        gameStopped = true;
+        removeGameHandlers();
+        return isGameWon();
     }
 
     private boolean isGameWon() {
         synchronized (puzzleBoard) {
+            if (puzzleBoard.size() == 0) {
+                return false;
+            }
             boolean result = true;
             correctPieces = 0;
             for (int i = 0; i < puzzleBoard.size(); ++i) {
@@ -217,6 +228,9 @@ public class Game {
     }
 
     private void swapPieces(SwapPiecesMessage swapPiecesMessage) {
+        if (gameStopped) {
+            return;
+        }
         if (swapPiecesMessage.getPiece1().getIndex() == swapPiecesMessage.getPiece2().getIndex()) {
             return;
         }
@@ -226,12 +240,18 @@ public class Game {
     }
 
     private void selectPiece(SelectPieceMessage selectPieceMessage) {
+        if (gameStopped) {
+            return;
+        }
         Player player = team.getPlayer(selectPieceMessage.getClientId());
         selectPiece(selectPieceMessage.getPiece(), player);
         updatePuzzleForTeam(false);
     }
 
     private void pickCharacterHandler(PickCharacterMessage pickCharacterMessage) {
+        if (gameStopped) {
+            return;
+        }
         String clientName = pickCharacterMessage.getClientId();
         CharacterType characterType = pickCharacterMessage.getCharacterType();
 
@@ -317,6 +337,9 @@ public class Game {
     }
 
     private void starPowerHandler(StarPowerMessage starPowerMessage) {
+        if (gameStopped) {
+            return;
+        }
         log.info("Got starPower");
         Player player = getTeam().getPlayer(CharacterType.mario);
         if (player != null) {
@@ -338,7 +361,9 @@ public class Game {
     }
 
     private void peachHealHandler(PeachHealMessage peachHealMessage) {
-        // TODO wait until player selection logic before checking
+        if (gameStopped) {
+            return;
+        }
         log.info("Got peachHeal");
         Player peachPlayer = getTeam().getPlayer(CharacterType.peach);
         if (peachPlayer != null) {
@@ -371,6 +396,9 @@ public class Game {
     }
 
     private void yoshiGuardHandler() {
+        if (gameStopped) {
+            return;
+        }
         Player player = getTeam().getPlayer(CharacterType.yoshi);
         if (player != null) {
             Yoshi yoshi;
@@ -398,7 +426,9 @@ public class Game {
     }
 
     private void troubleFlipperHandler() {
-
+        if (gameStopped) {
+            return;
+        }
         Player player = getTeam().getPlayer(CharacterType.bowser);
         if (player != null) {
             Bowser bowser;
@@ -417,6 +447,9 @@ public class Game {
     }
 
     private void greenShellHandler() {
+        if (gameStopped) {
+            return;
+        }
         Player player = getTeam().getPlayer(CharacterType.goomba);
         if (player != null) {
             Goomba goomba;
@@ -435,6 +468,9 @@ public class Game {
     }
 
     private void starPower(PuzzlePiece selectedPuzzlePiece) {
+        if (gameStopped) {
+            return;
+        }
         int correctIndexForPuzzlePiece = selectedPuzzlePiece.getIndex();
         Player mario = team.getPlayer(CharacterType.mario);
         if (mario != null) {
@@ -445,6 +481,9 @@ public class Game {
     }
 
     public void troubleFlipper(Player bowser) {
+        if (gameStopped) {
+            return;
+        }
         if (!gameOver && !team.isImmune()) {
             log.info(bowser.getGamerTag() + " from team " + bowser.getTeam().getName()+  " used trouble flipper on " + team.getName());
             synchronized (puzzleBoard) {
@@ -457,6 +496,9 @@ public class Game {
     }
 
     public void greenShell() {
+        if (gameStopped) {
+            return;
+        }
         if (!gameOver && !team.isImmune()) {
             List<PuzzlePiece> correctPieces = new ArrayList<>();
             synchronized (puzzleBoard) {

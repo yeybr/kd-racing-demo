@@ -1,5 +1,14 @@
 <template>
   <div class="game-master-panel">
+    <div class="modal" v-show="showModal">
+      <div class="text">Information</div>
+      <div class="content">
+        Please select maximum two teams.
+      </div>
+      <div class="footer">
+        <button type="button" class="btn btn-secondary" @click="closeModal()">OK</button>
+      </div>
+    </div>
     <div class="header-section">
       <div class="title">
           <span class="red">G</span><span class="green">a</span><span class="yellow">m</span><span class="blue">e</span>
@@ -16,11 +25,14 @@
       <div v-show="state === 'watching' && started" class="score-info waiting">
         <button type="button" class="game-btn btn" @click="stopGame()">Stop Game</button>
       </div>
-      <div v-show="state === 'watching' && started" class="score-info waiting">
-        <button type="button" class="game-btn btn" @click="compareGame()">Compare Games</button>
+      <div v-show="state === 'watching' && started && !compareMode" class="score-info waiting">
+        <button type="button" class="game-btn btn" @click="compareGame()">Show Games</button>
+      </div>
+      <div v-show="state === 'watching' && started && compareMode" class="score-info waiting">
+        <button type="button" class="game-btn btn" @click="exitCompareMode()">Back</button>
       </div>
     </div>
-    <div v-show="state === 'watching'" class="waiting-players">
+    <div v-show="state === 'watching' && !compareMode" class="waiting-players">
       <div class="title">Waiting Players ({{waitingPlayers.length}})</div>
       <div class="players">
         <div v-for="(player, index) in waitingPlayers" :key="player.id" class="player">
@@ -28,7 +40,7 @@
         </div>
       </div>
     </div>
-    <div v-show="state === 'watching'" class="teams">
+    <div v-show="state === 'watching' && !compareMode" class="teams">
       <div class="title">Teams</div>
       <div class="score-board">
         <div class="team" v-for="teamInfo in teams" :key="teamInfo.id" :id="teamInfo.id" @click="selectTeam">
@@ -40,6 +52,8 @@
           </div>
         </div>
       </div>
+    </div>
+    <div v-if="state === 'watching' && compareMode" class="games-view">
     </div>
   </div>
 </template>
@@ -104,6 +118,8 @@ export default {
       clientId: "",
       username: "",
       started: false,
+      compareMode: false,
+      showModal: false,
       waitingPlayers: [],
       teams: [],
       selectedTeams: []
@@ -168,6 +184,7 @@ export default {
     },
     selectTeam: function(event) {
       let teamId = event.currentTarget.getAttribute('id')
+            console.log('selectTeam', teamId);
       let index = this.selectedTeams.indexOf(teamId);
       if (event.currentTarget.classList.contains('selected')) {
         event.currentTarget.classList.remove('selected');
@@ -181,8 +198,30 @@ export default {
         }
       }
     },
+    closeModal: function() {
+      this.showModal = false;
+    },
     compareGame: function() {
       console.log('selectedTeams', this.selectedTeams);
+      if (this.selectedTeams.length === 0 || this.selectedTeams.length > 2) {
+        this.showModal = true;
+        return false;
+      }
+      if (this.masterMessenger) {
+        this.selectedTeams.forEach(teamId => {
+          this.masterMessenger.subscribeToTopic('team/' + teamId);
+        });
+      }
+      this.compareMode = true;
+    },
+    exitCompareMode: function() {
+      if (this.masterMessenger) {
+        this.selectedTeams.forEach(teamId => {
+          this.masterMessenger.unsubscribeToTopic('team/' + teamId);
+        });
+      }
+      this.selectedTeams.splice(0, this.selectedTeams.length);
+      this.compareMode = false;
     }
   }
 }
@@ -326,6 +365,12 @@ a {
 .game-master-panel .teams .score-board .team .body {
   padding: 8px 16px 12px 16px;
   color: white;
+}
+
+.game-master-panel .games-view {
+  display: flex;
+  flex-direction: row;
+
 }
 
 .red {
