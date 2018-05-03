@@ -99,7 +99,6 @@ public class Subscriber {
                 }
             }
             String message = "Unable to add subscription for client " + clientName + " on topic " + topicName;
-            log.error(message, ex);
             throw new SubscriberException(message, ex);
         }
     }
