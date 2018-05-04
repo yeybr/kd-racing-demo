@@ -6,6 +6,12 @@ public class PuzzlePiece {
 
     private String selectedBy;
 
+    private long lastSelectTimestamp;
+
+    public PuzzlePiece() {
+        this.lastSelectTimestamp = -1L;
+    }
+
     public int getIndex() {
         return index;
     }
@@ -20,6 +26,14 @@ public class PuzzlePiece {
 
     public void setSelectedBy(String selectedBy) {
         this.selectedBy = selectedBy;
+    }
+
+    public long getLastSelectTimestamp() {
+        return lastSelectTimestamp;
+    }
+
+    public void setLastSelectTimestamp(long lastSelectTimestamp) {
+        this.lastSelectTimestamp = lastSelectTimestamp;
     }
 
     @Override

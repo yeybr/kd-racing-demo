@@ -45,12 +45,14 @@ public class Game {
         this.badGuyActionHandler = badGuyActionHandler;
         subscriber.registerHandler(SwapPiecesMessage.class, "games/" + team.getId(), this::swapPieces);
         subscriber.registerHandler(SelectPieceMessage.class, "games/" + team.getId() + "/selectPiece", this::selectPiece);
+        subscriber.registerHandler(ResetPieceMessage.class, "games/" + team.getId() + "/resetPiece", this::resetPiece);
         subscriber.registerHandler(PickCharacterMessage.class, "games/" + team.getId() + "/pickCharacter", this::pickCharacterHandler);
         subscriber.registerHandler(StarPowerMessage.class, "games/" + team.getId() + "/starPower", this::starPowerHandler);
         subscriber.registerHandler(PeachHealMessage.class, "games/" + team.getId() + "/peachHeal", this::peachHealHandler);
         subscriber.registerHandler("games/" + team.getId() + "/yoshiGuard", this::yoshiGuardHandler);
         subscriber.registerHandler("games/" + team.getId() + "/troubleFlipper", this::troubleFlipperHandler);
         subscriber.registerHandler("games/" + team.getId() + "/greenShell", this::greenShellHandler);
+        subscriber.registerHandler("games/" + team.getId() + "/queryGame", this::queryGameHandler);
     }
 
     public boolean isGameOver() {
@@ -117,8 +119,23 @@ public class Game {
         synchronized (puzzleBoard) {
             try {
                 PuzzlePiece bPiece = findPuzzlePiece(piece.getIndex());
+                String oldSelectedBy = bPiece.getSelectedBy();
                 String newSelectedBy = piece.getSelectedBy();
-                bPiece.setSelectedBy(newSelectedBy == null ? "" : newSelectedBy);
+//                log.info(piece.getIndex() + ", oldSelectedBy = " + oldSelectedBy + ", newSelectedBy = " + newSelectedBy +
+//                        ", player.getClientName() = " + player.getClientName() + ", player.getGamerTag() = " + player.getGamerTag());
+
+                if (oldSelectedBy.equals("") && !newSelectedBy.equals("")) {
+                    if (team.getPlayer(newSelectedBy) != null) {
+                        bPiece.setSelectedBy(newSelectedBy);
+                        bPiece.setLastSelectTimestamp(System.currentTimeMillis());
+                    }
+                } else if (!oldSelectedBy.equals("") && newSelectedBy.equals("")) {
+                    if (oldSelectedBy.equals(player.getClientName())) {
+                        bPiece.setSelectedBy("");
+                        bPiece.setLastSelectTimestamp(-1);
+                    }
+                }
+
 //                String oldSelectedBy = bPiece.getSelectedBy();
 //                //log.info("oldSelectedBy = " + oldSelectedBy + ", newSelectedBy = " + newSelectedBy + ", player.getClientName() = " + player.getClientName());
 //                boolean selectAction = oldSelectedBy.equals("") && newSelectedBy.equals(player.getClientName());
@@ -128,7 +145,7 @@ public class Game {
 //                } else if (unselectAction) {
 //                    bPiece.setSelectedBy("");
 //                } else {
-//                    log.error("Invalid action for SelectPieceMessage.");
+//                    log.info("Invalid action for SelectPieceMessage.");
 //                }
             } catch (NoPieceFoundException ex) {
                 log.error("Unable to select piece " + piece.getIndex(), ex);
@@ -188,12 +205,14 @@ public class Game {
     private void removeGameHandlers() {
         subscriber.deregisterHandler("games/" + team.getId());
         subscriber.deregisterHandler("games/" + team.getId() + "/selectPiece");
+        subscriber.deregisterHandler("games/" + team.getId() + "/resetPiece");
         subscriber.deregisterHandler("games/" + team.getId() + "/pickCharacter");
         subscriber.deregisterHandler("games/" + team.getId() + "/starPower");
         subscriber.deregisterHandler("games/" + team.getId() + "/peachHeal");
         subscriber.deregisterHandler("games/" + team.getId() + "/yoshiGuard");
         subscriber.deregisterHandler("games/" + team.getId() + "/troubleFlipper");
         subscriber.deregisterHandler("games/" + team.getId() + "/greenShell");
+        subscriber.deregisterHandler("games/" + team.getId() + "/queryGame");
     }
 
     public boolean stop() {
@@ -246,6 +265,32 @@ public class Game {
         Player player = team.getPlayer(selectPieceMessage.getClientId());
         selectPiece(selectPieceMessage.getPiece(), player);
         updatePuzzleForTeam(false);
+    }
+
+    private void resetPiece(ResetPieceMessage resetPieceMessage) {
+        if (gameStopped) {
+            return;
+        }
+        synchronized (puzzleBoard) {
+            try {
+                PuzzlePiece piece = resetPieceMessage.getPiece();
+                PuzzlePiece bPiece = findPuzzlePiece(piece.getIndex());
+                if (bPiece.getSelectedBy() == null || bPiece.getSelectedBy().equals("")) {
+                    bPiece.setLastSelectTimestamp(-1L);
+                } else {
+                    if (team.getPlayer(bPiece.getSelectedBy()) == null) {
+                        bPiece.setSelectedBy("");
+                        bPiece.setLastSelectTimestamp(-1L);
+                    } else if (bPiece.getLastSelectTimestamp() > 0 && System.currentTimeMillis() - bPiece.getLastSelectTimestamp() >= 10000) {
+                        bPiece.setSelectedBy("");
+                        bPiece.setLastSelectTimestamp(-1L);
+                    }
+                }
+                updatePuzzleForTeam(false);
+            } catch (NoPieceFoundException ex) {
+                log.error("Unable to reset piece " + resetPieceMessage.getPiece().getIndex(), ex);
+            }
+        }
     }
 
     private void pickCharacterHandler(PickCharacterMessage pickCharacterMessage) {
@@ -465,6 +510,13 @@ public class Game {
         } else {
             log.info("Cannot find goomba player");
         }
+    }
+
+    private void queryGameHandler() {
+        if (gameStopped) {
+            return;
+        }
+        updatePuzzleForTeam(false);
     }
 
     private void starPower(PuzzlePiece selectedPuzzlePiece) {
