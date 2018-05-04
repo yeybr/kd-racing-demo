@@ -463,7 +463,10 @@ public class Game {
                 for (int i = 0; i < puzzleBoard.size(); ++i) {
                     PuzzlePiece puzzlePiece = puzzleBoard.get(i);
                     if (puzzlePiece.getIndex() == i) {
-                        correctPieces.add(puzzlePiece);
+                        PuzzlePiece newPiece = new PuzzlePiece();
+                        newPiece.setIndex(puzzlePiece.getIndex());
+                        newPiece.setSelectedBy(puzzlePiece.getSelectedBy());
+                        correctPieces.add(newPiece);
                     }
                 }
                 Collections.shuffle(correctPieces);
