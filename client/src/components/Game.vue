@@ -70,7 +70,7 @@
       </div>
     </div>
     <div v-if="state === 'stopped'" class="game-summary">
-      <div>Summary</div>
+      <div>Game Summary</div>
       <div>Current Game Correct Pieces: {{teamInfo.correctPieces}}</div>
       <div>Completed Games: {{teamInfo.completedGames}}</div>
       <div>Team Rank: {{teamRank.rank}}/{{teamRank.totalTeam}}</div>
@@ -228,7 +228,6 @@ export default {
       character: null,
       characterType: "",
       powerMoves: 0,
-      players: [],
       chooseHeal: false,
       // From server
       puzzle: [],
@@ -237,8 +236,6 @@ export default {
         teamId: "",
         teamName: "",
         players: [],
-        totalTeam: 0,
-        teamRank: 0,
         timeAllowedForEachMove: 0,
         correctPieces: 0,
         completedGames: 0
@@ -502,6 +499,8 @@ export default {
           });
         } else if (this.state === "connecting") {
           this.cleanupGame();
+        } else if (this.state === "stopped") {
+          this.backgroundwhite = false;
         }
       }
     },
