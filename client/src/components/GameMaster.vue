@@ -57,9 +57,7 @@
     <div v-if="state === 'watching' && compareMode" class="games-view">
       <div class="game-view">
         <div class="header-section" v-if="team1">
-          <!-- <div style="position:relative;background-image: url(static/backgrounds.png);"> -->
-            <div class="titlebar">{{team1.teamInfo.teamName}}</div>
-          <!-- </div> -->
+          <div class="titlebar">{{team1.teamInfo.teamName}}</div>
           <div class="header-info">
             <div v-for="(player) in team1.teamInfo.players" v-if="player.character" :key="player.clientId"
               class="user-info" :class="player.character.type">
@@ -222,7 +220,6 @@ export default {
         puzzleStyle: '',
         backgroundwhite: false,
         countdown: 3,
-        // transitionName: "puzzleswap",
         // From server
         puzzle: [],
         puzzleName: "",
@@ -250,7 +247,6 @@ export default {
         puzzleStyle: '',
         backgroundwhite: false,
         countdown: 3,
-        // transitionName: "puzzleswap",
         // From server
         gameWon: false,
         gameOver: false,
@@ -945,10 +941,6 @@ a {
   position: relative;
 }
 
-/* .game-view .hidden-image {
-  position: fixed;
-  top: 200%;
-} */
 .game-view .puzzle div {
   display: inline;
 }
@@ -1136,6 +1128,7 @@ a {
   line-height: 24px;
 }
 
+/* animations */
 .puzzleswap-enter-active, .puzzleswap-leave-active {
   transition: opacity .5s;
 }
@@ -1149,7 +1142,6 @@ a {
   border: 2px  solid red; */
 
 }
-
 .puzzleswapblue-move {
   transition: transform 1s;
   border: 2px  solid blue;

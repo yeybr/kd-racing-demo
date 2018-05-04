@@ -11,73 +11,51 @@
       </div>
       <div v-show="state === 'watching'" class="score-board">
         <div class="scores-panel" style="display:flex" >
-            <div id="player-score-table" class="score-table">
-              <div class="info">
-              <div> Players scoreboard : total players {{scoreboardInfo.players.length}}</div>
-              <div class="score-table-body" id="scoretablebodycontent">
-
-                  <transition-group name="flip-list" >
-                    <div class="score-table-row" v-for="(player, index) in scoreboardInfo.players"  v-bind:key="player.gamerTag">
-                      <div class="score-rank">
-                      <span >{{index + 1}}</span>
-                      </div>
-                      <div class="userinfo" :class="player.character.type">
-                        <div class="headshot">
-                          <img :src="player.avatarLink">
-                        </div>
-                      </div>
-                      <div style="font-size:40px" class="id">
-                        {{player.gamerTag}}
-                      </div>
-
-                    <div class="moves" style="position:relative;display:flex">
-
-                        <img style="width:40px" src="../assets/starcoin.png">
-                        <div class="labels" style="color:green"> X {{player.rightMoves}} </div>
-
-                      </div>
-
-                    <div class="moves" style="position:relative"><img style="width:40px" src="../assets/bowserhead-mario.png"><div class="labels" style="color:#d2c3c3"> X {{player.wrongMoves}} </div>
-                      </div>
-
+          <div id="player-score-table" class="score-table">
+            <div class="info">
+            <div> Players scoreboard : total players {{scoreboardInfo.players.length}}</div>
+            <div class="score-table-body" id="scoretablebodycontent">
+              <transition-group name="flip-list" >
+                <div class="score-table-row" v-for="(player, index) in scoreboardInfo.players"  v-bind:key="player.gamerTag">
+                  <div class="score-rank">
+                    <span >{{index + 1}}</span>
+                  </div>
+                  <div class="userinfo" :class="player.character.type">
+                    <div class="headshot">
+                      <img :src="player.avatarLink">
                     </div>
-                  </transition-group>
-
-
-              </div>
+                  </div>
+                  <div style="font-size:40px" class="id">
+                    {{player.gamerTag}}
+                  </div>
+                  <div class="moves" style="position:relative;display:flex">
+                    <img style="width:40px" src="../assets/starcoin.png">
+                    <div class="labels" style="color:green"> X {{player.rightMoves}} </div>
+                  </div>
+                  <div class="moves" style="position:relative"><img style="width:40px" src="../assets/bowserhead-mario.png"><div class="labels" style="color:#d2c3c3"> X {{player.wrongMoves}} </div>
+                  </div>
+                </div>
+              </transition-group>
+            </div>
           </div>
-
-
-          </div> <!--end of player score board-->
-        <div  class="score-table" id="team-score-table">
+        </div> <!--end of player score board-->
+        <div class="score-table" id="team-score-table">
            <div> Team scoreboard : total teams {{scoreboardInfo.teams.length}}</div>
            <div class="score-table-body">
-                <transition-group name="player-rank-list">
-                  <div style="display:flex; font-size: 40px;" class="score-table-row " v-for="(team, index) in scoreboardInfo.teams"  v-bind:key="index">
-                        <div class="index">{{index + 1}}</div>
-                        <div class="id">{{team.name}}</div>
-                        <div style="font-size: 12px; drop-shadow: none;" > {{team.game}} </div>
-                        <div>{{team.completed}}</div>
+              <transition-group name="player-rank-list">
+                <div style="display:flex; font-size: 40px;" class="score-table-row " v-for="(team, index) in scoreboardInfo.teams"  v-bind:key="index">
+                  <div class="index">{{index + 1}}</div>
+                  <div class="id">{{team.name}}</div>
+                  <div style="font-size: 12px; drop-shadow: none;" > {{team.game}} </div>
+                  <div>{{team.completed}}</div>
                 </div>
-                </transition-group>
-              </div>
+              </transition-group>
+            </div>
           </div> <!-- end of team score table-->
       </div>
-
     </div>
-
-      <!-- <div class="game" v-for="gameInfo in scoreboardInfo.games" :key="gameInfo.id">
-          <span class="info">Puzzle: {{gameInfo.gameName}}</span>
-          <span class="info">Team: {{gameInfo.teamName}}</span>
-          <div class="info">Players:
-            <template v-for="(player, index) in gameInfo.players">
-              {{player.name}}{{(index === gameInfo.players.length - 1) ? '': ', '}}
-            </template>
-          </div>
-      </div> -->
     </div>
   </div>
-
 </template>
 
 <script>
