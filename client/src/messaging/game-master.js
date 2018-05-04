@@ -88,6 +88,22 @@ export class GameMaster {
     }
   }
 
+  unsubscribeToTopic(topic) {
+    if (this.session !== null) {
+      let solace = this.solaceApi;
+      try {
+        this.session.unsubscribe(
+          solace.SolclientFactory.createTopicDestination(topic),
+          true,
+          topic,
+          10000
+        );
+      } catch (e) {
+        console.log('Unsubscribe failed.', e);
+      }
+    }
+  }
+
   handleMessage(topic, message) {
     if (typeof message !== 'string') {
       console.log('Error: unexpected message type');

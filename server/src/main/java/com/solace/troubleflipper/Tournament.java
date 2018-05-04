@@ -49,7 +49,7 @@ public class Tournament implements GameOverListener, BadGuyActionHandler {
         this.subscriber = subscriber;
         this.publisher = publisher;
         subscriber.registerHandler(AddUserMessage.class, "users", this::addUser);
-        subscriber.registerHandler(TournamentMessage.class, "tournaments", this::startTournament);
+        subscriber.registerHandler(TournamentMessage.class, "tournaments", this::handleTournamentMsg);
     }
 
     @SubscriptionHandler(topic = "users", messageType = AddUserMessage.class)
@@ -102,19 +102,34 @@ public class Tournament implements GameOverListener, BadGuyActionHandler {
                         if (firstMatchGame.isPresent()) {
                             Game activeGame = firstMatchGame.get();
                             log.info("Player is part of a game");
+                            boolean playerNotFound = false;
                             try {
                                 subscriber.subscribeForClient("team/" + player.getTeam().getId(), player.getClientName());
                                 subscriber.subscribeForClient("score/" + player.getTeam().getId(), player.getClientName());
                                 subscriber.subscribeForClient("score/" + player.getClientName(), player.getClientName());
-                                if (player.getCharacter() == null || !gameStarted) {
+                            } catch (SubscriberException ex) {
+                                if (ex.getCause() instanceof JCSMPErrorResponseException) {
+                                    if (((JCSMPErrorResponseException) ex.getCause()).getResponseCode() == 404) {
+                                        log.info("Player has lost connection, remove player from team and players list");
+                                        playerNotFound = true;
+                                        playerRankings.remove(player);
+                                        activeGame.getTeam().removePlayer(player);
+                                        this.players.remove(player);
+                                    }
+                                }
+                                if (!playerNotFound) {
+                                    // unrecoverable, player cannot receive any message
+                                    log.error("Unable to register subscription for " + player.getClientName() + " on team " + player.getTeam().getId(), ex);
+                                }
+                            }
+
+                            if (tournamentStarted) {
+                                if ((player.getCharacter() == null && !playerNotFound) || !gameStarted) {
                                     activeGame.updateCharactersForTeam(false);
                                 } else {
                                     activeGame.updatePuzzleForTeam(false);
                                 }
-                            } catch (SubscriberException ex) {
-                                log.error("Unable to register subscription for " + player.getClientName() + " on team " + player.getTeam().getId(), ex);
                             }
-
                         }
                     }
                 } catch (PublisherException ex) {
@@ -127,7 +142,7 @@ public class Tournament implements GameOverListener, BadGuyActionHandler {
     }
 
     @SubscriptionHandler(topic = "tournaments", messageType = TournamentMessage.class)
-    private void startTournament(TournamentMessage tournamentMessage) {
+    private void handleTournamentMsg(TournamentMessage tournamentMessage) {
         if (tournamentMessage.getAction().equals("buildTeams")) {
             synchronized (tournamentLock) {
                 if (players.size() > 0) {
@@ -135,6 +150,7 @@ public class Tournament implements GameOverListener, BadGuyActionHandler {
                         log.info("Tournament is already in progress");
                         return;
                     }
+                    log.info("Start tournament");
                     tournamentStarted = true;
                     prepareTeams();
                     for (Game game : activeGames.values()) {
@@ -145,13 +161,32 @@ public class Tournament implements GameOverListener, BadGuyActionHandler {
                 }
             }
         } else if (tournamentMessage.getAction().equals("stopGames")) {
-            log.info("Stop tournament");
             synchronized (tournamentLock) {
+                if (!tournamentStarted) {
+                    log.info("Tournament stop in progress");
+                    return;
+                }
+                log.info("Stop tournament for " + activeGames.size() + " teams");
                 tournamentStarted = false;
                 gameStarted = false;
+                timer.cancel();
+                timer.purge();
+                List<Game> gamesWon = new ArrayList<>();
                 for (Game game : activeGames.values()) {
-                    game.stop();
+                    log.info("stop game for team " + game.getTeam().getId());
+                    if (game.stop()) {
+                        gamesWon.add(game);
+                    }
                     game.updatePuzzleForTeam(true);
+                }
+                if (gamesWon.size() > 0) {
+                    gamesWon.forEach(game -> {
+                        Team team = game.getTeam();
+                        log.info("Game won, update completed game for " + team.getId() + ", " + team.getName());
+                        activeGames.remove(team.getId());
+                        completedGames.get(team.getId()).add(game);
+                        team.addCompletedGame();
+                    });;
                 }
                 updateTournamentMessage();
             }
@@ -196,6 +231,7 @@ public class Tournament implements GameOverListener, BadGuyActionHandler {
         List<Player> teamPlayers = null;
         String teamName = null;
         Player player;
+        List<Player> allLeftPlayers = new ArrayList<>();
         for (int i = 0; i < numberOfPlayers; i++) {
             if (teamPlayers == null) {
                 teamPlayers = new ArrayList<>();
@@ -205,8 +241,17 @@ public class Tournament implements GameOverListener, BadGuyActionHandler {
             teamPlayers.add(player);
             if (teamPlayers.size() == playersPerTeam || i == numberOfPlayers - 1) {
                 teamName = tournamentProperties.getNewTeamName();
-                addTeam(teamName, teamPlayers);
+                List<Player> leftPlayers = addTeam(teamName, teamPlayers);
                 teamPlayers = null;
+                if (leftPlayers != null) {
+                    allLeftPlayers.addAll(leftPlayers);
+                }
+            }
+        }
+        if (allLeftPlayers.size() > 0) {
+            for (Player leftPlayer : allLeftPlayers) {
+                log.info("Remove " + leftPlayer.getGamerTag() + ", " + leftPlayer.getClientName() + " from players list because it is not connected");
+                this.players.remove(leftPlayer);
             }
         }
 
@@ -214,6 +259,10 @@ public class Tournament implements GameOverListener, BadGuyActionHandler {
             @Override
             public void run() {
                 synchronized (tournamentLock) {
+                    if (!tournamentStarted) {
+                        this.cancel();
+                        return;
+                    }
                     log.info("check character selection readiness");
                     waitCounter--;
                     if (waitCounter > 0) {
@@ -298,6 +347,8 @@ public class Tournament implements GameOverListener, BadGuyActionHandler {
                             Map<String, String>teamMessage = new HashMap<>();
                             teamMessage.put("id", team.getId());
                             teamMessage.put("name", team.getName());
+                            teamMessage.put("completed", new Integer(team.getCompletedGames()).toString());
+
                             if (team.getGame() != null) {
                                 teamMessage.put("game", team.getGame().getPuzzleName());
                             }
@@ -347,8 +398,9 @@ public class Tournament implements GameOverListener, BadGuyActionHandler {
         }, 0 , 3000);
     }
 
-    private void addTeam(String teamName, Collection<Player> players) {
+    private List<Player> addTeam(String teamName, Collection<Player> players) {
         Team team = new Team();
+        List<Player> leftPlayers = null;
 
         if (teamName == null) {
             team.setName(team.getId());
@@ -380,11 +432,14 @@ public class Tournament implements GameOverListener, BadGuyActionHandler {
                 boolean playerNotFound = false;
                 if (ex.getCause() instanceof JCSMPErrorResponseException) {
                     if (((JCSMPErrorResponseException) ex.getCause()).getResponseCode() == 404) {
-                        log.info("Player has left, remove player from team");
+                        log.info("Player has lost connection, remove player from team and players list");
                         playerNotFound = true;
                         playerRankings.remove(player);
                         team.removePlayer(player);
-                        this.players.remove(player);
+                        if (leftPlayers == null) {
+                            leftPlayers = new ArrayList<>();
+                        }
+                        leftPlayers.add(player);
                     }
                 }
                 if (!playerNotFound) {
@@ -392,6 +447,8 @@ public class Tournament implements GameOverListener, BadGuyActionHandler {
                 }
             }
         }
+
+        return leftPlayers;
     }
 
     private void updateTournamentMessage() {
@@ -411,6 +468,7 @@ public class Tournament implements GameOverListener, BadGuyActionHandler {
         updateTournamentMessage.setWaitingPlayers(waitingPlayers);
         updateTournamentMessage.setTeams(teams);
         try {
+            log.info("Publish tournament update message, tournamentStarted " + tournamentStarted);
             publisher.publish("tournament/update", updateTournamentMessage);
         } catch (PublisherException ex) {
             log.error("Unable to update the tournament update message", ex);
@@ -419,14 +477,15 @@ public class Tournament implements GameOverListener, BadGuyActionHandler {
 
     @Override
     public void gameOver(Game game) {
-        if (game.isGameOver()) {
-            // game is won
+        synchronized (tournamentLock) {
             String teamId = game.getTeam().getId();
-            Team team = teams.get(teamId);
-            activeGames.remove(teamId);
-            completedGames.get(teamId).add(game);
-            team.addCompletedGame();
-            if (tournamentStarted && gameStarted) {
+            if (tournamentStarted && gameStarted && game.isGameOver()) {
+                log.info("Game won, update completed game for " + teamId + ", " + game.getTeam().getName());
+                Team team = teams.get(teamId);
+                activeGames.remove(teamId);
+                completedGames.get(teamId).add(game);
+                team.addCompletedGame();
+
                 Game newGame = new Game(team, subscriber, publisher, timer, tournamentProperties, this);
                 newGame.setPuzzleName(getPuzzleName(team));
                 team.setGame(newGame);
