@@ -1,14 +1,6 @@
-
-
 <template>
-  
-
   <div class="score1-panel">
-
-      
-  
-  
-      <div class="titlebar"><div class="score-title red">Leader Board</div></div>
+    <div class="titlebar"><div class="score-title red">Leader Board</div></div>
     <div class="title">
       <!-- <h1>{{msg}}</h1> -->
       <!-- <div class="user-info">User: {{username}}</div> -->
@@ -20,15 +12,14 @@
       <div v-show="state === 'watching'" class="score-board">
         <div class="scores-panel" style="display:flex" >
             <div id="player-score-table" class="score-table">
-
               <div class="info">
               <div> Players scoreboard : total players {{scoreboardInfo.players.length}}</div>
               <div class="score-table-body" id="scoretablebodycontent">
-                
+
                   <transition-group name="flip-list" >
                     <div class="score-table-row" v-for="(player, index) in scoreboardInfo.players"  v-bind:key="player.gamerTag">
                       <div class="score-rank">
-                      <span >{{index + 1}}</span> 
+                      <span >{{index + 1}}</span>
                       </div>
                       <div class="userinfo" :class="player.character.type">
                         <div class="headshot">
@@ -36,23 +27,23 @@
                         </div>
                       </div>
                       <div style="font-size:40px" class="id">
-                        {{player.gamerTag}} 
+                        {{player.gamerTag}}
                       </div>
 
                     <div class="moves" style="position:relative;display:flex">
-                      
+
                         <img style="width:40px" src="../assets/starcoin.png">
-                        <div class="labels" style="color:green"> X {{player.rightMoves}} </div> 
-                      
+                        <div class="labels" style="color:green"> X {{player.rightMoves}} </div>
+
                       </div>
 
-                    <div class="moves" style="position:relative"><img style="width:40px" src="../assets/bowserhead-mario.png"><div class="labels" style="color:#d2c3c3"> X {{player.wrongMoves}} </div> 
+                    <div class="moves" style="position:relative"><img style="width:40px" src="../assets/bowserhead-mario.png"><div class="labels" style="color:#d2c3c3"> X {{player.wrongMoves}} </div>
                       </div>
 
                     </div>
                   </transition-group>
-                
-                
+
+
               </div>
           </div>
 
@@ -90,11 +81,17 @@
 </template>
 
 <script>
-import Vue from 'vue'
+import Vue from "vue";
 
-import { UsersAckMessage, TeamsMessage, parseReceivedMessage, PlayerRankMessage, PlayerListMessage } from '@/messaging/messages.js';
-import { Spectator } from '@/messaging/spectator';
-import CommonUtils from './common-utils';
+import {
+  UsersAckMessage,
+  TeamsMessage,
+  parseReceivedMessage,
+  PlayerRankMessage,
+  PlayerListMessage
+} from "@/messaging/messages.js";
+import { Spectator } from "@/messaging/spectator";
+import CommonUtils from "./common-utils";
 
 export default {
   name: "scoreboard",
@@ -103,54 +100,12 @@ export default {
     document.body.className = "scoreboard";
   },
   created() {
-    console.log('scoreboard created: data bound');
+    console.log("scoreboard created: data bound");
 
     // if (this.$route.query.username) {
-      // this.username = this.$route.query.username;
-      this.username = 'spectator';
-      // Retrive userInfo from local storage
-      let userInfo = this.retrieveFromStorage('localStorage', 'trouble_flipper_spectator');
-      
-      let clientId = null;
-      if (userInfo) {
-        clientId = userInfo.clientId;
-        if (userInfo.username !== this.username) {
-          userInfo.username = this.username;
-          this.saveIntoStorage('localStorage', 'trouble_flipper_spectator', userInfo);
-        }
-      }
-      this.clientId = clientId;
-      this.spectatorMessenger = new Spectator(this.$solace, this.$parent.appProps,
-        {username: this.username, clientId: this.clientId},
-        this.handleMsg.bind(this));
-      this.spectatorMessenger.connect();
-
-    // window.setInterval((function() {
-    //     let currentPos = document.getElementById("scoretablebodycontent").offsetTop;
-    //     // document.getElementById("scoretablebodycontent").scrollTop += 100;
-    //     document.getElementById("scoretablebodycontent").scrollBy({ 
-    //       top: 100, // could be negative value
-    //       left: 0, 
-    //       behavior: 'smooth' 
-    //     });
-    //     let newPos = document.getElementById("scoretablebodycontent").offsetTop;
-    //     if (currentPos == newPos) {
-    //         document.getElementById("scoretablebodycontent").scrollBy({ 
-    //         top: -100, // could be negative value
-    //         left: 0, 
-    //         behavior: 'smooth' 
-    //     });
-    //     }
-        
-        
-    //   }), 5000);
-
-    // } else {
-    //   this.$router.push({
-    //     name: 'signin'
-    //   });
-    // }
-    this.clientId = clientId;
+    // this.username = this.$route.query.username;
+    this.username = "spectator";
+    this.clientId = null;
     this.spectatorMessenger = new Spectator(
       this.$solace,
       this.$parent.appProps,
@@ -158,6 +113,31 @@ export default {
       this.handleMsg.bind(this)
     );
     this.spectatorMessenger.connect();
+
+    // window.setInterval((function() {
+    //     let currentPos = document.getElementById("scoretablebodycontent").offsetTop;
+    //     // document.getElementById("scoretablebodycontent").scrollTop += 100;
+    //     document.getElementById("scoretablebodycontent").scrollBy({
+    //       top: 100, // could be negative value
+    //       left: 0,
+    //       behavior: 'smooth'
+    //     });
+    //     let newPos = document.getElementById("scoretablebodycontent").offsetTop;
+    //     if (currentPos == newPos) {
+    //         document.getElementById("scoretablebodycontent").scrollBy({
+    //         top: -100, // could be negative value
+    //         left: 0,
+    //         behavior: 'smooth'
+    //     });
+    //     }
+
+    //   }), 5000);
+
+    // } else {
+    //   this.$router.push({
+    //     name: 'signin'
+    //   });
+    // }
   },
   // mounted() {
   //   console.log('scoreboard mounted: dom element inserted');
@@ -196,11 +176,9 @@ export default {
     handleMsg: function(msg) {
       console.log("Got message", msg);
       // this.scoreboardInfo.players = msg.players;
-
       if (msg.players) {
         this.updateData(this.scoreboardInfo.players, msg.players);
         this.scoreboardInfo.players.forEach(function(player) {
-          console.log(player);
           player.avatarLink = `static/${player.character.type}-mario.jpg`;
         });
       }
@@ -216,34 +194,20 @@ export default {
       } else {
         this.state = "watching";
       }
-
-      // if (currentState !== "watching" && this.state === "watching") {
-      //   console.log(
-      //     "Save username " +
-      //       this.username +
-      //       ", clientId " +
-      //       this.clientId +
-      //       " to localStorage"
-      //   );
-      //   this.saveIntoStorage("localStorage", "trouble_flipper_spectator", {
-      //     username: this.username,
-      //     clientId: this.clientId
-      //   });
-      // }
     },
-    ordinal_suffix_of: function (i) {
-        var j = i % 10,
-            k = i % 100;
-        if (j == 1 && k != 11) {
-            return i + "st";
-        }
-        if (j == 2 && k != 12) {
-            return i + "nd";
-        }
-        if (j == 3 && k != 13) {
-            return i + "rd";
-        }
-        return i + "th";
+    ordinal_suffix_of: function(i) {
+      var j = i % 10,
+        k = i % 100;
+      if (j == 1 && k != 11) {
+        return i + "st";
+      }
+      if (j == 2 && k != 12) {
+        return i + "nd";
+      }
+      if (j == 3 && k != 13) {
+        return i + "rd";
+      }
+      return i + "th";
     }
   }
 };
@@ -304,8 +268,8 @@ a {
 }
 
 .score-table-body {
-    overflow-y: scroll;
-    position: relative;
+  overflow-y: scroll;
+  position: relative;
 }
 
 .score-table-body-content {
@@ -315,10 +279,10 @@ a {
   bottom: 0;
 }
 
-
-#player-score-table, #team-score-table {
-/* background: rgba(226, 30, 30, 0.14); */
-color: white;
+#player-score-table,
+#team-score-table {
+  /* background: rgba(226, 30, 30, 0.14); */
+  color: white;
 }
 
 .headshot {
@@ -360,8 +324,8 @@ color: white;
 
 .mario .headshot img {
   width: 55px;
-    left: 0px;
-    top: -7px;
+  left: 0px;
+  top: -7px;
 }
 
 .mario {
@@ -369,9 +333,9 @@ color: white;
 }
 
 .yoshi .headshot img {
-      width: 70px;
-    left: -10px;
-    top: 4px;
+  width: 70px;
+  left: -10px;
+  top: 4px;
 }
 
 .yoshi {
@@ -379,9 +343,9 @@ color: white;
 }
 
 .bowser .headshot img {
-      width: 100px;
-    left: -5px;
-    top: -5px;
+  width: 100px;
+  left: -5px;
+  top: -5px;
 }
 
 .bowser {
@@ -390,8 +354,8 @@ color: white;
 
 .goomba .headshot img {
   width: 65px;
-    left: 0px;
-    top: 4px;
+  left: 0px;
+  top: 4px;
 }
 
 .goomba {
@@ -400,10 +364,9 @@ color: white;
 
 .score-title {
   font-size: 4vw;
-      text-align: center;
-    margin: 1vw 20vw;
-    border-radius: 10vw;
-  
+  text-align: center;
+  margin: 1vw 20vw;
+  border-radius: 10vw;
 }
 
 .score-table-row {
@@ -411,38 +374,38 @@ color: white;
   border-radius: 30px;
   height: 60px;
   padding: 5px;
-  margin: .5vw 2vw;
-    
-        padding: .3vw 1vw;
-      margin: .5vw 2vw;
-        border: 2px solid #b3a6a6; 
-            box-shadow: 0.5vw -1px 3px #565151, 9px 2px 0 #c3acac, 5px 1px 0 #9c9292, 10px 3px 0px 1px #a99191;
-    text-shadow: 4px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 black, 1px 1px 0 #000;
+  margin: 0.5vw 2vw;
+
+  padding: 0.3vw 1vw;
+  margin: 0.5vw 2vw;
+  border: 2px solid #b3a6a6;
+  box-shadow: 0.5vw -1px 3px #565151, 9px 2px 0 #c3acac, 5px 1px 0 #9c9292,
+    10px 3px 0px 1px #a99191;
+  text-shadow: 4px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 black,
+    1px 1px 0 #000;
 }
 .score-table-row .id {
-    white-space: nowrap; 
-    overflow: hidden;
-    text-overflow: ellipsis;
-	flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex: 1;
 }
 
 .score-table-row .index {
-    width: 40px;
-	padding-left: 10px;
+  width: 40px;
+  padding-left: 10px;
 }
 #player-score-table .score-table-row {
-    background: #924692e0;
+  background: #924692e0;
 }
-  #team-score-table .score-table-row {
-    background: rgba(37, 173, 33, 0.9);;
-  
+#team-score-table .score-table-row {
+  background: rgba(37, 173, 33, 0.9);
 }
 .score-table-row > .moves {
   flex-basis: 20%;
-    display: flex;
-    justify-content: center;
-    align-items: flex-start;
-  
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
 }
 .moves img {
   opacity: 0.6;
@@ -463,17 +426,17 @@ color: white;
   transition: transform 1s;
 }
 
-.flip-list-enter, .flip-list-leave-to
-/* .list-complete-leave-active below version 2.1.8 */ {
+.flip-list-enter,
+.flip-list-leave-to {
   opacity: 0;
-  transform: rotateY(90deg );
+  transform: rotateY(90deg);
 }
 
 .bounce-enter-active {
-  animation: bounce-in .5s;
+  animation: bounce-in 0.5s;
 }
 .bounce-leave-active {
-  animation: bounce-in .5s reverse;
+  animation: bounce-in 0.5s reverse;
 }
 @keyframes bounce-in {
   0% {
@@ -487,19 +450,21 @@ color: white;
   }
 }
 
-
-.component-fade-enter-active, .component-fade-leave-active {
-  transition: opacity .3s ease;
+.component-fade-enter-active,
+.component-fade-leave-active {
+  transition: opacity 0.3s ease;
 }
-.component-fade-enter, .component-fade-leave-to
-/* .component-fade-leave-active below version 2.1.8 */ {
+.component-fade-enter,
+.component-fade-leave-to {
   opacity: 0;
 }
 
-.fade-enter-active, .fade-leave-active {
-  transition: opacity .5s;
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.5s;
 }
-.fade-enter, .fade-leave-to /* .fade-leave-active below version 2.1.8 */ {
+.fade-enter,
+.fade-leave-to {
   opacity: 0;
 }
 
