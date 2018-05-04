@@ -129,71 +129,6 @@ export class GameMaster {
     } catch (error) {
       console.log("Publish failed. error = ", error);
     }
-   // TESTING CODE
-  //  setTimeout(() => {
-  //   this.msgCallback(this.simulateTeamResponse());
-  //  }, 2000);
-  }
-
-  simulateTeamResponse() {
-    let response = Object.assign(new TournamentMessage, {
-      clientId: this.clientId,
-      username: this.username,
-      started: false,
-      waitingPlayers: [
-        {
-          id: '10',
-          name: 'Amy'
-        },
-        {
-          id: '12',
-          name: 'Nathan'
-        }
-      ],
-      teams: [
-        {
-          teamId: '1',
-          teamName: 'Team 1',
-          players: [
-            {
-              id: '1',
-              name: 'Kevin'
-            },
-            {
-              id: '2',
-              name: 'Rob'
-            },
-            {
-              id: '5',
-              name: 'Roland'
-            },
-          ]
-        },
-        {
-          teamId: '2',
-          teamName: 'Team 2',
-          players: [
-            {
-              id: '3',
-              name: 'Brandon'
-            },
-            {
-              id: '4',
-              name: 'Abhishek'
-            },
-            {
-              id: '6',
-              name: 'Ye'
-            },
-            {
-              id: '7',
-              name: 'Monica'
-            }
-          ]
-        }
-      ]
-    });
-    return response;
   }
 
   // called by Scoreboard.vue destroy method
@@ -218,6 +153,14 @@ export class GameMaster {
     var tournamentsMessage = new TournamentsMessage('stopGames');
     try {
       publishMessageToTopic('tournaments', tournamentsMessage, this.session, this.solaceApi);
+    } catch (error) {
+      console.log("Publish failed. error = ", error);
+    }
+  }
+
+  queryGame(teamId) {
+    try {
+      publishMessageToTopic('games/' + teamId + "/queryGame", {}, this.session, this.solaceApi);
     } catch (error) {
       console.log("Publish failed. error = ", error);
     }
