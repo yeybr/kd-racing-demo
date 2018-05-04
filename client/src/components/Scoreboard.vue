@@ -30,22 +30,23 @@
                       <div class="score-rank">
                       <span >{{index + 1}}</span> 
                       </div>
-                      <div class="headshot" >
+                      <div class="userinfo" :class="player.character.type">
+                        <div class="headshot">
                           <img :src="player.avatarLink">
                         </div>
-
-                      <div style="font-size:3vw" class="id">
+                      </div>
+                      <div style="font-size:40px" class="id">
                         {{player.gamerTag}} 
                       </div>
 
                     <div class="moves" style="position:relative;display:flex">
                       
-                        <img style="width:5vw" src="../assets/starcoin.png">
+                        <img style="width:40px" src="../assets/starcoin.png">
                         <div class="labels" style="color:green"> X {{player.rightMoves}} </div> 
                       
                       </div>
 
-                    <div class="moves" style="position:relative"><img style="width:4vw" src="../assets/bowserhead-mario.png"><div class="labels" style="color:#d2c3c3"> X {{player.wrongMoves}} </div> 
+                    <div class="moves" style="position:relative"><img style="width:40px" src="../assets/bowserhead-mario.png"><div class="labels" style="color:#d2c3c3"> X {{player.wrongMoves}} </div> 
                       </div>
 
                     </div>
@@ -61,14 +62,11 @@
            <div> Team scoreboard : total teams {{scoreboardInfo.teams.length}}</div>
            <div class="score-table-body">
                 <transition-group name="player-rank-list">
-                  <div class="score-table-row " v-for="(team, index) in scoreboardInfo.teams"  v-bind:key="index">
-                    <div style="font-size:3vw;display:flex;align-items: center;" >                        
-                        <div class="id">{{index}} {{team.name}}</div>
-                        <div style="padding-left: 2em; font-size:.5em" > {{team.game}} </div>
-                        <div style="padding:0 2em;" class="moves" > {{team.completed}} </div>
-
-                        
-                    </div>
+                  <div style="display:flex; font-size: 40px;" class="score-table-row " v-for="(team, index) in scoreboardInfo.teams"  v-bind:key="index">
+                        <div class="index">{{index + 1}}</div>
+                        <div class="id">{{team.name}}</div>
+                        <div style="font-size: 12px; drop-shadow: none;" > {{team.game}} </div>
+                        <div>{{team.completed}}</div>
                 </div>
                 </transition-group>
               </div>
@@ -306,7 +304,6 @@ a {
 }
 
 .score-table-body {
-     height: 60vh;
     overflow-y: scroll;
     position: relative;
 }
@@ -325,13 +322,13 @@ color: white;
 }
 
 .headshot {
-  width: 5vw;
-  height: 5vw;
+  width: 50px;
+  height: 50px;
   overflow: hidden;
-  border-radius: 3vw;
+  border-radius: 25px;
   position: relative;
   box-shadow: 0px 0px 1px 3px rgba(0, 0, 0, 0.1);
-  margin: 0 2vw 0 0;
+  background: white;
 }
 
 .headshot img {
@@ -352,9 +349,9 @@ color: white;
 }
 
 .peach .headshot img {
-  width: 50vw;
-  left: -19vw;
-  top: -1vw;
+  width: 120px;
+  left: -40px;
+  top: 0px;
 }
 
 .peach {
@@ -362,9 +359,9 @@ color: white;
 }
 
 .mario .headshot img {
-  width: 5vw;
-  left: -1vw;
-  top: -1vw;
+  width: 55px;
+    left: 0px;
+    top: -7px;
 }
 
 .mario {
@@ -372,8 +369,9 @@ color: white;
 }
 
 .yoshi .headshot img {
-  left: -1vw;
-  width: 5vw;
+      width: 70px;
+    left: -10px;
+    top: 4px;
 }
 
 .yoshi {
@@ -381,9 +379,9 @@ color: white;
 }
 
 .bowser .headshot img {
-  left: -1vw;
-  width: 35vw;
-  top: -2vw;
+      width: 100px;
+    left: -5px;
+    top: -5px;
 }
 
 .bowser {
@@ -391,9 +389,9 @@ color: white;
 }
 
 .goomba .headshot img {
-  width: 20vw;
-  top: 2vw;
-  left: 2vw;
+  width: 65px;
+    left: 0px;
+    top: 4px;
 }
 
 .goomba {
@@ -403,7 +401,6 @@ color: white;
 .score-title {
   font-size: 4vw;
       text-align: center;
-    background: ##fe113;
     margin: 1vw 20vw;
     border-radius: 10vw;
   
@@ -411,39 +408,34 @@ color: white;
 
 .score-table-row {
   display: flex;
-      border-radius: 10vw;
-    padding: 1vw;
-    margin: .5vw 2vw;
+  border-radius: 30px;
+  height: 60px;
+  padding: 5px;
+  margin: .5vw 2vw;
     
         padding: .3vw 1vw;
       margin: .5vw 2vw;
         border: 2px solid #b3a6a6; 
             box-shadow: 0.5vw -1px 3px #565151, 9px 2px 0 #c3acac, 5px 1px 0 #9c9292, 10px 3px 0px 1px #a99191;
-    text-shadow: 0.5vw -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 black, 1px 1px 0 #000;
-
-}
-.score-table-row .score-rank {
-    font-size: 3vw;
-    padding: 0 .5em;
-    width: 5vw;
+    text-shadow: 4px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 black, 1px 1px 0 #000;
 }
 .score-table-row .id {
-    font-size: 3vw;
-    padding: 0 .5em;
     white-space: nowrap; 
     overflow: hidden;
     text-overflow: ellipsis;
-        max-width: 20vw;
+	flex: 1;
+}
+
+.score-table-row .index {
+    width: 40px;
+	padding-left: 10px;
 }
 #player-score-table .score-table-row {
-    background: #924692;
+    background: #924692e0;
 }
   #team-score-table .score-table-row {
-    background: rgb(37, 173, 33);;
+    background: rgba(37, 173, 33, 0.9);;
   
-}
-.score-table-row > .id {
-  flex-basis: 40%;
 }
 .score-table-row > .moves {
   flex-basis: 20%;
@@ -525,7 +517,7 @@ color: white;
 
 <style lang="css">
 body {
-  background-image: url("../assets/scorebackground.png");
+  background-image: url("../assets/background.jpg");
   overflow-y: auto;
   background-size: cover;
 }

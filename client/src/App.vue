@@ -53,7 +53,7 @@ body.mario {
 }
 
 body.scoreboard {
-  background-image: url("assets/scorebackground.png");
+  background-image: url("assets/background.jpg");
   overflow-y: auto;
   background-size: cover;
 }

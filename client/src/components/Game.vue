@@ -803,7 +803,7 @@ a {
   margin: 0 1px;
 }
 
-.peach .headshot img {
+.peach > .headshot img {
   width: 50vw;
   left: -19vw;
   top: -1vw;
@@ -813,7 +813,7 @@ a {
   color: pink;
 }
 
-.mario .headshot img {
+.mario > .headshot img {
   width: 20vw;
   left: -1vw;
   top: -3vw;
