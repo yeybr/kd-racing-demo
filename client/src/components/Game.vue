@@ -70,11 +70,27 @@
       </div>
     </div>
     <div v-if="state === 'stopped'" class="game-summary">
-      <div>Game Summary</div>
-      <div>Current Game Correct Pieces: {{teamInfo.correctPieces}}</div>
-      <div>Completed Games: {{teamInfo.completedGames}}</div>
-      <div>Team Rank: {{teamRank.rank}}/{{teamRank.totalTeam}}</div>
-      <div>Individual Rank: {{rank}}/{{totalPlayers}}</div>
+      <div class="game-over">Game Over</div>
+      <div class="stat">
+        <label>Team Rank</label>
+        <div class="value">{{teamRank.rank}}/{{teamRank.totalTeam}}</div>
+      </div>
+      <div class="stat">
+        <label>Individual Rank</label>
+        <div class="value">{{rank}}/{{totalPlayers}}</div>
+      </div>
+      <div class="stat">
+        <label>Completed Puzzles</label>
+        <div class="value">{{teamInfo.completedGames}}</div>
+      </div>
+      <div class="stat">
+        <label>Right Moves</label>
+        <div class="value">{{rightMoves}}</div>
+      </div>
+      <div class="stat">
+        <label>Wrong Moves</label>
+        <div class="value">{{wrongMoves}}</div>
+      </div>
     </div>
     <div v-if="state === 'playing' && puzzlePicture" id="puzzle-area" class="backgroundwhite">
       <div id="puzzle" :style="puzzleStyle">
@@ -402,7 +418,9 @@ export default {
               this.characterType = this.character.type;
               this.avatarLink = `static/${me.character.type}-mario.jpg`;
               this.styleAvatar["background-image"] = this.avatarLink;
-              this.powerMoves = me.powerMoves;
+			  this.powerMoves = me.powerMoves;
+			  this.rightMoves = me.rightMoves;
+			  this.wrongMoves = me.wrongMoves;
             }
           }
         }
@@ -888,14 +906,6 @@ a {
   cursor: pointer;
 }
 
-.game-summary {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  padding: 25px;
-}
-
 /* puzzle section */
 #puzzle-area {
   flex: 1 1 auto;
@@ -1120,8 +1130,53 @@ a {
 .puzzleswapblue-move {
   transition: transform 1s;
   border: 2px  solid blue;
-  /* opacity: .6;
-  border: 2px  solid red; */
+}
 
+.game-summary {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: url(../assets/puzzle2.jpg);
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  background-position: center; 
+  background-size: auto 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  text-shadow: 4px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 black, 1px 1px 0 #000;
+}
+
+.game-summary .game-over {
+  text-align: center;
+  font-size: 70px;
+  color: white;
+  background: rgba(0, 0, 0, 0.3);
+  margin: 0 20px;
+}
+
+.game-summary .stat {
+  font-size: 30px;
+  color: white;
+  margin: 0 20px;
+  padding: 10px;
+  background: rgba(0, 0, 0, 0.3);
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+}
+
+.game-summary .stat label {
+  font-size: 30px;
+  width: 70vw;
+}
+
+.game-summary .stat .value {
+  display: inline-block;
+  text-align: right;
+  flex: 1;
+  padding-right: 10px;
 }
 </style>
