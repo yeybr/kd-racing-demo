@@ -29,7 +29,8 @@ export class Rankings {
           vpnName: this.appProps.vpn,
           userName: this.appProps.username,
           password: this.appProps.password,
-          clientName: this.clientId || ''
+          clientName: this.clientId || '',
+          connectRetries: 2
         });
         this.session.on(solace.SessionEventCode.UP_NOTICE, (sessionEvent) => {
           let sessionProperties = this.session.getSessionProperties();
