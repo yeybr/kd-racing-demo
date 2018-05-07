@@ -173,6 +173,7 @@ public class Game {
                             return;
                         }
 
+                        boolean puzzleUpdated = false;
                         for (PuzzlePiece puzzlePiece : puzzleBoard) {
                             if (puzzlePiece.getLastSelectTimestamp() == -1) {
                                 continue;
@@ -181,11 +182,14 @@ public class Game {
                             //log.info("last = " + puzzlePiece.getLastSelectTimestamp() + ", curr = " + System.currentTimeMillis());
                             if (System.currentTimeMillis() > puzzlePiece.getLastSelectTimestamp() + 10000 ) {
                                 //log.info("deselect");
+                                puzzleUpdated = true;
                                 puzzlePiece.setSelectedBy("");
                                 puzzlePiece.setLastSelectTimestamp(-1);
                             }
                         }
-                        updatePuzzleForTeam(false);
+                        if (puzzleUpdated) {
+                            updatePuzzleForTeam(false);
+                        }
                     }
                 }
             }, 1000, 1000);
