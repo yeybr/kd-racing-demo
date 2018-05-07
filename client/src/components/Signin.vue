@@ -19,11 +19,11 @@
        </label>
       <input type="text" class="form-control" id="usr" v-model="username">
     </div>
-    <div class="go-action"  @click="signon()">
+     <button type="button" class="go-btn btn" @click="signon()">Go!</button>
+
+    <div @click="signon()">
     <img  class="mario" src="../assets/mario-running.gif"/>
-      <div class="label">GO</div>
     </div>
-    <!-- <button type="button" class="go-btn btn" @click="signon()">Go!</button> -->
   </div>
       <!-- </ons-gesture-detector> -->
 </template>
@@ -145,7 +145,7 @@ a {
   align-items: center;
 }
 label {
-  font-size: 8vw;
+  font-size: 40px;
 }
 .center {
   text-align: center;
@@ -153,7 +153,7 @@ label {
 }
 
 .form-group {
-  margin: 40px auto;
+  margin: 100px auto 0 auto;
   text-align: center;
 }
 
@@ -179,7 +179,7 @@ input {
 .go-action:hover  {
   border-radius: 300px;
   border: 1px solid #758291;
-    box-shadow: -0.5vw -1px 3px #afa1df,  -9px 2px 0 #afa1df, 5px 1px 0 #afa1df,
+    box-shadow: -3px -1px 3px #afa1df,  -9px 2px 0 #afa1df, 5px 1px 0 #afa1df,
     10px 3px 0px 1px #afa1df;
 }
 .go-action  {
@@ -187,7 +187,7 @@ input {
   
   border-radius: 300px;
   border: 1px solid #758291;
-    box-shadow: 0.5vw -1px 3px #565151, 9px 2px 0 #c3acac, 5px 1px 0 #9c9292,
+    box-shadow: 3px -1px 3px #565151, 9px 2px 0 #c3acac, 5px 1px 0 #9c9292,
     10px 3px 0px 1px #a99191;
 }
 .go-btn {
@@ -204,23 +204,23 @@ input {
 
 .red {
   color: #d41345;
-  text-shadow: -0.5vw -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000,
+  text-shadow: -3px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000,
     1px 1px 0 #000;
 }
 .blue {
   color: rgb(5, 139, 255);
-  text-shadow: -0.5vw -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000,
+  text-shadow: -3px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000,
     1px 1px 0 #000;
 }
 
 .yellow {
   color: rgb(255, 252, 0);
-  text-shadow: -0.5vw -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000,
+  text-shadow: -3px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000,
     1px 1px 0 #000;
 }
 .green {
   color: rgb(37, 173, 33);
-  text-shadow: -0.5vw -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000,
+  text-shadow: -3px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000,
     1px 1px 0 #000;
 }
 </style>
