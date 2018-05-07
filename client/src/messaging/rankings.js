@@ -137,17 +137,19 @@ export class TextareaLogger {
     }
   }
 
-  generateArgs(args) {
+  generateArgs(level, args) {
     let temp = [];
     for (let i = 0; i < args.length; i++) {
       temp[i] = args[i];
     }
+    let date = new Date();
+    temp.unshift(date.toLocaleString() + ' ' + level);
     return temp;
   }
 
   trace() {
     try {
-      let args = ['TRACE: '].concat(this.generateArgs(arguments));
+      let args = this.generateArgs('TRACE: ', arguments);
       this.updateLogs(args);
     } catch (e) {
       console.log('logging exception', e);
@@ -156,7 +158,7 @@ export class TextareaLogger {
 
   debug() {
     try {
-      let args = ['DEBUG: '].concat(this.generateArgs(arguments));
+      let args = this.generateArgs('DEBUG: ', arguments);
       this.updateLogs(args);
     } catch (e) {
       console.log('logging exception', e);
@@ -165,7 +167,7 @@ export class TextareaLogger {
 
   info() {
     try {
-      let args = ['INFO: '].concat(this.generateArgs(arguments));
+      let args = this.generateArgs('INFO: ', arguments);
       this.updateLogs(args);
     } catch (e) {
       console.log('logging exception', e);
@@ -174,7 +176,7 @@ export class TextareaLogger {
 
   warn() {
     try {
-      let args = ['WARN: '].concat(this.generateArgs(arguments));
+      let args = this.generateArgs('WARN: ', arguments);
       this.updateLogs(args);
     } catch (e) {
       console.log('logging exception', e);
@@ -183,7 +185,7 @@ export class TextareaLogger {
 
   error() {
     try {
-      let args = ['ERROR: '].concat(this.generateArgs(arguments));
+      let args = this.generateArgs('ERROR: ', arguments);
       this.updateLogs(args);
     } catch (e) {
       console.log('logging exception', e);
@@ -192,7 +194,7 @@ export class TextareaLogger {
 
   fatal() {
     try {
-      let args = ['FATAL: '].concat(this.generateArgs(arguments));
+      let args = this.generateArgs('FATAL: ', arguments);
       this.updateLogs(args);
     } catch (e) {
       console.log('logging exception', e);
