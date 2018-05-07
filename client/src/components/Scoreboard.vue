@@ -25,7 +25,7 @@
                       <img :src="player.avatarLink">
                     </div>
                   </div>
-                  <div style="font-size:40px" class="id">
+                  <div class="id">
                     {{player.gamerTag}}
                   </div>
                   <div class="moves" style="position:relative;display:flex">
@@ -40,7 +40,7 @@
           </div>
         </div> <!--end of player score board-->
         <div class="score-table" id="team-score-table">
-           <div> Team scoreboard : total teams {{scoreboardInfo.teams.length}}</div>
+        <div> Team scoreboard : total teams {{scoreboardInfo.teams.length}}</div>
            <div class="score-table-body">
               <transition-group name="player-rank-list">
                 <div style="display:flex; font-size: 40px;" class="score-table-row " v-for="(team, index) in scoreboardInfo.teams"  v-bind:key="index">
@@ -52,7 +52,16 @@
               </transition-group>
             </div>
           </div> <!-- end of team score table-->
+         </div>
+    
+    
+   
       </div>
+
+    <audio id="audio" autoplay controls src="https://archive.org/download/SuperMarioBros.ThemeMusic/SuperMarioBros.mp3">
+      <p>If you are reading this, it is because your browser does not support the audio element.</p>
+    </audio>
+      <div style="font-size:40px;height: 100px">
     </div>
     </div>
   </div>
@@ -362,12 +371,32 @@ a {
   text-shadow: 4px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 black,
     1px 1px 0 #000;
 }
+
+.score-table-row .score-rank {
+ 
+        font-size: 40px;
+    padding: 0 10px;
+    width: 40px;
+    align-self: center;
+}
 .score-table-row .id {
+    font-size: 40px;
+    padding: 0 .5em;
+    flex: 1;
+    white-space: nowrap; 
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 20vw;
+
+/* .score-table-row .id {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   flex: 1;
+  font-size: 40px; */
 }
+
+
 
 .score-table-row .index {
   width: 40px;
@@ -456,12 +485,12 @@ a {
 .score-table {
   flex-basis: 50%;
 }
-</style>
 
-<style lang="css">
-body {
-  background-image: url("../assets/background.jpg");
-  overflow-y: auto;
-  background-size: cover;
+#audio {
+  position: fixed;
+  bottom: 10px;
+  width: 50%;
+  margin: 0 auto;
 }
 </style>
+
