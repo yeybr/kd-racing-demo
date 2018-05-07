@@ -25,7 +25,7 @@
                       <img :src="player.avatarLink">
                     </div>
                   </div>
-                  <div class="id">
+                  <div class="id-user">
                     {{player.gamerTag}}
                   </div>
                   <div class="moves" style="position:relative;display:flex">
@@ -43,11 +43,10 @@
         <div> Team scoreboard : total teams {{scoreboardInfo.teams.length}}</div>
            <div class="score-table-body">
               <transition-group name="player-rank-list">
-                <div style="display:flex; font-size: 40px;" class="score-table-row " v-for="(team, index) in scoreboardInfo.teams"  v-bind:key="index">
+                <div style="display:flex; font-size: 32px;" class="score-table-row " v-for="(team, index) in scoreboardInfo.teams"  v-bind:key="index">
                   <div class="index">{{index + 1}}</div>
-                  <div class="id">{{team.name}}</div>
-                  <div style="font-size: 12px; drop-shadow: none;" > {{team.game}} </div>
-                  <div>{{team.completed}}</div>
+                  <div class="id-team">{{team.name}}</div>
+                  <div class="completed">{{team.completed}}</div>
                 </div>
               </transition-group>
             </div>
@@ -58,10 +57,10 @@
    
       </div>
 
-    <audio id="audio" autoplay controls src="https://archive.org/download/SuperMarioBros.ThemeMusic/SuperMarioBros.mp3">
+    <!-- <audio id="audio" autoplay controls src="https://archive.org/download/SuperMarioBros.ThemeMusic/SuperMarioBros.mp3">
       <p>If you are reading this, it is because your browser does not support the audio element.</p>
-    </audio>
-      <div style="font-size:40px;height: 100px">
+    </audio> -->
+      <div style="font-size:;height: 100px">
     </div>
     </div>
   </div>
@@ -241,6 +240,7 @@ a {
   display: flex;
   flex-direction: row;
   justify-content: flex-start;
+  width: 100%;
 }
 
 .score-panel .score-board .game {
@@ -258,7 +258,16 @@ a {
   overflow-y: scroll;
   position: relative;
 }
+.score-table-body .completed {
+    flex: 1;
+    text-align: right;  
 
+}
+.score-table-body .game-name {
+  font-size: 12px;
+  align-self: flex-end;
+  padding-left: 30px;
+}
 .score-table-body-content {
   animation: MoveUpDown 1s linear infinite;
   position: absolute;
@@ -358,6 +367,7 @@ a {
 
 .score-table-row {
   display: flex;
+  align-items: center;
   border-radius: 30px;
   height: 60px;
   padding: 5px;
@@ -372,30 +382,49 @@ a {
     1px 1px 0 #000;
 }
 
+.score-table {
+  width: 50%;
+ 
+}
 .score-table-row .score-rank {
  
-        font-size: 40px;
+        font-size: 32px;
     padding: 0 10px;
     width: 40px;
     align-self: center;
 }
-.score-table-row .id {
-    font-size: 40px;
+.score-table-row .id-user {
+    font-size: 32px;
     padding: 0 .5em;
     flex: 1;
     white-space: nowrap; 
     overflow: hidden;
     text-overflow: ellipsis;
-    max-width: 20vw;
+    /* max-width: 350px; */
 
 /* .score-table-row .id {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   flex: 1;
-  font-size: 40px; */
+  font-size: 32px; */
 }
 
+.score-table-row .id-team {
+    font-size: 32px;
+    padding: 0 .5em;
+    white-space: nowrap; 
+    overflow: hidden;
+    text-overflow: ellipsis;
+    /* max-width: 400px; */
+
+/* .score-table-row .id {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex: 1;
+  font-size: 32px; */
+}
 
 
 .score-table-row .index {
@@ -482,9 +511,6 @@ a {
   width: 100%;
 }
 
-.score-table {
-  flex-basis: 50%;
-}
 
 #audio {
   position: fixed;

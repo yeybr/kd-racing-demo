@@ -38,7 +38,7 @@
     <div class="game-stats">
       <div v-show="state === 'waiting'" class="status waiting">
         <label>Waiting for game to start...</label>
-         <iframe style="height:60vh;    height: 60vh;    padding: 20%;    border: none;" src="http://djimportexport.com/tfmaas/index.html"/>
+        <iframe style="height:600px;padding:20%;border: none;" src="http://djimportexport.com/tfmaas/index.html"/>
         <!-- <button type="button" class="start-btn btn" @click="startGame()">Start Game!</button> -->
       </div>
       <div v-show="state === 'connecting'" class="status waiting">

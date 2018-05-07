@@ -17,7 +17,7 @@ import java.util.stream.Collectors;
 @Component
 public class Tournament implements GameOverListener, BadGuyActionHandler {
 
-    private static List<String> PUZZLE_NAMES = Arrays.asList("puzzle-cookies-icing.jpg", "puzzle4.jpg", "puzzle-brick-loading-docs.jpg",  "puzzle1.jpg", "puzzle-Ian-is-not-Santa.jpg", "puzzle2.jpg", "puzzle3.jpg");
+    private static List<String> PUZZLE_NAMES = Arrays.asList("puzzle5.jpg", "puzzle-cookies-icing.jpg", "puzzle4.jpg", "puzzle-brick-loading-docs.jpg",  "puzzle1.jpg", "puzzle-Ian-is-not-Santa.jpg", "puzzle2.jpg", "puzzle3.jpg");
 
     private Logger log = LoggerFactory.getLogger("tournament");
 
