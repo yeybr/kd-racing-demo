@@ -462,8 +462,9 @@ export default {
       }
       this.updateArray(this.puzzle, pieces);
 
-      // This timer will be responsible for auto de-selection of the puzzle
-      // piece in the case of a player selecting a piece for too long.
+      // This timer will be responsible for displaying the status of the auto
+      // puzzle piece unselection in the case of a player selecting a piece for
+      // too long.
       //
       let isSelectedByMe = this.puzzle.find(p => {
         return p.selectedBy === this.clientId;
@@ -550,14 +551,6 @@ export default {
         if (this.timeRemaining <= 0) {
           // console.log("no time left", this.timeRemaining);
           this.stopCountDown();
-          let selectedPiece = this.puzzle.find(p => {
-            return p.selectedBy === this.clientId;
-          });
-          if (!selectedPiece) {
-            return;
-          }
-          let piece = {index: selectedPiece.index, selectedBy: ""};
-          this.playerMessenger.selectPiece(piece);
         }
       }, 1000);
     },
