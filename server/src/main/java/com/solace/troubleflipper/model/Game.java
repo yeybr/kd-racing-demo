@@ -167,7 +167,8 @@ public class Game {
                 @Override
                 public void run() {
                     synchronized (puzzleBoard) {
-                        if (gameOver) {
+                        if (gameOver || gameStopped) {
+                            log.info("Cancel deselect checking because game over or game stopped for " + team.getId());
                             this.cancel();
                             return;
                         }
