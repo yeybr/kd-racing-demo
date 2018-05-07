@@ -16,15 +16,20 @@ export default {
   data() {
     return {
       appProps: {
- 
-         vpn: "msgvpn-8v6yiwv4tx",
-         username: "solace-cloud-client",
-         password: "cfu4jgserh6qa7vhoabsep1t32",
-         url: "ws://mr8v6yiwv4vb.messaging.solace.cloud:80"
+        vpn: "msgvpn-8v6yiwwv9f",
+        username: "solace-cloud-client",
+        password: "ggtten25g11jnhht4tsevso1v9",
+        url: "ws://vmr-mr8v6yiwiawh.messaging.solace.cloud:20584"
+
       }
     };
   }
 };
+
+        //  vpn: "msgvpn-8v6yiwv4tx",
+        //  username: "solace-cloud-client",
+        //  password: "cfu4jgserh6qa7vhoabsep1t32",
+        //  url: "ws://mr8v6yiwv4vb.messaging.solace.cloud:80"
 </script>
 
 <style>
@@ -46,16 +51,24 @@ body {
 }
 
 body.mario {
-  background-image: url("assets/backgrounds.png");
+  background-image: url("assets/background9.jpg");
   overflow-y: auto;
   height: 100%;
   background-size: initial;
+  background-size: cover;
+  background-attachment: fixed;
+  height: 100vh;
+  width: 100%;
 }
 
 body.scoreboard {
-  background-image: url("assets/background.jpg");
+  background-image: url("assets/background4.jpg") ;
   overflow-y: auto;
   background-size: cover;
+  background-attachment: fixed;
+  height: 100vh;
+  width: 100%;
+
 }
 
 /* Transitions using the page hook */

@@ -1,7 +1,7 @@
 <template>
     <!-- <ons-gesture-detector> -->
   <div id="signon" v-on:swipeleft="gochoose" v-on:swiperight="goscoreboard" v-on:swipebottom="gogamemaster">
-    <img class="mario" src="../assets/mario.png"/>
+    
     <!-- submit button -->
     <div class="form-group">
       <label for="usr">
@@ -13,15 +13,17 @@
             </textPath></text></svg> -->
         <span class="red">E</span><span class="green">n</span><span class="yellow">t</span><span class="blue">e</span><span class="red">r</span>
         <span class="green">Y</span><span class="yellow">o</span><span class="blue">u</span><span class="red">r</span>
-        <span class="blue">G</span><span class="green">a</span><span class="yellow">m</span><span class="blue">e</span><span class="red">r</span>
-        <span class="blue">t</span><span class="green">a</span><span class="yellow">g</span>
+        <span class="blue">N</span><span class="green">a</span><span class="yellow">m</span><span class="blue">e</span>
+
+          <!-- <span class="yellow">Enter</span> <span class="green">your</span> <span class="red"> name</span> -->
        </label>
       <input type="text" class="form-control" id="usr" v-model="username">
     </div>
-    <button type="button" class="go-btn btn" @click="signon()">Go!</button>
-    <audio controls src="https://archive.org/download/SuperMarioBros.ThemeMusic/SuperMarioBros.mp3">
-      <p>If you are reading this, it is because your browser does not support the audio element.</p>
-    </audio>
+    <div class="go-action"  @click="signon()">
+    <img  class="mario" src="../assets/mario-running.gif"/>
+      <div class="label">GO</div>
+    </div>
+    <!-- <button type="button" class="go-btn btn" @click="signon()">Go!</button> -->
   </div>
       <!-- </ons-gesture-detector> -->
 </template>
@@ -151,7 +153,8 @@ label {
 }
 
 .form-group {
-  margin: 0 40px;
+  margin: 40px auto;
+  text-align: center;
 }
 
 input {
@@ -165,11 +168,33 @@ input {
   padding: 40px 0;
 }
 
+.go-action .label {
+  position: absolute;
+  bottom: 0;
+  font-size: 32px;
+  color: #006fea;
+  left: calc(50% - 16px);
+
+}
+.go-action:hover  {
+  border-radius: 300px;
+  border: 1px solid #758291;
+    box-shadow: -0.5vw -1px 3px #afa1df,  -9px 2px 0 #afa1df, 5px 1px 0 #afa1df,
+    10px 3px 0px 1px #afa1df;
+}
+.go-action  {
+  position: relative;
+  
+  border-radius: 300px;
+  border: 1px solid #758291;
+    box-shadow: 0.5vw -1px 3px #565151, 9px 2px 0 #c3acac, 5px 1px 0 #9c9292,
+    10px 3px 0px 1px #a99191;
+}
 .go-btn {
   font-size: 32px;
   margin-bottom: 80px;
   background: #006fea;
-  border-radius: 4px;
+  border-radius: 40px;
   padding: 10px;
   margin: 40px 0;
   color: white;
