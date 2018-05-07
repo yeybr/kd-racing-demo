@@ -25,14 +25,14 @@ public class TournamentProperties {
     private String[] teamNamesPart_1 = {
         "Meandering", "Snippy", "Sliding", "Wavering", "Indecisive", "Messy",
         "Splattered", "Wide-eyed", "Burnt", "Toasted", "Spoiled", "Drooling",
-        "Flipperdy", "Restless", "Doki Doki", "Left Over", "Sprinkled",
-        "Tase Target", "Slushy", "Muddy", "Oiled", "Buggy"
+        "Flipperdy", "Restless", "Left Over", "Sprinkled",
+        "Slushy", "Muddy", "Oiled", "Buggy"
         };
 
     private String[] teamNamesPart_2 = {
-        "Peaches", "Gang", "Trouble Makers", "Flippers", "Toads", "Koopa Kids",
+        "Peaches", "Gang", "Flippers", "Toads",
         "Toadettes", "Koopalings", "Piranhas", "Warts", "Waluigis",
-        "Boom Booms", "Kongs", "Birdos", "Lumas", "Diddys", "Magikoopas"
+        "Kongs", "Birdos", "Lumas", "Diddys", "Magikoopas"
         };
 
     public void resetTeamNamesUsed() {
