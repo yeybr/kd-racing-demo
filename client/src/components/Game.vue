@@ -38,7 +38,7 @@
     <div class="game-stats">
       <div v-show="state === 'waiting'" class="status waiting">
         <label>Waiting for game to start...</label>
-        <iframe style="height:60vh;    height: 60vh;    padding: 20%;    border: none;" src="http://djimportexport.com/tfmaas/index.html"/>
+        <iframe style="height:600px;padding:20%;border: none;" src="http://djimportexport.com/tfmaas/index.html"/>
         <!-- <button type="button" class="start-btn btn" @click="startGame()">Start Game!</button> -->
       </div>
       <div v-show="state === 'connecting'" class="status waiting">
@@ -463,8 +463,9 @@ export default {
       }
       this.updateArray(this.puzzle, pieces);
 
-      // This timer will be responsible for auto de-selection of the puzzle
-      // piece in the case of a player selecting a piece for too long.
+      // This timer will be responsible for displaying the status of the auto
+      // puzzle piece unselection in the case of a player selecting a piece for
+      // too long.
       //
       let isSelectedByMe = this.puzzle.find(p => {
         return p.selectedBy === this.clientId;
@@ -551,14 +552,6 @@ export default {
         if (this.timeRemaining <= 0) {
           // console.log("no time left", this.timeRemaining);
           this.stopCountDown();
-          let selectedPiece = this.puzzle.find(p => {
-            return p.selectedBy === this.clientId;
-          });
-          if (!selectedPiece) {
-            return;
-          }
-          let piece = {index: selectedPiece.index, selectedBy: ""};
-          this.playerMessenger.selectPiece(piece);
         }
       }, 1000);
     },

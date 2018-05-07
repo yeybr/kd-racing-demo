@@ -753,15 +753,16 @@ a {
   justify-content: flex-start;
   margin: 15px;
   border-radius: 20px;
-  border: solid 2px transparent;
+  border: solid 3px transparent;
   background: #924692;;
-  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.3), 0 6px 20px 0 rgba(0, 0, 0, 0.29);
   width: 400px;
   min-height: 90px;
+  text-shadow: 4px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 black, 1px 1px 0 #000;
 }
 
 .game-master-panel .teams .score-board .team.selected {
-  border: solid 2px green;
+  border: solid 3px green;
 }
 
 .game-master-panel .teams .score-board .team .title {
