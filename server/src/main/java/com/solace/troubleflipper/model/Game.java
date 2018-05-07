@@ -109,6 +109,8 @@ public class Game {
                 bPiece2.setIndex(piece1.getIndex());
                 bPiece1.setSelectedBy("");
                 bPiece2.setSelectedBy("");
+                bPiece1.setLastSelectTimestamp(-1);
+                bPiece2.setLastSelectTimestamp(-1);
             } catch (NoPieceFoundException ex) {
                 log.error("Unable to swap pieces " + piece1.getIndex() + " and " + piece2.getIndex(), ex);
             }
@@ -135,18 +137,6 @@ public class Game {
                         bPiece.setLastSelectTimestamp(-1);
                     }
                 }
-
-//                String oldSelectedBy = bPiece.getSelectedBy();
-//                //log.info("oldSelectedBy = " + oldSelectedBy + ", newSelectedBy = " + newSelectedBy + ", player.getClientName() = " + player.getClientName());
-//                boolean selectAction = oldSelectedBy.equals("") && newSelectedBy.equals(player.getClientName());
-//                boolean unselectAction = newSelectedBy.equals("") && oldSelectedBy.equals(player.getClientName());
-//                if (selectAction) {
-//                    bPiece.setSelectedBy(newSelectedBy);
-//                } else if (unselectAction) {
-//                    bPiece.setSelectedBy("");
-//                } else {
-//                    log.info("Invalid action for SelectPieceMessage.");
-//                }
             } catch (NoPieceFoundException ex) {
                 log.error("Unable to select piece " + piece.getIndex(), ex);
             }
@@ -169,9 +159,35 @@ public class Game {
                 PuzzlePiece puzzlePiece = new PuzzlePiece();
                 puzzlePiece.setIndex(i);
                 puzzlePiece.setSelectedBy("");
+                puzzlePiece.setLastSelectTimestamp(-1);
                 puzzleBoard.add(puzzlePiece);
             }
             Collections.shuffle(puzzleBoard);
+            timer.schedule(new TimerTask() {
+                @Override
+                public void run() {
+                    synchronized (puzzleBoard) {
+                        if (gameOver) {
+                            this.cancel();
+                            return;
+                        }
+
+                        for (PuzzlePiece puzzlePiece : puzzleBoard) {
+                            if (puzzlePiece.getLastSelectTimestamp() == -1) {
+                                continue;
+                            }
+
+                            //log.info("last = " + puzzlePiece.getLastSelectTimestamp() + ", curr = " + System.currentTimeMillis());
+                            if (System.currentTimeMillis() > puzzlePiece.getLastSelectTimestamp() + 10000 ) {
+                                //log.info("deselect");
+                                puzzlePiece.setSelectedBy("");
+                                puzzlePiece.setLastSelectTimestamp(-1);
+                            }
+                        }
+                        updatePuzzleForTeam(false);
+                    }
+                }
+            }, 1000, 1000);
         }
     }
 
