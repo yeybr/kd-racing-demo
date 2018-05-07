@@ -758,6 +758,7 @@ a {
   box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.3), 0 6px 20px 0 rgba(0, 0, 0, 0.29);
   width: 400px;
   min-height: 90px;
+  text-shadow: 4px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 black, 1px 1px 0 #000;
 }
 
 .game-master-panel .teams .score-board .team.selected {
