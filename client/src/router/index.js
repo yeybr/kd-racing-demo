@@ -1,6 +1,8 @@
 import Vue from 'vue'
 import Router from 'vue-router'
 import Signin from '@/components/Signin'
+import SignUp from '@/components/SignUp'
+import RaceDashboard from '@/components/RaceDashboard'
 import Game from '@/components/Game'
 import Choose from '@/components/Choose'
 import Scorebard from '@/components/Scoreboard'
@@ -38,6 +40,17 @@ export default new Router({
       path: '/game-master',
       name: 'game-master',
       component: GameMaster
+    },
+    {
+      path: '/signup',
+      name: 'signup',
+      component: SignUp
+    }
+    ,
+    {
+      path: '/racedashboard',
+      name: 'racedashboard',
+      component: RaceDashboard
     }
   ]
 })

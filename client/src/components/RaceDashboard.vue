@@ -1,32 +1,34 @@
 <template>
+
     <!-- <ons-gesture-detector> -->
   <div id="signon" v-on:swipeleft="gochoose" v-on:swiperight="goscoreboard" v-on:swipebottom="gogamemaster">
     
     <!-- submit button -->
     <div class="form-group">
-      <label for="usr">
-      <!-- <svg data-v-8e11165c="" viewBox="0 0 425 300"><path data-v-8e11165c="" id="curve" d="M6,150C49.63,93,105.79,36.65,156.2,47.55,207.89,58.74,213,131.91,264,150c40.67,14.43"></path>
-       <text style="stroke: red;
-    text-shadow: -.5vw -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;"
-             data-v-8e11165c="" x="80"><textPath data-v-8e11165c="" xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#curve">
-              Enter Your Gamer tag
-            </textPath></text></svg> -->
-        <span class="red">E</span><span class="green">n</span><span class="yellow">t</span><span class="blue">e</span><span class="red">r</span>
-        <span class="green">Y</span><span class="yellow">o</span><span class="blue">u</span><span class="red">r</span>
-        <span class="blue">N</span><span class="green">a</span><span class="yellow">m</span><span class="blue">e</span>
+      <div class="game-container">
+        <div >
+          <h1>Game 1</h1>             
+          Team x
+          Team y          
+        </div>
+        <div></div>
+        <div>
+          <h1>Game 2</h1>
+          Team z
+          Team y
 
-          <!-- <span class="yellow">Enter</span> <span class="green">your</span> <span class="red"> name</span> -->
-       </label>
-      <input type="text" class="form-control" id="usr" v-model="username">
+        </div>
+      </div>
     </div>
-     <button type="button" class="go-btn btn" @click="signon()">Go!</button>
+  
 
-    <div @click="signon()">
+    <div @click="stopGame()">
+
     <!-- <img  class="mario" src="https://66.media.tumblr.com/463774ad1eac68fd818e1bfa49978fdf/tumblr_pfsmbsMN7i1rpr5dc_250.gif"/>       -->
 <!-- <img  class="mario" src="https://66.media.tumblr.com/806f6094d319c9ec10a45538f035f17c/tumblr_ou44ky7EPx1uuhxwpo5_400.gif"/>       -->
 <img  class="mario" src="https://66.media.tumblr.com/11b1dc86d72049e34fd91903127a5762/tumblr_ou44ky7EPx1uuhxwpo2_400.gif"/>      
 
-    
+       <button type="button" class="go-btn btn" >Stop!</button>
       
     <!-- <img  class="mario" src="../assets/mario-running.gif"/> -->
     </div>
@@ -35,24 +37,63 @@
 </template>
 
 <script>
+import { UsersAckMessage, TournamentMessage, TeamsMessage, parseReceivedMessage, TeamRankMessage } from '@/messaging/messages.js';
+import { Dashboard } from '@/messaging/dashboard';
 import CommonUtils from "./common-utils";
+
 export default {
-  name: "signin",
+  name: "racedashboard",
   mixins: [CommonUtils],
   // lifecycle callbacks
   beforeCreate() {
     document.body.className = 'mario';
   },
   created() {
-    // instance created and data bound
-    // looking for existing player information from local storage and prepopulate username
-    let userInfo = this.retrieveFromStorage(
-      "localStorage",
-      "trouble_flipper_player"
+    console.log("sign up created: data bound");
+
+    // if (this.$route.query.username) {
+    // this.username = this.$route.query.username;
+    this.username = "dashboard";
+    this.clientId = null;
+    debugger;
+    // console.log(this.$solace);
+    // let $solace = this.$solace;
+    // let appProps = this.$parent.appProps;
+    // let userName = this.username;
+    // let clientId = this.clientId;
+
+    this.dashboardMessenger = new Dashboard(
+      this.$solace,
+      this.$parent.appProps,
+      { username: this.userName, clientId: this.clientId },
+      this.handleMsg.bind(this)
     );
-    if (userInfo && userInfo.username) {
-      this.username = userInfo.username;
-    }
+    this.dashboardMessenger.connect();
+
+    // window.setInterval((function() {
+    //     let currentPos = document.getElementById("scoretablebodycontent").offsetTop;
+    //     // document.getElementById("scoretablebodycontent").scrollTop += 100;
+    //     document.getElementById("scoretablebodycontent").scrollBy({
+    //       top: 100, // could be negative value
+    //       left: 0,
+    //       behavior: 'smooth'
+    //     });
+    //     let newPos = document.getElementById("scoretablebodycontent").offsetTop;
+    //     if (currentPos == newPos) {
+    //         document.getElementById("scoretablebodycontent").scrollBy({
+    //         top: -100, // could be negative value
+    //         left: 0,
+    //         behavior: 'smooth'
+    //     });
+    //     }
+
+    //   }), 5000);
+
+    // } else {
+    //   this.$router.push({
+    //     name: 'signin'
+    //   });
+    // }
   },
   // mounted() {
   //   console.log('signin mounted: dom element inserted');
@@ -79,12 +120,36 @@ export default {
       ],
       username: "",
       password: "",
-      usertype: "player"
+      usertype: "player",
+      game1: ['', ''],
+      game2: ['', ''],
+      options: [ {
+        text: 'Select Team', value: ''
+      }
+      ]
+
     };
   },
 
   // any actions
   methods: {
+    handleMsg: function(msg) {
+
+      console.log('Got message', msg);
+      debugger;
+      if (msg && msg.clientName && msg.team) {
+        let newOption = {text: msg.clientName, value: msg.team};
+        this.options.push(newOption);
+        this.dashboardMessenger.clientRegistered(msg.clientName);
+      }
+    },
+    startGame: function() {
+
+    },
+    readyToBattle: function(clientName, opponent) {
+        this.dashboardMessenger.clientOpponentRegistered(clientName, opponent);
+
+    },
     gochoose: function(event) {
       this.$router.push("game");
     },
@@ -138,6 +203,13 @@ ul {
 li {
   display: inline-block;
   margin: 0 10px;
+}
+.game-container {
+  display: grid;
+  width: 90vw;
+  grid-template-columns: auto 20px auto;
+  /* background-color: #2196F3; */
+  padding: 10px;
 }
 a {
   color: #1dacfc;
@@ -228,5 +300,9 @@ input {
   color: rgb(37, 173, 33);
   text-shadow: -3px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000,
     1px 1px 0 #000;
+}
+select {
+
+  width: 100px;
 }
 </style>

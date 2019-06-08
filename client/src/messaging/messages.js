@@ -129,7 +129,7 @@ export class PeachHealMessage extends TroubleFlipperMessage {
 
 //score/id
 export class PlayerRankMessage extends TroubleFlipperMessage {
-  constructor(id, rank, totalPlayers) {
+  constructor(id, rank, totalPlayers, teamName) {
     super();
     // this.id = id;
     // this.rank = rank;

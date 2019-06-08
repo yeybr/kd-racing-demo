@@ -25,7 +25,7 @@
                       <img :src="player.avatarLink">
                     </div>
                   </div>
-                  <div class="id-user">
+                  <div class="id-user" :title="player.teamName">{{player.teamName}}
                     {{player.gamerTag}}
                   </div>
                   <div class="moves" style="position:relative;display:flex">
