@@ -41,6 +41,8 @@ export class Dashboard {
          // this.clientName = this.client.getSessionProperties().clientName;
           let topic = 'team/register';
           this.subscribeToTopic(topic);
+          topic = 'team/attack/>';  
+          this.subscribeToTopic(topic);
           // this.client.subscribe(solace.SolclientFactory.createTopicDestination(topic),
           //     false, // request confirmation
           //     topic, // correlation key so we know which subscription suceedes
@@ -102,6 +104,12 @@ export class Dashboard {
         msg = jsonMessage;
       } else {
         console.log('unknown message type',  jsonMessage);
+      }
+      debugger;
+      if (destination.getName().indexOf("register") > -1) {
+        msg.action = "register";
+      } else if (destination.getName().indexOf("attack") > -1) {
+        msg.action = "attack";
       }
       if (msg) {
         // process message future if needed, such as adding new state value
@@ -231,27 +239,19 @@ export class Dashboard {
     console.log('Send message tell audiene that team is ready to battle');
     let msg = {"success": "true", "opponent": opponent};
     publishMessageToTopic('team/answer/' + clientName, msg, this.session, this.solaceApi);
-
-    // var message = solace.SolclientFactory.createMessage();
-    // message.setDestination(solace.SolclientFactory.createTopicDestination("team/answer/"+clientName));
-    // message.setBinaryAttachment(JSON.stringify({
-    //     success: true,
-    //     opponent: opponent
-    // }));
-    // message.setDeliveryMode(solace.MessageDeliveryModeType.DIRECT);
-    // this.client.send(message);
-
-    // var tournamentsMessage = new TournamentsMessage();
-    // try {
-    //   publishMessageToTopic('tournaments', tournamentsMessage, this.session, this.solaceApi);
-    // } catch (error) {
-    //   console.log("Publish failed. error = ", error);
-    // }
   }
 
-  clientRegistered(clientName) {
+  sendAttack(clientName, opponent, action) {
+    console.log('Send message tell car to perform ');
+    let msg = action;
+    let car = opponent; 
+    publishMessageToTopic('car/' + car, msg, this.session, this.solaceApi);
+  }
+
+
+  clientRegistered(clientName, canRegister) {
     console.log('Send message tell audiene that team is ready to battle');
-    let msg = {"success": "true"};
+    let msg = {"success": canRegister};
     publishMessageToTopic('team/answer/' + clientName, msg, this.session, this.solaceApi);
   }
 

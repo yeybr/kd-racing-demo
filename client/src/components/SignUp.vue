@@ -1,74 +1,53 @@
 <template>
 		<!-- <ons-gesture-detector> -->
 	<div id="signon"  v-on:swipeleft="gochoose" v-on:swiperight="goscoreboard" v-on:swipebottom="gogamemaster">		
-		<div id="selectingTeam" v-if="state == 'waiting'">    
+		<!-- v-if="state == 'waiting' -->
+		<div id="selectingTeam" >    
 				<!-- submit button -->
 				<div class="form-group">
 
-					<div>
-					<div>
-						<template  v-for="option in options" v-if="!option.disabled">
-							<input type="radio"
-									v-bind:name="game1"
-									v-model="game1team1" 
-									v-on:change="teamSelected(option.value, 'g1t1')"
-									v-bind:id="option.value"
-      								v-bind:value="option.text">		
-							<label  v-bind:for="option.value">{{option.text}} {{option.value}}</label>
-
-						</template>
-						</div>
-						test
-						<div>
-					<template  v-for="option in options"  v-if="!option.disabled">
-
-							<input type="radio"
-									v-bind:name="g1t2"
-									v-model="game1team2" 
-									v-on:change="teamSelected(option.value, 'g1t2')"
-									v-bind:id="option.value"
-      								v-bind:value="option.text">		
-							<label  v-bind:for="option.value">{{option.text}} {{option.value}}</label>
-
-						</template>
-					
-					</div>
-						<select v-model="game1team1" >
-							<option v-for="option in options" v-if="!option.disabled" v-bind:value="option.value">
-							
+					<div class="team-select-grid">
+						
+						<div class="a">{{ games[0].teams[0].teamInfo.value }} vs {{ games[0].teams[1].teamInfo.value}}</div>
+				
+						<button ctype="button" class="b go-btn btn" @click="readyToBattle(games[0].teams[0].teamInfo.text, games[0].teams[1].teamInfo.text)">Ready</button>
+						
+						<select class="c" v-model="selectedTeam[0]" v-on:change="teamSelected(0, selectedTeam[0], 0, 'home')" >
+							<option v-for="option in registeredTeams" 
+								v-if="!option.disabled" v-bind:value="option.value">
 								{{ option.text }}
-
 							</option>
 						</select>
-						<select v-model="game1[1]">
-							<option v-for="option in options" v-if="!option.disabled" v-bind:value="option.value">
-	
+						
+						<select class="d" v-model="selectedTeam[1]" v-on:change="teamSelected(1, selectedTeam[1], 0, 'away')" >
+							<option v-for="option in registeredTeams" 
+									v-if="!option.disabled" v-bind:value="option.value">
 								{{ option.text }}
-								
 							</option>
-					</select>
-						<span>{{ game1[0] }} vs {{ game1[1]}}</span>
-						<button type="button" class="go-btn btn" @click="readyToBattle(game1[0], game1[1])">Ready</button>
-
+						</select>
+						
+						
+						
 					</div>
-					<div>
-						<select v-model="game2[0]">
-							<option v-for="option in options"  v-if="!option.disabled" v-bind:value="option.value">
-								
+					<div class="team-select-grid">
+						
+						<div class="a">{{ games[1].teams[0].teamInfo.value }} vs {{ games[1].teams[1].teamInfo.value}}</div>
+				
+						<button ctype="button" class="b go-btn btn" @click="readyToBattle(games[1].teams[0].teamInfo.text, games[1].teams[1].teamInfo.text)">Ready</button>
+						
+						<select class="c" v-model="selectedTeam[3]" v-on:change="teamSelected(3, selectedTeam[3], 1, 'home')" >
+							<option v-for="option in registeredTeams" 
+								v-if="!option.disabled" v-bind:value="option.value">
 								{{ option.text }}
-								
 							</option>
-					</select>
-						<select v-model="game2[1]">
-							<option v-for="option in options" v-if="!option.disabled" v-bind:value="option.value">
-									
+						</select>
+						
+						<select class="d" v-model="selectedTeam[4]" v-on:change="teamSelected(4, selectedTeam[4], 1, 'away')" >
+							<option v-for="option in registeredTeams" 
+									v-if="!option.disabled" v-bind:value="option.value">
 								{{ option.text }}
-								
 							</option>
-					</select>
-						<span>{{ game2[0] }} vs {{ game2[1]}}</span>
-
-						<button type="button" class="go-btn btn" @click="readyToBattle(game2[0], game2[1])">Ready</button>
+						</select>		
 					</div>
 
 					<!-- <input type="text" class="form-control" id="usr" v-model="username"> -->
@@ -84,17 +63,33 @@
 					<button type="button" class="go-btn btn">Go!</button>
 				</div>
 		<!-- <img  class="mario" src="../assets/mario-running.gif"/> -->       
-		</div>
-			<div class="game-container"  v-if="state != 'starting'">
-				<div>
-					<h1>Game 1</h1>             
-					Team {{ game1[0] }} vs Team {{ game1[1] }}         
+		</div> 
+		<!-- //v-if="state != 'starting' -->
+			<div class="game-container"  >
+				 <div v-for="(game, index) in games">
+					<h1>Game {{index + 1}} - {{ game.teams[0].teamInfo.value }} vs {{ game.teams[1].teamInfo.value}} </h1>             
+					  
+					<div class="team-status">
+						<h1> {{ game.teams[0].teamInfo.value }}'attacks</h1>
+
+						<div class="attack-grid">
+							<div class="attack-item" v-bind:class="{disabled: attack.used}" v-for="attack in game.teams[0].attacks">
+								{{ attack.name }} 
+							</div>
+						</div>	
+					</div>
+					<div class="team-status">
+						<h1>{{ game.teams[1].teamInfo.value}}'s attacks</h1>
+						<div class="attack-grid">
+							<div class="attack-item" v-bind:class="{disabled: attack.used}" v-for="attack in game.teams[1].attacks">
+								{{ attack.name }}
+							</div>
+						</div>
+					</div>
+					      
 				</div>
 				<div></div>
-				<div>
-					<h1>Game 2</h1>
-					Team {{ game2[0] }} vs Team {{ game2[1] }}         
-				</div>		
+					
 		</div>
 	</div>
 
@@ -120,7 +115,7 @@ export default {
 		// this.username = this.$route.query.username;
 		this.username = "dashboard";
 		this.clientId = null;
-		debugger;
+	
 		// console.log(this.$solace);
 		// let $solace = this.$solace;
 		// let appProps = this.$parent.appProps;
@@ -135,30 +130,8 @@ export default {
 		);
 		this.dashboardMessenger.connect();
 
-		// window.setInterval((function() {
-		//     let currentPos = document.getElementById("scoretablebodycontent").offsetTop;
-		//     // document.getElementById("scoretablebodycontent").scrollTop += 100;
-		//     document.getElementById("scoretablebodycontent").scrollBy({
-		//       top: 100, // could be negative value
-		//       left: 0,
-		//       behavior: 'smooth'
-		//     });
-		//     let newPos = document.getElementById("scoretablebodycontent").offsetTop;
-		//     if (currentPos == newPos) {
-		//         document.getElementById("scoretablebodycontent").scrollBy({
-		//         top: -100, // could be negative value
-		//         left: 0,
-		//         behavior: 'smooth'
-		//     });
-		//     }
+	
 
-		//   }), 5000);
-
-		// } else {
-		//   this.$router.push({
-		//     name: 'signin'
-		//   });
-		// }
 	},
 	// mounted() {
 	//   console.log('signin mounted: dom element inserted');
@@ -177,9 +150,10 @@ export default {
 	// Underlying model
 	data() {
 		return {
-			msg: "Welcome to join Trouble Flipper!",
+			msg: "Welcome to join Trouble Racers!",
 			state: "waiting",
-			teamList: [],
+			
+
 			game1team1: '',
 			user_type_list: [
 				{ text: "Player", value: "player" },
@@ -189,22 +163,21 @@ export default {
 			username: "",
 			password: "",
 			usertype: "player",
-			game1: ['', ''],
-			game2: ['', ''],
-			options: [ 
-				{text: 'Team 1', value: '1', disabled: false},
-				{text: 'Team 2', value: '2', disabled: false},
-				{text: 'Team 3', value: '3', disabled: false},
-				{text: 'Team 4', value: '4', disabled: false}
-			
+			selectedTeam: ['', '', '', ''],
+			games: [{id: 0, teams: [{id: "home", teamInfo: {}, attacks: [] }, 
+									{id: "away", teamInfo: {}, attacks: [] }]}, 
+					{id: 1, teams: [{id: "home", teamInfo: {}, attacks: [] }, 
+									{id: "away", teamInfo: {}, attacks: [] }]}], 
+			registeredTeams: [
+				// {text: 'Team 1', value: '1', disabled: false},
+				// {text: 'Team 2', value: '2', disabled: false},
+				// {text: 'Team 3', value: '3', disabled: false},
+				// {text: 'Team 4', value: '4', disabled: false}
 			],
 			attackoptions: [
-				{'name': 'Broken Wheel', id: 1},
-				{'name': 'Spin out', id: 2},
-				{'name': 'Reverse control', id: 3}
-			],
-			teams: [
-
+				{'name': 'Broken Wheel', id: 1, used: false},
+				{'name': 'Spin out', id: 2, used: false},
+				{'name': 'Reverse control', id: 3, used: false}
 			]
 
 		};
@@ -212,41 +185,98 @@ export default {
 
 	// any actions
 	methods: {
-		teamSelected: function(teamId, teamSelection) {
-			debugger;	
-			if (teamId) {
-				if (teamSelection === "g1t1") {
-					this.game1[0] = this.game1team1;
-				} else if (teamSelection === "g1t1") {
-					this.game1[1] = this.game1team2;
+		teamSelected: function(selectedTeamIndex, teamClientName, gameIndex, teamId) {
+			debugger;	 //gameIndex 0, teamId: home/away
+			if (teamClientName) {
+				let game = this.games.find(game=> {
+					return game.id === gameIndex;
+				});
+				let team = game.teams.find(team=> {
+					return team.id === teamId;
+				});
+				let prevClientName = team.teamInfo.value;
+				//reset previous selection 
+				let prevTeam = this.registeredTeams.forEach(registeredTeam => {		
+					return registeredTeam.value === prevClientName;
+				});
+				if (prevTeam) {
+					prevTeam.disabled = false;
 				}
 				
 
-				//reset all teams disabled
-
-				this.options.forEach(element => {
-					
-					element.disabled = false;
+				//if find the changed clientName
+				let newTeam = this.registeredTeams.find(registeredTeam => {		
+					return registeredTeam.value === teamClientName;
 				});
-				debugger;
-				let o = this.options.find(function(option) {
-						return option.value === teamId;
-				});
-				if (o) {
-					o.disabled = true;
-				}
+				if (newTeam) {
+					newTeam.disabled = true;
+					team.teamInfo = newTeam;
+					team.attacks = this.attackoptions.slice();
+				}	
 			}
 			
 
 		},
 		handleMsg: function(msg) {
 
-			console.log('Got message', msg);
 			debugger;
+			console.log('Got message', msg);
 			if (msg && msg.clientName && msg.team) {
-				let newOption = {text: msg.clientName, value: msg.team, disabled: false};
-				this.options.push(newOption);
-				this.dashboardMessenger.clientRegistered(msg.clientName);
+				let team = this.registeredTeams.find(t => {
+							return t.value === msg.team;
+				});
+
+				switch (msg.action) {
+					
+					case "attack":
+						let attackSuccess = false;
+						//find the attck for the team, if not used send attack to car
+						if (team) {
+							let playteam = null;
+							for (game in this.games) {
+								debugger;
+								playteam = game.teams.find(team => {
+									teamInfo.value === msg.team; });
+								if (playteam) {
+									break;
+								}
+							}
+							if (playteam) {
+								let attack = playteam.attacks.find(attack => {
+									return attack.id === msg.attackId;
+								});
+								if (attack.used)  {
+									attackSuccess = false;
+								} else {
+									attackSuccess = true;
+									attack.used = true;
+									let attackAction = {}; //todo
+									this.dashboardMessenger.sendAttack(msg.clientName, msg.opponent, attackAction);
+								}
+							}
+							
+						} else {
+							console.log("no attack occurred");
+						}
+						break;
+					case "register":
+						
+						
+						if (team) {
+							console.log("team already registered: " + msg.team);
+							this.dashboardMessenger.clientRegistered(msg.clientName, false);
+						} else {
+							let newOption = {text: msg.clientName, value: msg.team, disabled: false};
+							this.registeredTeams.push(newOption);
+							this.dashboardMessenger.clientRegistered(msg.clientName, true);
+						}	
+						break;
+					default:
+
+				}
+
+				
+				
 			}
 		},
 		startGame: function() {
@@ -423,9 +453,55 @@ select {
 .game-container {
   display: grid;
   width: 90vw;
-  grid-template-columns: auto 20px auto;
+  grid-template-columns: auto auto;
   /* background-color: #2196F3; */
   padding: 10px;
 }
-
+.team-select-grid {
+	display: grid;
+	grid-template-columns: auto auto auto;
+	grid-gap: 10px;
+	/* background-color: #2196F3; */
+	padding: 10px;
+	grid-auto-rows: 35px;
+}
+.attack-grid {
+	display: grid;
+	grid-template-columns: auto auto auto;
+	grid-gap: 10px;
+	/* background-color: #2196F3; */
+	padding: 10px;
+	grid-auto-rows: auto;
+}
+.a {
+	grid-column: 1 / span 2;
+}
+.b {
+	grid-column: 3 ;
+	grid-row: 1 / span 2;
+	margin: auto;
+}
+.c {
+	grid-column: 1 ;
+	grid-row: 2 ;
+}
+.d {
+	grid-column: 2 ;
+	grid-row: 2 ;
+}
+.attack-item {
+	background: #e4e0ea;
+    border-radius: 4px;
+    margin: auto;
+    padding: 20px;
+	
+}
+.attack-item.disabled {
+	background: black;
+}
+.team-status {
+	background: #ff00002b;
+    padding: 20px;
+    margin: 20px;
+}
 </style>
